@@ -1,0 +1,12 @@
+---
+layout: post
+title: "Zen of CS"
+category: 
+tags: []
+---
+
+###计算机科学领域的任何问题都可以通过增加一个间接的中间层来解决
+All problems in computer science can be solved by another level of indirection... Except for the problem of too many layers of indirection.
+
+* <http://en.wikipedia.org/wiki/Abstraction_layer>
+* <http://en.wikipedia.org/wiki/David_Wheeler_(computer_scientist)>

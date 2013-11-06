@@ -1,0 +1,216 @@
+---
+layout: post
+title: "Git Tips"
+category: Git
+tags: [git]
+---
+
+###配置
+* git alias
+
+    git config --global alias.co checkout  
+    git config --global alias.br branch  
+    git config --global alias.ci commit  
+    git config --global alias.st status  
+    ... ...
+
+###查看历史
+* git log
+
+  -N                 只显示最近N次提交  
+  -p                 按补丁格式显示每个更新之间的差异。  
+  --stat             显示每次更新的文件修改统计信息。  
+  --shortstat        只显示--stat中最后的行数修改添加移除统计。  
+  --name-only        仅在提交信息后显示已修改的文件清单。  
+  --name-status      显示新增、修改、删除的文件清单。  
+  --relative-date    使用较短的相对时间显示（比如，“2 weeks ago”）。  
+  --graph            显示 ASCII 图形表示的分支合并历史。  
+  --pretty           使用其他格式显示历史提交信息。可用的选项包括oneline，short，full，fuller和format（后跟指定格式）。  
+  --since,--after    仅显示指定时间之后的提交。  
+  --until,--before   仅显示指定时间之前的提交。  
+  --author           仅显示指定作者相关的提交。  
+  --committer        仅显示指定提交者相关的提交。  
+
+  `git log --stat`  
+  查看每次提交修改的代码行数
+
+  `git log --name-status  --author=bob --pretty=format:` // 注意format为空 
+  统计bob改动的文件列表，可以将结果保存为文本文件，用vim打开，使用`:sort u`删去重复的行
+
+  `git instaweb` 以web的方式查看仓库  
+  `git instaweb --stop` 停止服务器  
+
+###撤销回滚
+* git reset
+    1. git reset --soft 只撤销 commit,保留 working tree 和 index file。
+    2. git reset --hard 撤销 commit、index file 和 working tree,即彻底销毁最近一次的 commit
+    3. git reset --mixed 撤销 commit 和 index file,保留 working tree
+    4. git reset 和 git reset --mixed 完全一样
+    5. git reset --用于删除登记在 index file 里的某个文件。
+
+    git reset的第二种用法:   
+    `git reset [-q] [<commit>] [--] <paths>...`
+    将指定路径的文件在commit的内容拷贝到暂存区。git reset path和git add path效果相反。
+
+* 回退版本(参考[这里](http://hi.baidu.com/talltwintowers/blog/item/36c931bf7685360119d81fc6.html))
+
+  回退版本很简单，`git checkout sha1` 即可。  
+  现在你不在任何一个branch（no branch），执行git status显示：
+
+        $ git status
+        # Not currently on any branch.
+        nothing to commit (working directory clean)
+    
+    这个操作会将HEAD指向指定commit,并重置index和working tree到此commit的状态. 但由于此commit不是任何branch的头("head" or "tip"),所以git会给出警告.这种情况称为"HEAD is detached".参考[这里](http://www.kernel.org/pub/software/scm/git/docs/user-manual.html#detached-head)  
+    虽然警告,但并没有什么危险,只要别做commit,最后checkout回(某个branch)来就行了.  
+    如果此时做commit呢?--那也没有什么,只是这个新的commit以后只能通过SHA1来引用了(当然,还可以用git reflog看到),好比一个野指针;或者你赋个tag给它.不过这没有意义,如果你真的想从这儿发展下去,那么应该新建一个branch,比如`git checkout -b <new_branch> <start_point>`  
+    但是注意,做此操作时working tree和index应该是"干净的",就是和HEAD(所指的commit)完全一致,没有任何改动,否则git会报错不执行;你可能会看到类似这样的error:  
+
+        error: You have local changes to 'somefile'; cannot switch branches.或
+        error: Entry 'somefile' would be overwritten by merge. Cannot merge.
+
+    (不过,你可以用--merge选项强制执行,此时git会做一个three-way merge)
+
+    要切换回HEAD commit,执行`git checkout branch-name`
+
+###Diff & Patch
+* git diff
+
+      git diff 查看 working tree 与 index file 的差别。  
+      git diff --cached/--staged 查看 index file 与最后一次提交的commit之间的差别的。  
+      git diff HEAD 是查看 working tree 和最后一次提交的commit之间的差别的。  
+
+* 
+
+      git format-patch -1    生成最后一个提交对应的patch文件
+      git am < diff.patch    把一个patch文件应用到当前分支
+
+###Branch
+* 所谓Branch，本质上是一个指针（一串SHA号），指向某个commit。特别的，HEAD是当前分支的最后一个commit的别名。
+* git merge
+    多个分支进行merge时可能存在两种方式：
+    1. Fast-forward
+    1. 两个分支（A，B）的末端和这两个分支的共同祖先（C）进行三方合并（可能出现冲突），合并后将产生一个新的commit，这个commit有两个祖先（A和B）。
+
+    `git branch --merged` 查看有哪些分支已经合并进当前分支了，这些分支可以删掉了，因为这些分支的更改已经包含再当前分支里面了  
+    `git branch --no-merged` 查看尚未合并的分支  
+
+* git rebase
+                     A---B---C topic
+                    /
+               D---E---F---G master
+  当前分支为topic，`git rebase master`，rebase的过程是：
+  1. 把从topic和master共同的祖先E开始在当前分支上的提交生成一个patch文件
+  2. 将A、B、C砍掉，相当与执行`git reset --hard master`
+  3. 将生成的patch文件一个一个应用到G上
+
+  结果变成这样：
+                             A'--B'--C' topic
+                            /
+               D---E---F---G master
+  topic的提交历史被改写了，成了master分支的直接下游，这时在master分支上做一次fast-forward的merge就好了。
+
+  可见，相比于merge，rebase不会产生一个新的commit，合并后的主线更加干净。如果希望在执行git pull时自动使用git rebase取代默认的git merge操作，可以执行
+
+      git pull --rebase
+  参见[这里](http://www.worldhello.net/gotgithub/04-work-with-others/020-shared-repo.html#rebase-and-push)
+
+* git pull
+
+    git pull = git fetch + git merge  
+    git pull origin next = git fetch origin/next + git merge origin/next  // 将远程分支next合并到当前分支上
+
+  `git pull`会把所有正在跟踪远端仓库的分支的本地分支进行数据拉取。
+  执行git pull, git merge, git reset之前的HEAD会被保存到ORIG\_HEAD,所以如果要回滚刚才的pull动作，那么执行`git reset --hard ORIG_HEAD`。查看pull下来的内容，执行`git diff ORIG_HEAD`
+
+* git push
+
+  `git push origin featureA` 将本地的featureA分支推送到远程仓库  
+  `git push origin local_branch:remote_branch` 将本地的local\_branch的内容推送到origin远程仓库的remote\_branch分支上去，所以执行 `git push origin :remote_branch` 将删除远程版本库的 remote\_branch 分支。  
+
+* git fetch
+
+      $ git remote add rc git@github.com:calvinlee/git-sandbox.git
+      $ git remote -v
+      origin	git@github.com:calvinlee/git-sandbox.git (fetch)
+      origin	git@github.com:calvinlee/git-sandbox.git (push)
+      rc	git@github.com:calvinlee/git-sandbox.git (fetch)
+      rc	git@github.com:calvinlee/git-sandbox.git (push)
+      $ git fetch rc
+       * [new branch]      experimental -> rc/experimental
+       * [new branch]      master     -> rc/master
+  运行git fetch后，本地多了从rc这个库fetch下来的分支：
+
+      $ git branch -r
+      origin/HEAD -> origin/master
+      origin/experimental
+      origin/master
+      rc/experimental
+      rc/master
+  现在可以切换到这个分支查看，或者选择merge到本地分支。（远程分支以这样的形式命名：远程仓库名/分支名）
+
+###git reset与git checkout
+`git reset`用来修改refs的指向:修改的是.git/refs/heads/master的值，HEAD本身一直指向refs/heads/master, 并没有在reset过程中改变。
+`git checkout`用来修改HEAD的指向: 修改的是.git/HEAD的文件内容, checkout不影响.git/refs/heads/下文件的内容。  
+
+什么叫detached HEAD？  
+这个状态下.git/HEAD指向了一个具体的commit ID，而不是一个分支的名称。  
+
+###符号
+* branchA..branchB
+
+  用来获取在branchB上但是不在branchA上的提交。如：  
+  `git log --pretty=format:"%h %s" HEAD~3..HEAD` 显示最近三次提交的log  
+  `git log origin/master..HEAD` 显示所有在当前分支上但不在远程分支上的提交。如果当前分支正在track远程分支，那么下次运行`git push`将推送这些提交到远程分支上。  
+
+  这种表示法与下列语法等价：
+
+       ^branchA branchB
+       branchB --not branchA
+* branchA...branchB
+
+  获取被两个分支之一包含但不被这两个分支同时包含的提交。
+* ^[N] 和 ~[N]
+
+  两个分支合并后，你合并时所在分支称为first parent，你所合并的分支称为second parent  
+  HEAD^[N]表示HEAD的第N个second parent  
+  HEAD~[N]表示HEAD的第N个first parent  
+
+* 获取某一次特定提交对应的文件内容
+ e43fef:path/to/file  
+ 获取暂存区中的文件对象：  
+ :path/to/file
+
+###其它
+* 将多个commit合成一个commit后提交
+
+  场景：  
+  packages/apps/Email 已经提交了多个commit在branchA上，现在要把这些commit压成一个commit合并到merge\_fix分支上。  
+
+       $ cd packages/apps/Email
+       $ repo sync .
+       $ git log --pretty=oneline // 假如需要squash commit1 和 commit2
+         e8949d30bcb568b32a12338a28fb9d7a13e8b086 commit1
+         6d7eef22cd2634bd0da8de8e38635dd92b3e5a48 commit2
+         0130c5a03756b01ec4a39422ab08474625153a81 commit3
+       $ git rebase -i 0130c5a03756b01ec4a39422ab08474625153a81 //注意这里是想要squash的commit的前一个commit(commit3), 更改commit message后继续
+       $ git log -2 //找到squash后的commit，假如squash后的commit号为bed1b4fa7ae3f9a4a546f2aa367a8f2e7ba4b7b1
+       $ git checkout merge_fix
+       $ git cherry-pick bed1b4fa7ae3f9a4a546f2aa367a8f2e7ba4b7b1
+    完毕
+
+* 一个图片文件 index.jpeg 冲突了，如何取出他人的版本?
+
+      git show :3:./index.jpeg > index.jpeg-theirs
+  可以先使用git ls-files查看：
+
+      $ git ls-files -s
+      100644 a97de6ee1b2352f4e33d09196fa478ffaae0b024 0	README
+      100644 04c14c2023f69123e719fae7c4242537c943b726 0	file1
+      100644 2f08be9a02925b5c016904e19fbd5e8d057ae756 0	hello.c
+      100644 eb651d4b863843d3ad12c446b541075f2839d7d2 2	index.jpeg
+      100644 099df17855c924472b1809d99389d8eee7582d9f 3	index.jpeg
+
+  第三栏称为stage number，stage number为2的存储着合并前的版本，stage number为3的存储着合并过来的版本。参见[这里](http://book.git-scm.com/7_the_git_index.html)  
+
+* 漂亮的git前端工具 - [tig](http://jonas.nitro.dk/tig/)

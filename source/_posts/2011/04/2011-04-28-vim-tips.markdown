@@ -1,0 +1,284 @@
+---
+layout: post
+title: "Vim tips"
+category: Vim
+tags: [vim]
+published:
+---
+
+##移动
+`0` 移动到行首  
+`$` 移动到行末  
+`CTRL+ o` 回到上一视图  
+`CTRL+ i` 前进到下一视图  
+`ZZ` 保存更改并退出  
+  
+`fx`  在当前行向前移动光标到下一个字符x (很明显, x可以是任意你想要移动到的字符). 这是一个超级有用的命令. 你可以输入;来重复前一个f命令.
+`tx`  和上面的命令基本相同, 除了移动光标到字符x之前而不是x字符本身. (这个真的很有用)  
+`Fx`  在当前行向后移动光标到上一个字符x.  
+  
+`zz` 将当前行置于屏幕中间  
+`zt` 将当前行置于屏幕顶端  
+`zb` 将当前行置于屏幕底端  
+`CTRL+e` 移动光标所在行的位置，比如我光标在第10行，我想光标不动，但是所在行向上移  
+`CTRL+y` 同上，但是向下移  
+`%` match of next brace, bracket, comment  
+  
+在长句子内移动    
+在你编辑电子邮件或其他段落式文本的时候, 你可能注意到移动方向跳的行数比你料想的多. 这是因为你的段落对vim来说在很长的同一个行里. 用h, j, k, l移动前输入g可以让移动相对于屏幕看上去的行数而不是vim内部的行数.  
+  
+##复制-粘贴  
+1.选定文本块，使用v进入可视模式；移动光标键选定内容  
+1.复制选定块到缓冲区，用y；  
+复制整行，用yy;  
+复制到系统剪切板 "+y  
+剪切到系统剪切板 "+x  
+1.剪切选定块到缓冲区，用d；剪切整行用dd  
+1.粘贴缓冲区中的内容，用p  
+  
+vim文件间复制粘贴    
+http://www.cnblogs.com/jianyungsun/archive/2011/03/19/1988855.html    
+使用 yaw  命令复制当前光标所在单词    
+  
+用vi 复制第5行到第10行并粘贴到第12行之后？    
+：5,10 co 12    
+  
+##删除插入（s与c）  
+s删除光标当前字符，进入插入模式，等同于 x i    
+S删除当前行 进入插入模式，等同于 dd i    
+c change 同样是替代插入，不过c要与其他指令配合使用    
+如 cw 删除一个单词后i ，    
+c$ =C = D i  删除光标位置到行末后i    
+cc= S    
+d$= D    
+使用 yaw  命令复制当前光标所在单词  
+  
+删除  
+向后删除一个词 dw 两个词 d2w  
+向后删除到行尾 d$  
+删除整行 dd  
+df c 向后删至字符c出现的位置(包括该字符)  
+dt c 向后删至字符c出现的位置(不包括该字符)  
+d /text 向后删至内容text出现的位置(不包括该text内容)  
+  
+如果你在一个单词的中间而又想删掉这个单词，在你用 "dw" 前，你必须先移到这个单词    
+的开始处。这里还有一个更简单的方法："daw"。    
+"daw" 的 "d" 是删除操作符。"aw" 是一个文本对象。提示："aw" 表示 "A Word" (一个    
+单词)，这样，"daw" 就是 "Delete A Word" (删除一个单词)。确切地说，该单词后的空    
+格字符也被删除掉了。    
+diw     删除光标上的单词 (不包括空白字符)    
+daw     删除光标上的单词 (包括空白字符)    
+  
+还有句子的 is 也是一个文本对象 对句子进行操作。    
+另外还可以 ciw diw viw    
+  
+如果光标位于"",[],()之间，还可以    
+vi"    
+ci"    
+参考 :help object-select    
+  
+##编辑  
+打开新文件 :e filename  
+i 在游標所在字元前開始輸入文字(insert)。  
+a 在游標所在字元後開始輸入文字(append)。  
+o 在游標所在行下開一新行來輸入文字(open)。  
+I 在行首開始輸入文字。此之行首指第一個非空白字元處，要從真正的第一個字  
+元處開始輸人文字，可使用 0i 或 gI(Vim 才有)。  
+A 在行尾開始輸入文字。這個好用，您不必管游標在此行的什麼地方，只要按 A  
+就會在行尾等著您輸入文字。  
+O 在游標所在行上開一新行來輸入文字。  
+J 將下一行整行接至本行(Joint)。  
+撤销 u  
+在一行上撤销 U  
+重做 CTRL r  
+替换字母 rx(x为要替换的字母)  
+改动单词直到单词末尾 ce  
+将光标移到某一个字母上，输入ce，然后敲入正确的单词  
+与此类推，还有cw，c$  
+Typing a capital  R  enters Replace mode until ESC is pressed.  
+  
+. 重复前次的编辑动作  
+\`. 回到上次编辑的位置  
+  
+快速选中括号里的文本  
+vi{ 选中｛｝中间的内容,不包括｛｝  
+v**a**{ 选中｛｝中间内容，包括{}  
+vi( 选中（）中间内容  
+vi[ 选中[]中间内容  
+vit 选中<tag></tag>中间的内容，编辑XML文件时特别有用  
+vi" 选中""中间内容  
+vi' 选中''中间的内容  
+  
+vis 选中一个句子  
+viw 选中一个单词  
+vip 选中一个段落  
+...  
+  
+同时适用于c，y，d等motion。  
+参考:h text-objects  
+  
+编辑二进制文件  
+打开文件：vim -b file  
+用vim -b datafile打开文件，用:%!xxd把二进制文件转换  
+编辑完后用:%!xxd -r命令把编辑状态的文本转换成二进制数据  
+具体描述可用:help 23.4察看帮助文档  
+  
+切换最近编辑的两个buffer  
+CTRL-6 或 CTRL-^ 或 :e #  
+  
+大小写转换：  
+gu或者gU或者~  
+  
+行编辑  
+`:3,.d`    		   从3行删除到当前行  
+`:.,3d`    		   从当前行删除到3行  
+`:3,.+3d`  		   从3行删除到当前行后第三行  
+`:3,.-1d`  		   从3行删除到当前行前一行  
+`:.,3s/adb/def/g`  将当前行到第三行之间的abc替换为def  
+`:345w file`       将第 345 行写入 file 文件  
+`3,5w file`        将第 3 行至第 5 行写入 file 文件  
+`:r file`          读取 file 文件的内容，插入当前光标所在行的后面  
+`:e file`          编辑新文件 file 代替原有内容  
+`:f file`          将当前文件重命名为 file  
+`:f`               打印当前文件名称和状态，如文件的行数、光标所在的行号等  
+  
+##命令补全  
+When typing a  :  command, press CTRL-D to see possible completions.  
+Press TAB to use one completion.  
+  
+使用关键字自动完成(补全)  
+vim 有个非常好的关键字自动完成系统. 就是说你可以只输入很长的词的一部分, 按一个键, vim帮你把这个词自动补全. 比如说在你的代码中有一个变量叫iAmALongAndAwkwardVarName, 你可能不愿意每次用这个变量都把整个词打一遍, 这时候就可以用自动完成功能.  
+要使用关键字自动完成, 只要输入一个字串的前几个字母 (比如 iAmAL) 然后按 `Ctrl-N`或者`Ctrl-P`. 如果vim没有选择你需要的字串, 继续按`Ctrl-N`或者`Ctrl-P` – vim会遍历所有和你输入的前几个字母匹配的字串.  
+  
+##搜索替换  
+  1. CTRL-G  displays your location in the file and the file status.  
+             G  moves to the end of the file.  
+     number  G  moves to that line number.  
+            gg  moves to the first line.  
+  
+  2. Typing  /  followed by a phrase searches FORWARD for the phrase.  
+     Typing  ?  followed by a phrase searches BACKWARD for the phrase.  
+     After a search type  n  to find the next occurrence in the same direction  
+     or  N  to search in the opposite direction.  
+     CTRL-O takes you back to older positions, CTRL-I to newer positions.  
+  
+  3. Typing  %  while the cursor is on a (,),[,],{, or } goes to its match.  
+  
+  4. To substitute new for the first old in a line type    :s/old/new  这个命令只替换当前行的内容  
+     To substitute new for all 'old's on a line type       :s/old/new/g  
+     To substitute phrases between two line #'s type       :#,#s/old/new/g  
+     To substitute all occurrences in the file type        :%s/old/new/g  
+     To ask for confirmation each time add 'c'             :%s/old/new/gc  
+  
+注：  
+%代表当前编辑的内容  
+\#代表前一个编辑的内容  
+如:  
+:%!xxd 表示将当前所有内容用xxd命令处理  
+  
+搜索精确匹配  
+如xxx是要查找的内容，输入  
+`/\<xxx\>`，  
+要在`<>` 前加\进行转义，告诉Vim `<>` 这个不是要查找的内容。  
+`\<` 表示只匹配单词的开头，`\>`表示只匹配单词末尾，点`.`表示匹配任何字符。  
+\*搜索游标所在出的单词（精确匹配）  
+\#反向搜索游标所在出的单词（精确匹配）  
+  
+快速替换游标处的单词    
+把光标置于thisisaverylongword之上, 然后    
+  
+    :%s/<CTRL+R><CTRL+W>/ABCD/g .  
+  
+在命令格式下, CTRL+R代表插入寄存器, CTRL+W代表当前单词.  
+也可以通过寄存器的方式来使用.  
+使用v选择一个区域, 然后 "ay  , 存取寄存器a，然后  
+  
+    :%s/<CTRL+R>a/ABCD/g  
+  
+ABCD 可以用同样的方法,使用寄存器.    
+  
+重复修改：  
+"." 是 Vim 中一个非常简单而有用的命令。它重复最后一次的修改操作。  
+  
+        /four<Enter>    找到第一个 "four"  
+        cwfive<Esc>     修改成 "five"  
+        n               找下一个 "four"  
+        .               重复修改操作  
+        n               找下一个 "four"  
+        .               重复修改  
+                        如此类推......  
+
+搜索完毕后取消高亮  
+:noh 或者 :nohlsearch  
+  
+##窗口和标签  
+`CTRL+w w` 切换窗口  
+`:tabedit file` 在新tab中打开文件  
+`:tab split`  将当前窗口缓冲区内容在新tab中打开  
+`:tabonly` 关闭其他所有标签  
+`:tabc` 关闭当前标签页  
+`:tabc 3` 关闭第三个标签页  
+`gt` 切换tab显示  
+`2gt` 显示第二个tab  
+  
+更改窗口宽度和高度  
+`Crtl+w >` 将当前窗口向右边扩展一行，将 `>` 换成 `<` 就是向左边扩展一行。也可以在之前使用数字代表扩展的行数  
+`5 Ctrl+w >` ,向右边扩展5行。  
+`Ctrl+w +` 更改窗口高度。+ 增加高度，- 减小高度。  
+  
+`:close` 关闭窗口  
+实际上，任何退出编辑的命令都可以关闭窗口，象 ":quit" 和 "ZZ" 等。但 "close"可以避免你在剩下一个窗口的时候不小心退出 Vim 了。  
+  
+`:only` 关闭所有其它窗口  
+如果你已经打开了一整套窗口，但现在只想编辑其中一个，可以使用这个命令。  
+这个命令关闭除当前窗口外的所有窗口。如果要关闭的窗口中有一个没有存盘，Vim 会  
+显示一个错误信息，并且那个窗口不会被关闭。  
+  
+##注释python代码  
+1.Ctrl + V 进入 VIM 的块操作模式  
+1.使用 j, k 键上下移动，选中这三行，需要确保每行的首列包含在选中块中。  
+1.键入 r ，即在替换行首字符。 输入 Python 的注释符 ‘＃’。  
+1.按下 ESC 键。  
+
+##删除重复行
+`:sort u`
+参见`:help sort`
+
+##格式化文本
+参见:h formatoptions, :h textwidth
+gq 对行内长文本进行换行
+gq{ 对一个段落进行自动换行
+  
+##其他  
+K 显示游标所在的单词相关的man page  
+：r!command 在游标处插入command的执行输出结果，如date命令将插入当前时间  
+  
+对齐文本  
+以某一个分隔符为界在垂直方向上对齐文本，如：  
+  
+    name|age|sex  
+    Alice|23|female  
+    BobBobBobBob|25|male  
+对齐后：  
+  
+    name         | age | sex  
+    Alice        | 23  | female  
+    BobBobBobBob | 25  | male  
+这个功能在写代码时对齐变量十分有用，通过Align和Tabular两个插件可以轻松完成。  
+`:%Align |`  将全文对齐   
+`:'<,'>Align = + - = |`  将选中的文本按+，-，=或者|对齐   
+更多选项参考`:help align`  
+
+另外，通过外部命令column也可以实现：  
+`:%!column -t -s '|'`  
+
+VIM中按w时光标移动总要停顿一会儿才会响应  
+原因是我map了一个以w开头的按键，导致每次按w后，vim都要等待一下判断是执行w还是继续接收输入。去掉这个map就好了。  
+
+在线的colorscheme配色网站  
+<http://bytefluent.com/vivify/>
+  
+##一些plugin：  
+* <http://www.mirecle.com/2009/07/29/vim-python-indentation-and-inspection.html>  
+* <http://www.vimer.cn/2011/02/%E8%AE%A9vimgvim%E6%9B%B4%E5%A5%BD%E7%9A%84%E6%94%AF%E6%8C%81python%E8%AF%AD%E6%B3%95%E7%BC%A9%E8%BF%9B%E5%BC%BA%E7%83%88%E6%8E%A8%E8%8D%90.html>  
+  

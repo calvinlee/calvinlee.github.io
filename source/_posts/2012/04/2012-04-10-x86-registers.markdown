@@ -1,0 +1,14 @@
+---
+layout: post
+title: "x86 平台寄存器概述"
+category: 
+tags: [todo]
+published: false
+---
+
+###32位机器
+###64位机器
+###为什么寄存器的数量不是多多益善？
+http://bbs.pediy.com/archive/index.php?t-78354.html
+http://www.cppblog.com/lingjingqiu/archive/2009/12/10/102874.html
+http://www.cs.virginia.edu/~evans/cs216/guides/x86.html
