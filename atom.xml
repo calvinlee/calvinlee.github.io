@@ -1,16 +1,1286 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[My Octopress Blog]]></title>
+  <title><![CDATA[且听风吟]]></title>
   <link href="http://calvinlee.github.io/atom.xml" rel="self"/>
   <link href="http://calvinlee.github.io/"/>
-  <updated>2013-11-06T10:05:02+08:00</updated>
+  <updated>2013-11-06T16:49:12+08:00</updated>
   <id>http://calvinlee.github.io/</id>
   <author>
-    <name><![CDATA[Your Name]]></name>
+    <name><![CDATA[Calvin Lee]]></name>
     
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[禁用内核进程地址随机]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/11/04/disable-kernel-random-address/"/>
+    <updated>2013-11-04T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/11/04/disable-kernel-random-address</id>
+    <content type="html"><![CDATA[<p>今天接触了Linux下的VDSO（Virtual Dynamically-linked Shared Object)，用来使系统调用更加快速和高效，但在查看进程vdso.so在进程地址空间的分布时，发现每次打印出来的进程地址都不一样：</p>
+
+<pre><code>$ ldd /bin/ls
+    linux-vdso.so.1 =&gt;  (0x00007ffff7ffe000)
+    libselinux.so.1 =&gt; /lib/x86\_64-linux-gnu/libselinux.so.1 (0x00007ffff7dc0000)
+    librt.so.1 =&gt; /lib/x86\_64-linux-gnu/librt.so.1 (0x00007ffff7bb8000)
+    libacl.so.1 =&gt; /lib/x86\_64-linux-gnu/libacl.so.1 (0x00007ffff79af000)
+    libc.so.6 =&gt; /lib/x86\_64-linux-gnu/libc.so.6 (0x00007ffff75ef000)
+    libdl.so.2 =&gt; /lib/x86\_64-linux-gnu/libdl.so.2 (0x00007ffff73eb000)
+    /lib64/ld-linux-x86-64.so.2 (0x0000555555554000)
+    libpthread.so.0 =&gt; /lib/x86\_64-linux-gnu/libpthread.so.0 (0x00007ffff71cd000)
+    libattr.so.1 =&gt; /lib/x86\_64-linux-gnu/libattr.so.1 (0x00007ffff6fc8000)
+$ cat /proc/self/maps 
+00400000-0040b000 r-xp 00000000 08:05 1438995                            /bin/cat
+0060a000-0060b000 r--p 0000a000 08:05 1438995                            /bin/cat
+0060b000-0060c000 rw-p 0000b000 08:05 1438995                            /bin/cat
+0060c000-0062d000 rw-p 00000000 00:00 0                                  [heap]
+7ffff7337000-7ffff7a1a000 r--p 00000000 08:05 137790                     /usr/lib/locale/locale-archive
+7ffff7a1a000-7ffff7bcf000 r-xp 00000000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7bcf000-7ffff7dcf000 ---p 001b5000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7dcf000-7ffff7dd3000 r--p 001b5000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7dd3000-7ffff7dd5000 rw-p 001b9000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7dd5000-7ffff7dda000 rw-p 00000000 00:00 0 
+7ffff7dda000-7ffff7dfc000 r-xp 00000000 08:05 407692                     /lib/x86\_64-linux-gnu/ld-2.15.so
+7ffff7fd9000-7ffff7fdc000 rw-p 00000000 00:00 0 
+7ffff7ff9000-7ffff7ffb000 rw-p 00000000 00:00 0 
+7ffff7ffb000-7ffff7ffc000 r-xp 00000000 00:00 0                          [vdso]
+7ffff7ffc000-7ffff7ffd000 r--p 00022000 08:05 407692                     /lib/x86\_64-linux-gnu/ld-2.15.so
+7ffff7ffd000-7ffff7fff000 rw-p 00023000 08:05 407692                     /lib/x86\_64-linux-gnu/ld-2.15.so
+7ffffffde000-7ffffffff000 rw-p 00000000 00:00 0                          [stack]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+</code></pre>
+
+<p>原来在现代Linux内核中，为了安全起见，会对每个进程的进程地址进行随机化。用以下命令即可禁用这个功能：</p>
+
+<pre><code>echo "0" &gt; /proc/sys/kernel/randomize_va_space
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Chromium base库介绍]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/09/26/Chrominum-base-code-introduction/"/>
+    <updated>2013-09-26T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/09/26/Chrominum-base-code-introduction</id>
+    <content type="html"><![CDATA[<p>Chromium的base库包含了一些常用的基础代码，包括:</p>
+
+<pre><code>* 文件操作
+* json读写
+* 字符串操作
+* 时间操作
+* 智能指针
+</code></pre>
+
+<p>在线代码浏览：
+<a href="https://code.google.com/p/chromium/codesearch#chromium/src/base/">https://code.google.com/p/chromium/codesearch#chromium/src/base/</a></p>
+
+<h3>常用宏</h3>
+
+<ol>
+<li>DISALLOW_COPY/DISALLOW_ASSIGN/DISALLOW_COPY_AND_ASSIGN
+位于base/basictyps.h，它通过将拷贝构造函数和=运算符重载设置为private来禁用类对象的拷贝和赋值操作。
+示例用法：sql/transaction.h</li>
+</ol>
+
+
+<h3>智能指针</h3>
+
+<p>scoped_ptr: base/memory/scoped_ptr.h
+经过scoped_ptr封装的指针在出作用域后自动被释放, 该指针的ownership只能传递，不能拷贝。使用方法见头文件的注释。</p>
+
+<h3>文件操作</h3>
+
+<p>base/platform_file.h
+base/file_util.h
+base/files/file_path.h
+base/path_service.h</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[strcpy和memcpy的区别]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/02/25/strcpy-memcpy/"/>
+    <updated>2013-02-25T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/02/25/strcpy-memcpy</id>
+    <content type="html"><![CDATA[<p>今天被问到strcpy和memcpy的区别，一时语塞，于是研究一下记录下来。</p>
+
+<h3>strcpy</h3>
+
+<pre><code>   #include &lt;string.h&gt;
+   char *strcpy(char *dest, const char *src);
+</code></pre>
+
+<p>它的作用是将src指向的字符串，包括最后的&#8217;\0&#8217;，拷贝到dest指向的字符串。它的一个简单实现如下：</p>
+
+<pre><code>       char*
+       strncpy(char *dest, const char *src, size_t n){
+           size_t i;
+
+           for (i = 0 ; i &lt; n &amp;&amp; src[i] != '\0' ; i++)
+               dest[i] = src[i];
+           for ( ; i &lt; n ; i++)
+               dest[i] = '\0';
+
+           return dest;
+       }
+</code></pre>
+
+<p>也就是说，strcpy会从头开始依次拷贝每个字符，但是一旦遇到了空字符NULL（&#8217;\0&#8217;），strcpy就会停止拷贝。</p>
+
+<h3>memcpy</h3>
+
+<pre><code>   #include &lt;string.h&gt;
+   void *memcpy(void *dest, const void *src, size_t n);
+</code></pre>
+
+<p>memcpy用来进行内存拷贝，它将src指向的地址后的n个字节拷贝到dest开始的内存里，可以用它拷贝任何内型的数据对象。</p>
+
+<hr />
+
+<p>以下是stackoverflow上的一个demo，它清楚的显示了这两个函数的区别：</p>
+
+<pre><code>void dump5(char *str);
+
+int main()
+{
+    char s[5]={'s','a','\0','c','h'};
+
+    char membuff[5]; 
+    char strbuff[5];
+    memset(membuff, 0, 5); // init both buffers to nulls
+    memset(strbuff, 0, 5);
+
+    strcpy(strbuff,s);
+    memcpy(membuff,s,5);
+
+    dump5(membuff); // show what happened
+    dump5(strbuff);
+
+    return 0;
+}
+
+void dump5(char *str)
+{
+    char *p = str;
+    for (int n = 0; n &lt; 5; ++n)
+    {
+        printf("%2.2x ", *p);
+        ++p;
+    }
+
+    printf("\t");
+
+    p = str;
+    for (int n = 0; n &lt; 5; ++n)
+    {
+        printf("%c", *p ? *p : ' ');
+        ++p;
+    }
+
+    printf("\n", str);
+}
+</code></pre>
+
+<p>结果输出：</p>
+
+<pre><code>73 61 00 63 68  sa ch
+73 61 00 00 00  sa
+</code></pre>
+
+<p>可见用strcpy拷贝时，ch被忽略了，但是memcpy也将它拷贝过来了。</p>
+
+<p>详细讨论在<a href="http://stackoverflow.com/questions/2898364/strcpy-v-s-memcpy">这里</a>。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Eclipse 调试中的五种断点]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/01/28/eclipse-debug-break-points/"/>
+    <updated>2013-01-28T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/01/28/eclipse-debug-break-points</id>
+    <content type="html"><![CDATA[<p>Eclipse调试支持五种不同的断点，这些断点都可以通过Run主菜单下的选项来添加或者删除。</p>
+
+<h3>Line breakpoints</h3>
+
+<p>Line breakpoints就是我们平时使用最多的一种断点类型，它以代码行为单位，代码执行到这一行时就会被suspend。有两个比较有用的属性：</p>
+
+<ul>
+<li>Condition breakpoint
+为该断点添加一个条件，只有当这个条件成立时才会suspend</li>
+<li>Hit count
+指定一个整数值N，只有当这个断点被执行过的次数达到N次时才会suspend。</li>
+</ul>
+
+
+<h3>Watchpoint</h3>
+
+<p>Watchpoint针对的是变量。如果我们对程序运行的过程不关心，而对某个关键变量的值的变化比较关心，那么我们可以对这个变量设置一个Watchpoint, 同时指定它的Access和Modification属性用来执行这个变量被访问时suspend还是被修改时suspend。</p>
+
+<p>注意：<br/>
+Android的Dalvik虚拟机目前还不支持这种breakpoint。</p>
+
+<h3>Method breakpoints</h3>
+
+<p>Method breakpoints用来指定针对一个方法的断点。他有两个属性：</p>
+
+<ul>
+<li>Entry：当进入该方法时suspend</li>
+<li>Exit：当执行玩该方法时suspend</li>
+</ul>
+
+
+<h3>Exception breakpoints</h3>
+
+<p>指定当某个exception发生时suspend当前线程。</p>
+
+<h3>Class Load breakpoints</h3>
+
+<p>指定当某个类被虚拟机加载时suspend当前线程。</p>
+
+<p>以上五种断点都可以在Breakpoints 视图中查看，可以通过右上角的菜单，Group by，选择Breakpoint types，这样可以按照这五种类型来对当前所有的Breakpoint进行分类查看，比较方便。</p>
+
+<p><a href="http://calvinlee.github.io/images/eclipse-debug.png"><img src="http://calvinlee.github.io/images/eclipse-debug.png" alt="/images/eclipse-debug.png" /></a></p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://www.vogella.com/articles/EclipseDebugging/article.htm">http://www.vogella.com/articles/EclipseDebugging/article.htm</a></li>
+<li><a href="http://developer.51cto.com/art/201111/302928.htm">http://developer.51cto.com/art/201111/302928.htm</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Eclipse Content assist失效解决]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/01/28/eclipse-content-assist/"/>
+    <updated>2013-01-28T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/01/28/eclipse-content-assist</id>
+    <content type="html"><![CDATA[<p>今天发现eclipse的conent assist的默认键Ctrl + Space与系统输入法冲突，于是打开Window &ndash;> Preference &ndash;> Keys，将content assist改为Alt + /，然而发现还是不起作用，最后找到解决方法：<br/>
+Window &ndash;> Preference &ndash;> Keys &ndash;> Word Completion &ndash;> Unbind Command<br/>
+然后apply。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Android Mms 缓存机制分析]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/01/21/android-MMS-cache-implementation/"/>
+    <updated>2013-01-21T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/01/21/android-MMS-cache-implementation</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Android消息处理机制理解]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/01/20/android-handler-looper-message/"/>
+    <updated>2013-01-20T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/01/20/android-handler-looper-message</id>
+    <content type="html"><![CDATA[<p>Android的消息处理机制是很多功能实现的基础，如UI绘制，键盘事件传递等等。在实现上，涉及到的类有Handler, Message, Looper等等，本篇研究Android消息处理机制的内部实现细节。</p>
+
+<h3>UI线程消息循环的启动</h3>
+
+<p>Android所谓UI线程的启动位于ActivityThread.java，在其main方法中会启动这个消息循环：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Looper</span><span class="o">.</span><span class="na">prepareMainLooper</span><span class="o">();</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">sMainThreadHandler</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">sMainThreadHandler</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Handler</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">ActivityThread</span> <span class="n">thread</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ActivityThread</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">thread</span><span class="o">.</span><span class="na">attach</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Looper</span><span class="o">.</span><span class="na">loop</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>首先调用<code>Looper.prepareMainLooper()</code>方法：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Initialize the current thread as a looper, marking it as an</span>
+</span><span class='line'><span class="cm">     * application&#39;s main looper. The main looper for your application</span>
+</span><span class='line'><span class="cm">     * is created by the Android environment, so you should never need</span>
+</span><span class='line'><span class="cm">     * to call this function yourself.  See also: {@link #prepare()}</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">prepareMainLooper</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">prepare</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">setMainLooper</span><span class="o">(</span><span class="n">myLooper</span><span class="o">());</span>
+</span><span class='line'>        <span class="c1">// main looper是不允许退出的，否则应用程序就没得玩了</span>
+</span><span class='line'>        <span class="n">myLooper</span><span class="o">().</span><span class="na">mQueue</span><span class="o">.</span><span class="na">mQuitAllowed</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>     <span class="cm">/** Initialize the current thread as a looper.</span>
+</span><span class='line'><span class="cm">      * This gives you a chance to create handlers that then reference</span>
+</span><span class='line'><span class="cm">      * this looper, before actually starting the loop. Be sure to call</span>
+</span><span class='line'><span class="cm">      * {@link #loop()} after calling this method, and end it by calling</span>
+</span><span class='line'><span class="cm">      * {@link #quit()}.</span>
+</span><span class='line'><span class="cm">      * </span>
+</span><span class='line'><span class="cm">      * prepare方法将实例化一个Looper对象，并保存到一个ThreadLocal变量里, 这个</span>
+</span><span class='line'><span class="cm">      * looper稍后可以通过myLooper()方法取出</span>
+</span><span class='line'><span class="cm">      */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">prepare</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">sThreadLocal</span><span class="o">.</span><span class="na">get</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">&quot;Only one Looper may be created per thread&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="n">sThreadLocal</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="k">new</span> <span class="n">Looper</span><span class="o">());</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="nf">Looper</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// 初始化一个消息队列，其实现稍后解释</span>
+</span><span class='line'>        <span class="n">mQueue</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MessageQueue</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">mRun</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">mThread</span> <span class="o">=</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>接下来调用Looper.loop()启动消息循环：</p>
+
+<pre><code>/**
+ * Run the message queue in this thread. Be sure to call
+ * {@link #quit()} to end the loop.
+ */
+public static void loop() {
+    // 取得当前线程关联的looper对象
+    Looper me = myLooper();
+    if (me == null) {
+        throw new RuntimeException("No Looper; Looper.prepare() wasn't called on this thread.");
+    }
+    MessageQueue queue = me.mQueue;
+    ...
+    while (true) {
+        // 从消息队列中取出下一个需要处理的消息，这里可能会阻塞
+        Message msg = queue.next(); // might block
+        if (msg != null) {
+            if (msg.target == null) {
+                // No target is a magic identifier for the quit message.
+                return;
+            }
+            ...
+            msg.target.dispatchMessage(msg);
+            ...
+            msg.recycle();
+        }
+    }
+}
+</code></pre>
+
+<h3>消息队列的建立</h3>
+
+<p>每一个looper对象对应一个MessageQueue对象，Looper对象在这个消息队列上loop。每个消息是一个Message对象，而对这个消息队列的引用也是一个Message对象：</p>
+
+<pre><code>Message mMessages;
+</code></pre>
+
+<p>每个Message对象内部也有一个Message对象的引用，指向队列中的下一个message对象，这些message形成了一个单向队列。<strong>这个队列是按照message.when的大小顺序排列的</strong>。队首的消息是最先发生的。</p>
+
+<p>MessageQueue另外还有一个重要的变量：</p>
+
+<pre><code>private int mPtr; // used by native code
+</code></pre>
+
+<p>每个MessageQueue在native层对应有一个C++的实现NativeMessageQueue，位于android_os_MessageQueue.cpp，Java层的MessageQueue的mPtr保存的就是这个对象的指针。</p>
+
+<p>MessageQueue的构造方法为：</p>
+
+<pre><code>MessageQueue() {
+    nativeInit();
+}
+</code></pre>
+
+<p>nativeInit()方法在android_os_MessageQueue.cpp中实现：</p>
+
+<pre><code>static void android_os_MessageQueue_nativeInit(JNIEnv* env, jobject obj) {
+    NativeMessageQueue* nativeMessageQueue = new NativeMessageQueue();
+    if (! nativeMessageQueue) {
+        jniThrowRuntimeException(env, "Unable to allocate native queue");
+        return;
+    }
+
+    // 将指针值设置给Java层MessageQueue的mPtr变量
+    android_os_MessageQueue_setNativeMessageQueue(env, obj, nativeMessageQueue);
+}
+</code></pre>
+
+<p>NativeMessageQueue没有太多逻辑实现，它作为C++层的Looper对象的包装类。</p>
+
+<p>C++层的Looper对象实现为framework/base/libs/utils/Looper.cpp:</p>
+
+<pre><code>Looper::Looper(bool allowNonCallbacks) :
+       mAllowNonCallbacks(allowNonCallbacks), mSendingMessage(false),
+       mResponseIndex(0), mNextMessageUptime(LLONG_MAX) {
+   int wakeFds[2];
+   int result = pipe(wakeFds);
+   LOG_ALWAYS_FATAL_IF(result != 0, "Could not create wake pipe.  errno=%d", errno);
+
+   mWakeReadPipeFd = wakeFds[0];
+   mWakeWritePipeFd = wakeFds[1];
+
+   result = fcntl(mWakeReadPipeFd, F_SETFL, O_NONBLOCK);
+   LOG_ALWAYS_FATAL_IF(result != 0, "Could not make wake read pipe non-blocking.  errno=%d",
+           errno);
+
+   result = fcntl(mWakeWritePipeFd, F_SETFL, O_NONBLOCK);
+   LOG_ALWAYS_FATAL_IF(result != 0, "Could not make wake write pipe non-blocking.  errno=%d",
+           errno);
+
+   // Allocate the epoll instance and register the wake pipe.
+   mEpollFd = epoll_create(EPOLL_SIZE_HINT);
+   LOG_ALWAYS_FATAL_IF(mEpollFd &lt; 0, "Could not create epoll instance.  errno=%d", errno);
+
+   struct epoll_event eventItem;
+   memset(&amp; eventItem, 0, sizeof(epoll_event)); // zero out unused members of data field union
+   eventItem.events = EPOLLIN;
+   eventItem.data.fd = mWakeReadPipeFd;
+   result = epoll_ctl(mEpollFd, EPOLL_CTL_ADD, mWakeReadPipeFd, &amp; eventItem);
+   LOG_ALWAYS_FATAL_IF(result != 0, "Could not add wake read pipe to epoll instance.  errno=%d",
+           errno);
+}
+</code></pre>
+
+<p>这里先通过pipe系统调用创建了一个管道，这个管道非常重要：<br/>
+当当前线程没有新的消息需要处理时，它会睡眠在管道的读端文件描述符上，直到有新消息到来为止；另一方面，当其他线程向这个线程的消息队列发送一个消息后，其他线程会在这个管道的写端文件描述符上写入数据，这样导致等待在读端文件描述符的looper唤醒，然后对消息队列中的消息进行处理。但是，它对其他线程写入写端文件描述符的数据是什么并不关心，因为这些数据仅仅是为了唤醒它而已。</p>
+
+<h3>开启消息循环</h3>
+
+<p>调用Looper.loop()开启消息循环，前面看到，loop()方法从next()#MessageQueue获取下一个待处理的消息：</p>
+
+<pre><code>final Message next() {
+    int pendingIdleHandlerCount = -1; // -1 only during first iteration
+    int nextPollTimeoutMillis = 0;
+
+    for (;;) {
+        if (nextPollTimeoutMillis != 0) {
+            Binder.flushPendingCommands();
+        }
+
+        // 这个方法可能会阻塞，一旦返回，说明有新的message可以处理了，第一次进来nextPollTimeoutMillis为0，表示不作等待，立即返回。
+        nativePollOnce(mPtr, nextPollTimeoutMillis);
+
+        synchronized (this) {
+            // Try to retrieve the next message.  Return if found.
+            final long now = SystemClock.uptimeMillis();
+            final Message msg = mMessages;
+            if (msg != null) {
+                final long when = msg.when;
+                // 如果队首的消息的when小于当前时间，说明这个消息已经过期了，需要马上处理。
+                if (now &gt;= when) {
+                    mBlocked = false;
+                    mMessages = msg.next;
+                    msg.next = null;
+                    if (false) Log.v("MessageQueue", "Returning message: " + msg);
+                    msg.markInUse();
+                    return msg;
+                } else {
+                    // 计算出还要睡眠多长时间以后再取出下一个消息
+                    nextPollTimeoutMillis = (int) Math.min(when - now, Integer.MAX_VALUE);
+                }
+            } else {
+                nextPollTimeoutMillis = -1;
+            }
+
+            ...
+
+        // While calling an idle handler, a new message could have been delivered
+        // so go back and look again for a pending message without waiting.
+        nextPollTimeoutMillis = 0;
+    }
+}
+</code></pre>
+
+<p><code>nativePollOnce(mPtr, nextPollTimeoutMillis);</code> 方法用来检查当前线程的消息队列是否有新的消息需要处理, nextPollTimeoutMillis表示如果没有发现新的消息，当前线程需要睡眠的时间，如果等于-1，表示它需要进入无限睡眠，直到被其他线程唤醒为止。</p>
+
+<p>nativePollOnce函数在C++层的Looper对象的实现为pollOnce()，进而调用pollInner():</p>
+
+<pre><code>int Looper::pollInner(int timeoutMillis) {
+    // Poll.
+    int result = ALOOPER_POLL_WAKE;
+    mResponses.clear();
+    mResponseIndex = 0;
+
+    int eventCount = epoll_wait(mEpollFd, eventItems, EPOLL_MAX_EVENTS, timeoutMillis);
+    ...
+    // 检查是哪个文件描述符上发生了IO事件
+    for (int i = 0; i &lt; eventCount; i++) {
+        int fd = eventItems[i].data.fd;
+        uint32_t epollEvents = eventItems[i].events;
+        if (fd == mWakeReadPipeFd) {
+            if (epollEvents &amp; EPOLLIN) {
+                awoken();
+            } else {
+                LOGW("Ignoring unexpected epoll events 0x%x on wake read pipe.", epollEvents);
+            }
+        } else {
+        ...
+        }
+    }
+    return result;
+}
+</code></pre>
+
+<p>如果是mWakeReadPipeFd上发生了IO事件，说明有其它线程在mWakeWritePipeFd上写入了数据，接下来在awoken()函数中读取这些数据，这样在后续有线程写入数据时可以被再次唤醒：</p>
+
+<pre><code>void Looper::awoken() {
+    ... 
+    char buffer[16];
+    ssize_t nRead;
+    do {
+        nRead = read(mWakeReadPipeFd, buffer, sizeof(buffer));
+    } while ((nRead == -1 &amp;&amp; errno == EINTR) || nRead == sizeof(buffer));
+}
+</code></pre>
+
+<p>这里只是将数据读出，它并不关心这些数据是什么。</p>
+
+<h3>消息发送过程</h3>
+
+<p>发送消息最常见的方法就是使用sendMessage()#Handler, 这个方法最终会调用enqueueMessage()#MessageQueue.java:</p>
+
+<pre><code>final boolean enqueueMessage(Message msg, long when) {
+
+        msg.when = when;
+        //Log.d("MessageQueue", "Enqueing: " + msg);
+        Message p = mMessages;
+        if (p == null || when == 0 || when &lt; p.when) {
+            msg.next = p;
+            mMessages = msg;
+            needWake = mBlocked; // new head, might need to wake up
+        } else {
+            Message prev = null;
+            while (p != null &amp;&amp; p.when &lt;= when) {
+                prev = p;
+                p = p.next;
+            }
+            msg.next = prev.next;
+            prev.next = msg;
+            needWake = false; // still waiting on head, no need to wake up
+        }
+    }
+    if (needWake) {
+        nativeWake(mPtr);
+    }
+    return true;
+}
+</code></pre>
+
+<p>这个方法将新的message插入到消息队列中，并根据需要唤醒native的looper线程。消息的插入分为四种情况：</p>
+
+<ul>
+<li>消息队列是一个空队列；</li>
+<li>新消息的when等于0，表示需要立即处理；</li>
+<li>新消息的when小于队首消息的when；</li>
+<li>新消息的when大于或者等于队首消息的when；</li>
+</ul>
+
+
+<p>前三种情况只需要将新消息插入到队首即可，并需要立即唤醒looper对这个新消息进行处理。第四种情况需要插入到队列中的合适位置，并且不需要唤醒looper。<br/>
+唤醒looper通过nativeWake()方法实现：
+looper.cpp:</p>
+
+<pre><code>void Looper::wake() {
+    ssize_t nWrite;
+    do {
+        nWrite = write(mWakeWritePipeFd, "W", 1);
+    } while (nWrite == -1 &amp;&amp; errno == EINTR);
+
+    if (nWrite != 1) {
+        if (errno != EAGAIN) {
+            LOGW("Could not write wake signal, errno=%d", errno);
+        }
+    }
+}
+</code></pre>
+
+<p>唤醒的过程就是望管道的写文件描述符mWakeWritePipeFd写入一些数据即可，这里写入了一个&#8221;W&#8221;字符，这样等待在管道另一端的正在睡眠的线程就会被唤醒，从而导致队首的消息被取出进行处理。</p>
+
+<h3>HanderThread</h3>
+
+<p>HandlerThread最重要的特点是它的looper是在一个子线程中loop的，从而不会阻塞UI线程。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[通过LiveCD更新grub]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/01/18/update-grub-from-livecd/"/>
+    <updated>2013-01-18T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/01/18/update-grub-from-livecd</id>
+    <content type="html"><![CDATA[<p><a href="http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd">http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd</a>
+<a href="http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd">http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[UpdateMe]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/12/12/twiki-setup-and-configuraion/"/>
+    <updated>2012-12-12T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/12/12/twiki-setup-and-configuraion</id>
+    <content type="html"><![CDATA[<p>Ldap configure:
+ObjectClass=*</p>
+
+<p>Create new web</p>
+
+<p><a href="http://www.john-am.com/2011/01/configuring-ldap-with-twiki/">http://www.john-am.com/2011/01/configuring-ldap-with-twiki/</a></p>
+
+<p>Here is my cron.daily script to update the Ldap entries:</p>
+
+<pre><code>#!/bin/sh # # cd /var/www/twiki/bin &amp;&amp; ./view refreshldap=on Main/WebHome &gt;/dev/null chown www-data:www-data /var/www/twiki/working/work_areas/* -R &gt;/dev/null 
+</code></pre>
+
+<p>多语言支持：
+<a href="http://twiki.org/cgi-bin/view/TWiki/InstallationWithI18N">http://twiki.org/cgi-bin/view/TWiki/InstallationWithI18N</a>
+<a href="http://twiki.org/cgi-bin/view/Codev/UnderstandingEncodings">http://twiki.org/cgi-bin/view/Codev/UnderstandingEncodings</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Unix Epoch 与 时间字符串的转换]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/11/29/convertion-between-epoch-and-regular-time/"/>
+    <updated>2012-11-29T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/11/29/convertion-between-epoch-and-regular-time</id>
+    <content type="html"><![CDATA[<h3>字符串 &mdash;> Epoch</h3>
+
+<pre><code>$ date -d "2012/11/29" +%s
+1354118400
+</code></pre>
+
+<h3>Epoch &mdash;> 字符串</h3>
+
+<pre><code>$ date -d@1354118400
+Thu Nov 29 00:00:00 CST 2012
+</code></pre>
+
+<p>或者加上格式控制：</p>
+
+<pre><code>$ date -d@1354118400 '+%Y-%m-%d %H:%M:%S'
+2012-11-29 00:00:00
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Git tips and tricks]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/10/18/git-tricks/"/>
+    <updated>2012-10-18T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/10/18/git-tricks</id>
+    <content type="html"><![CDATA[<h3>在提交历史中查找指定文本</h3>
+
+<pre><code>git log -G'password' --all
+</code></pre>
+
+<p>or</p>
+
+<pre><code>git rev-list --all | (
+while read revision; do
+    git grep -F 'password' $revision
+done
+)
+</code></pre>
+
+<p>or</p>
+
+<pre><code>for revision in `git rev-list --all`; 
+do
+    git grep -F 'password' $revision;
+done
+</code></pre>
+
+<p>or
+<code>git log -S'bad\_code' path/to/file</code> 查看指定代码片段在哪个版本出现过。
+<code>git blame path/to/file</code>: 查看指定文件的每一行的最后修改时间是在哪个版本，但不能查看删除的行或者被替换的行
+参见man git-blame.</p>
+
+<h3>git commit</h3>
+
+<p><code>git commit -c &lt;commit&gt;</code>  reedit commit message of <commit>
+<code>git commit -C &lt;commit&gt;</code>  reuse commit message of <commit></p>
+
+<h3>git底层命令</h3>
+
+<p>git ls-tree<br/>
+git write-tree<br/>
+git ls-files<br/>
+git cat-file<br/>
+git rev-parse</p>
+
+<p>.git/refs 保存所有引用的命名空间
+.git/refs/heads 所有的本地分支</p>
+
+<p>git commit &mdash;allow-empty &mdash;amend</p>
+
+<p>[TODO] strace命令</p>
+
+<p>.git/index 包含文件索引的目录树，记录了文件名和文件的状态信息，文件的内容存储在.git/objects中，文件索引建立了文件和对象库中的文件对象之间的对应关系。</p>
+
+<p>git checkout . / git checkout &mdash; <file><br/>
+丢弃workspace中的内容，保留暂存区的内容</p>
+
+<p>git checkout HEAD . / git checkout HEAD <file><br/>
+用HEAD指向的commit中的内容替代workspace和暂存区的内容，这将导致当前workspace和暂存区的内容被丢弃。</p>
+
+<h3>使用git reflog挽回错误的reset</h3>
+
+<p>git reflog<br/>
+git reflog show master</p>
+
+<p>分支的变更记录都会被记录在.git/logs/refs下，通过 git reflog命令可以获得分支的历史变更记录，然后可以通过git reset 命令将HEAD任意重置到任意一个提交。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java 字符串的==和equals]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/10/16/string-interning/"/>
+    <updated>2012-10-16T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/10/16/string-interning</id>
+    <content type="html"><![CDATA[<h3>实例</h3>
+
+<p>问题起源于这段代码：</p>
+
+<pre><code>if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
+    Log.d(TAG, "mounted");
+} else {
+    Log.d(TAG, "umounted");
+}
+</code></pre>
+
+<p>在SD卡处于mounted的状态下，这个case打印出umounted.</p>
+
+<h3>问题</h3>
+
+<p>现在SD卡处于mounted的状态，所以Environment.getExternalStorageState()方法会返回&#8221;mounted&#8221;。<br/>
+跟踪Environment.getExternalStorageState方法的实现，如果SD卡处于mounted的状态，该方法返回Environment.MEDIA_MOUNTED这个字符串常量。
+那么问题是，Environment.MEDIA_MOUNTED是一个字符串常量，一个字符串常量在JVM中只有一份，== 符号比较的是两边的对象是否是同一个引用，这样来说这里应该输出&#8221;mounted&#8221;才对，为什么会输出&#8221;umounted&#8221;呢？也就是说等号两边的两个字符串不是同一个引用。</p>
+
+<p>原因在于只有在编译期确定的字符串常量才会被放进常量池，这个常量池会被保存在class文件中，稍后被JVM加载。而对于运行时才生成的字符串是不会放入常量池的。Environment.getExternalStorageState()方法返回的字符串虽然是一个字符串常量，但是这个常量在编译期并未确定，所以该方法返回的字符串不是从常量池中取得的。</p>
+
+<p><code>String.intern()</code>方法用于在运行时将一个字符串加入常量池中，所以对这个例子，<code>Environment.getExternalStorageState().intern() == Environment.MEDIA\_MOUNTED</code>才会返回true。</p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/String_interning">http://en.wikipedia.org/wiki/String_interning</a></li>
+<li><a href="http://blog.csdn.net/jcc3120/article/details/2118870">http://blog.csdn.net/jcc3120/article/details/2118870</a></li>
+<li><a href="http://stackoverflow.com/questions/767372/java-string-equals-versus">http://stackoverflow.com/questions/767372/java-string-equals-versus</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[c语言字符串定义与初始化]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/08/05/two-ways-of-defining-strings-in-c/"/>
+    <updated>2012-08-05T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/08/05/two-ways-of-defining-strings-in-c</id>
+    <content type="html"><![CDATA[<h3>字符串的两种定义方式</h3>
+
+<ol>
+<li><p>char数组</p>
+
+<p> char sa[] = &ldquo;hello world&rdquo;;</p></li>
+<li><p>char指针</p>
+
+<p> char *sp = &ldquo;hello world&rdquo;;</p></li>
+</ol>
+
+
+<p>这两种方式都产生了一个&#8221;hello world&#8221;的<strong>字符串常量</strong>,字符串常量存储在静态存储区中，静态存储区中的内容在程序运行的整个过程中都存在，而且只存储一份。</p>
+
+<h3>数组与指针的关系</h3>
+
+<p>在第一种定义中，字符串常量在编译时就已经分配好了空间，但直到运行时才会为数组分配存储空间，这时，存储在静态存储区中的字符串常量会被拷贝一份到数组中，此后，数组名sa与&amp;sa[0]等价。重要的是，sa是一个常量，你不能修改sa的值，你可以通过sa+1来标识数组里的下一个元素，也可以修改数组里的元素。然而，sa++是不允许的，因为自增运算符只能作用于变量而不是常量。</p>
+
+<p>第二种定义中，程序运行时只为指针变量sp分配了存储空间，用来字符串常量&#8221;hello world&#8221;的地址，这时，字符串常量没有被拷贝。sp的值是可以改变的，如++sp将指向字符e。</p>
+
+<p>总之，数组初始化是从静态存储区中把一个字符串拷贝给数组，而指针初始化只是复制这个字符串的地址。</p>
+
+<h3>示例</h3>
+
+<pre><code>#include &lt;stdio.h&gt;
+
+int main(int args, char **argv) {
+    char sa[] = "hello world";
+    char *sp = "hello world";
+
+    // sa++; 错误，sa是常量
+    sp++;
+
+    sa[1] = 'M';
+    *(sa+2) = 'X';
+    // sp[1] = 'M'; // 错误，不能修改常量值
+
+    printf("%s\n", sa);
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[C语言函数指针与指针函数]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/08/05/c-function-pointer/"/>
+    <updated>2012-08-05T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/08/05/c-function-pointer</id>
+    <content type="html"><![CDATA[<pre><code>#include &lt;stdio.h&gt;
+
+int bar(int, char*);
+
+// 指针函数
+char *echo_hello(char *s) {
+    char *result;
+    int len = strlen(s) + strlen("hello ") + 1;
+    result = (char *)malloc(len * sizeof(char));
+    memset(result,0, len * sizeof(char));
+    snprintf(result, len, "%s%s", "hello ", s);
+    return result;
+}
+
+int main(int args, char **argv) {
+    // 函数指针
+    int  (*foo) (int, char *);
+
+    foo = bar;
+    foo = &amp;bar;
+
+    foo(2, "hello world");
+    (*foo)(2, "hello world");
+
+    printf("%s\n", echo_hello("programmer!"));
+}
+
+int bar(int a, char *s) {
+    printf("calling bar, int=%d, string=%s\n", a, s);
+}
+</code></pre>
+
+<h3>Reference</h3>
+
+<p><a href="http://blog.csdn.net/porscheyin/article/details/3461632/">http://blog.csdn.net/porscheyin/article/details/3461632/</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[使用lvm管理磁盘分区]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/07/05/use-lvm-to-extends-disk-capacity/"/>
+    <updated>2012-07-05T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/07/05/use-lvm-to-extends-disk-capacity</id>
+    <content type="html"><![CDATA[<p>最近在给新同学安装Ubuntu系统后发现有的同学home分区空间不够了，于是研究了下利用lvm对home空间进行扩容。<br/>
+lvm的概念介绍来自<a href="http://hi.baidu.com/sinyo/blog/item/d793be3e866682f9828b13c6.html">这里</a>.</p>
+
+<p>LVM是逻辑盘卷管理（Logical Volume Manager）的简称，它是Linux环境下对磁盘分区进行管理的一种机制，LVM是建立在硬盘和分区之上的一个逻辑层，来提高磁盘分区管理的灵活性。通过LVM系统管理员可以轻松管理磁盘分区，如：将若干个磁盘分区连接为一个整块的卷组（volume group），形成一个存储池。管理员可以在卷组上随意创建逻辑卷组（logical volumes），并进一步在逻辑卷组上创建文件系统。管理员通过LVM可以方便的调整存储卷组的大小，并且可以对磁盘存储按照组的方式进行命名、管理和分配，例如按照使用用途进行定义：“development”和“sales”，而不是使用物理磁盘名“sda”和“sdb”。而且当系统添加了新的磁盘，通过LVM管理员就不必将磁盘的文件移动到新的磁盘上以充分利用新的存储空间，而是直接扩展文件系统跨越磁盘即可。</p>
+
+<hr />
+
+<h3>lvm的基本组成</h3>
+
+<p>lvm包括以下几个概念：</p>
+
+<ul>
+<li>Physical volume (PV)<br/>
+指代磁盘上的物理分区</li>
+<li>Volume group (VG)<br/>
+VG类似与物理硬盘，由多个物理分区组成，可以在VG上创建一个或者多个逻辑卷（LV）</li>
+<li>Logical volume (LV)<br/>
+在VG的基础上划分出来的逻辑分区，在这个分区上可以建立文件系统，如home</li>
+<li>Physical extent (PE)<br/>
+每个逻辑卷被划分的最小可寻址单元，一般为4MB。</li>
+</ul>
+
+
+<p>接下来记录一下对home分区进行扩容的过程。</p>
+
+<h3>准备工作</h3>
+
+<p>已有的环境：<br/>
+/dev/sda5 是一块windows分区，格式为fat32;<br/>
+/dev/sda9 为当前home所在的分区，格式为ext4.<br/>
+现在需要把/dev/sda5合并到home分区中。在建立lvm分区之前，需要备份这两块分区中的数据，因为之后的操作会对这两块分区进行格式化。</p>
+
+<p>首先备份两块分区的数据，重启机器进入recovery模式，以root用户登录，卸载home所在的/dev/sda9</p>
+
+<pre><code># umount /home
+</code></pre>
+
+<h3>安装lvm</h3>
+
+<pre><code># apt-get install lvm2
+</code></pre>
+
+<h3>修改物理分区类型为8e</h3>
+
+<p>作为PV的物理分区类型必须为8e，表示这是一块lvm的物理分区。我们使用fdisk对/dev/sda5和/dev/sda9这两个物理分区的分区类型进行修改。</p>
+
+<pre><code># fdisk /dev/sda
+
+WARNING: DOS-compatible mode is deprecated. It's strongly recommended to
+         switch off the mode (command 'c') and change display units to
+         sectors (command 'u').
+
+Command (m for help): t
+Partition number (1-10): 5
+Hex code (type L to list codes): 8e
+Changed system type of partition 5 to 8e (Linux LVM)
+Command (m for help): t
+Partition number (1-10): 9
+Hex code (type L to list codes): 8e
+Changed system type of partition 9 to 8e (Linux LVM)
+Command (m for help): w       //将修改写入磁盘
+</code></pre>
+
+<p>最后<code>fdisk -l</code>查看一下修改后的分区。</p>
+
+<h3>创建物理卷</h3>
+
+<pre><code># pvcreate /dev/sda5
+pvcreate -- physical volume "/dev/sda5" successfully created
+# pvcreate /dev/sda9
+pvcreate -- physical volume "/dev/sda9" successfully created
+# pvdisplay
+</code></pre>
+
+<h3>创建卷组</h3>
+
+<pre><code># vgcreate lvm_sda /dev/sda5 // 以/dev/sda5为基础创建一个名为lvm_sda的卷组
+# vgextend lvm_sda /dev/sda9 // 将/dev/sda9添加进lvm_sda卷组
+# vgdisplay lvm_sda
+</code></pre>
+
+<h3>创建逻辑卷</h3>
+
+<pre><code># lvcreate -L 150G lvm_sda -n lvolhome
+</code></pre>
+
+<p>这里在lvm_sda上创建了一个150G的名为lvolhome的逻辑卷,这时会生成/dev/lvm_sda/lvolhome设备节点。</p>
+
+<h3>创建文件系统</h3>
+
+<pre><code># mkfs.ext4 /dev/lvm_sda/lvolhome
+</code></pre>
+
+<p>然后将其挂载到/home，并创建对应用户的home目录。</p>
+
+<pre><code># mount /dev/lvm_sda/lvolhome /home
+# cd /home
+# mkdir calvin
+# chown -R calvin:calvin calvin/
+</code></pre>
+
+<h3>设置开机挂载逻辑卷</h3>
+
+<pre><code># vi /etc/fstab
+</code></pre>
+
+<p>删除已有的home挂载信息，添加：</p>
+
+<pre><code>/dev/lvm_sda/lvolhome /home ext4 defaults 0 2
+</code></pre>
+
+<p>重启系统，done。</p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://blog.csdn.net/jianghuyue/article/details/6001957">http://blog.csdn.net/jianghuyue/article/details/6001957</a></li>
+<li><a href="http://www.linuxhomenetworking.com/wiki/index.php/Quick_HOWTO_:_Ch27_:_Expanding_Disk_Capacity">http://www.linuxhomenetworking.com/wiki/index.php/Quick_HOWTO_:_Ch27_:_Expanding_Disk_Capacity</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[setComponentEnabledSetting doesn't work on widget]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/06/19/setComponentEnabledSetting-doesnt-work-on-widget/"/>
+    <updated>2012-06-19T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/06/19/setComponentEnabledSetting-doesnt-work-on-widget</id>
+    <content type="html"><![CDATA[<h3>需求</h3>
+
+<p>有一个系统属性disable_widget用来标识是否需要禁用某个widget，如果是，那么禁用某个widget.</p>
+
+<h3>实现与问题</h3>
+
+<p><code>PackageManager.setComponentEnabledSetting</code> 可以用来禁用某个组件，包括activity，receiver等等。被禁用的组件会被持久化到/data/system/packages.xml中，如：</p>
+
+<pre><code>&lt;package name="com.android.setupwizard" codePath="/system/app/SetupWizard.apk" nativeLibraryPath="/data/data/com.android.setupwizard/lib" flags="1" ft="13349457a90" it="13349457a90" ut="13349457a90" version="130" userId="10016"&gt;
+  &lt;sigs count="1"&gt;
+  &lt;cert index="0" /&gt;
+  &lt;/sigs&gt;
+  &lt;disabled-components&gt;
+  &lt;item name="com.android.setupwizard.SetupWizardActivity" /&gt;
+  &lt;/disabled-components&gt;
+&lt;/package&gt;
+</code></pre>
+
+<p>因为widget实际上就是个reveiver，它接收android.appwidget.action.APPWIDGET_UPDATE的action，所以开始的思路是：<br/>
+创建一个BroadcastReceiver，接收Intent.ACTION_BOOT_COMPLETED这个动作，从而在启动完成后调用SystemProperties.get(&ldquo;disable_widget&rdquo;)，如果需要禁用这个widget，那么调用：</p>
+
+<pre><code>PackageManager.setComponentEnabledSetting(widgetComponentName，PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP);
+</code></pre>
+
+<p>但是问题是，调用这个方法disable掉这个widget后，发现必须把设备重启之后才能生效&hellip;<br/>
+经过一番挖掘，发现问题出在com.android.server.AppWidgetService.java。</p>
+
+<p>开机后，SystemServer会调用AppWidgetService的systemReady()方法，这个方法通过PackageManager查询所有的widget receiver组件，保存到mInstalledProviders变量列表中，并持久化widget信息到/data/system/appwidgets.xml中。
+而在Launcher上长按添加widget时的那个widget列表信息也是通过AppWidgetService取得mInstalledProviders列表。</p>
+
+<p>问题在于我们通过PackageManager.setComponentEnabledSetting（）禁用掉某个widget后，packagemanager确实将这个组件disable了，但是AppWidgetService却没有去从packagemanager reload widget信息，这就导致了mInstalledProviders中保存的widget信息还是开机时load进来的那些信息，并没有与pm进行同步。直到下一次开机调用systemReady重新加载widget信息才会刷新这个列表。</p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://code.google.com/p/android/issues/detail?id=6533">Dynamically enabling or disabling a widget with PackageManager.setComponentEnabledSetting does not work</a></li>
+<li><a href="http://blog.csdn.net/yinlijun2004/article/details/6136108">http://blog.csdn.net/yinlijun2004/article/details/6136108</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[multipart/form-data与application/x-www-form-urlencoded]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/06/06/multipart-formdata-and-application-x-www-form-urlencoded/"/>
+    <updated>2012-06-06T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/06/06/multipart-formdata-and-application-x-www-form-urlencoded</id>
+    <content type="html"><![CDATA[<p>在浏览器上提交表单时，根据提交的方式，get或者post，表单数据被封装进url或者http头中，这是http请求的Content-Type字段值默认为<code>application/x-www-form-urlencoded</code>。</p>
+
+<pre><code>POST /upload HTTP/1.1
+Host: localhost:8080
+Origin: http://localhost:8080
+User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-us) AppleWebKit/531.2+ (KHTML, like Gecko) Version/5.0 Safari/531.2+
+Accept: application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+Referer: http://localhost:8080/
+Content-Type: application/x-www-form-urlencoded
+Accept-Encoding: gzip
+Cookie: JSESSIONID=18DE3AD950262E1EDA9A453A8C3BF430
+Content-Length: 14
+
+username=scott
+
+HTTP/1.1 
+200 OK
+Server: Apache-Coyote/1.1
+Content-Length: 0
+Date: Wed, 06 Jun 2012 06:31:20 GMT
+</code></pre>
+
+<p>这种情况下在服务器端使用<code>request.getParameter("username")</code>就可以取出scott这个值。</p>
+
+<p>当需要通过表单上传文件时，这时enctype必须为<code>multipart/form-data</code>或者<code>multipart/mixed</code>。比如：</p>
+
+<pre><code>&lt;form method="post" action="upload"
+    enctype="multipart/form-data"&gt;
+        &lt;input type="file" name="upload_file"/&gt;
+        &lt;input type="text" name="username"/&gt;
+        &lt;input type="submit" value="Submit" /&gt;
+&lt;/form&gt;
+</code></pre>
+
+<p>这时浏览器会以表单为单位将所有提交数据进行分割，并分隔符boundary分隔:</p>
+
+<pre><code>POST /upload HTTP/1.1
+Host: localhost:8080
+Origin: http://localhost:8080
+User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-us) AppleWebKit/531.2+ (KHTML, like Gecko) Version/5.0 Safari/531.2+
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundarysJagkbbAojjjPOh8
+Accept: application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+Referer: http://localhost:8080/
+Accept-Encoding: gzip
+Cookie: JSESSIONID=18DE3AD950262E1EDA9A453A8C3BF430
+Content-Length: 33076
+
+------WebKitFormBoundarysJagkbbAojjjPOh8
+Content-Disposition: form-data; name="upload_file"; filename="mmssms.db-shm"
+Content-Type: application/octet-stream
+.....
+.....
+------WebKitFormBoundarysJagkbbAojjjPOh8
+Content-Disposition: form-data; name="username"
+
+scott
+------WebKitFormBoundarysJagkbbAojjjPOh8--
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Length: 343
+Date: Wed, 06 Jun 2012 06:47:49 GMT
+</code></pre>
+
+<p>这时在server端就不能用request.getParameter这种方式获取表单数据了，必须对request的数据进行解码。这部分工作已经有现成的库帮我们做了，比如<a href="http://commons.apache.org/fileupload/">Apache Common Fileupload</a>。</p>
+
+<h3>Reference</h3>
+
+<p><a href="http://zh.wikipedia.org/wiki/MIME">http://zh.wikipedia.org/wiki/MIME</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[拉风的vim保存方法]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/06/02/write-file-in-vim-without-sudo/"/>
+    <updated>2012-06-02T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/06/02/write-file-in-vim-without-sudo</id>
+    <content type="html"><![CDATA[<p>用vim编辑root用户的文件时，经常忘了敲sudo，结果保存不了。一个work around是保存为一个临时文件，然后sudo cp回去，不过从现在开始，我们可以这样做，输入：</p>
+
+<pre><code>:w !sudo tee %
+</code></pre>
+
+<p>%代表当前编辑文件的文件路径，<code>tee %</code>表示把stdin的输入输入到stdout，同时保存到一个文件。<br/>
+<code>w !{cmd}</code>意思是说执行一个外部命令cmd，同时把当前缓冲区的内从通过管道连接到cmd的stdin。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[改善SD卡读取速度]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/31/improve-sd-card-read-speed/"/>
+    <updated>2012-05-31T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/31/improve-sd-card-read-speed</id>
+    <content type="html"><![CDATA[<p>一年前刷了CM的rom，发现sd卡速度下降了很多，今天看见有人发了一个kernel的patch改善这个问题，原理是修改sys文件系统下的一个read_ahead_kb参数值，这个值指定了每次从SD卡上读取数据时预读的大小。</p>
+
+<pre><code>adb shell 'echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb'
+</code></pre>
+
+<p>但这个值也不是越大越好，128是个比较平衡的值，因为在读取小文件的情况下，如果这个值太大，那么预读的数据很大几率是无用的数据，反而降低性能，<a href="http://forum.xda-developers.com/showthread.php?t=1032317">这个</a>帖子有详细的分析。</p>
+
+<p>这个值的定义在/include/linux/mm.h中：</p>
+
+<pre><code>/* readahead.c */
+#define VM_MAX_READAHEAD    128 /* kbytes */
+#define VM_MIN_READAHEAD    16  /* kbytes (includes current page) */
+</code></pre>
+
+<h3>设置开机生效</h3>
+
+<p>注意：重启后这个设置就失效了，为了避免每次开机后都要设置，可以在init.rc脚本中加上：</p>
+
+<pre><code>write /sys/devices/virtual/bdi/179:0/read_ahead_kb 128
+</code></pre>
+
+<p>或者利用init.d脚本的支持，在/system/etc/init.d目录下创建一个文件10sdcard:</p>
+
+<pre><code>#!/system/bin/sh
+echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb
+
+这样每次开机后都会执行这段脚本。
+</code></pre>
+
+<h3>CM支持init.d开机脚本的方法</h3>
+
+<ol>
+<li><p>在init.rc的class_start default上加上</p>
+
+<pre><code># Run sysinit
+exec /system/bin/sysinit
+
+class_start default
+</code></pre></li>
+<li><p>建立文件/system/bin/sysinit</p>
+
+<pre><code>#!/system/bin/sh
+
+export PATH=/sbin:/system/sbin:/system/bin:/system/xbin
+/system/bin/logwrapper /system/xbin/run-parts /system/etc/init.d
+</code></pre></li>
+</ol>
+
+
+<p>然后将启动脚本放在/system/etc/init.d目录下，这些脚本以数字命名，run-parts命令按照顺序排序依次执行这些脚本(cron命令也是利用run-parts命令执行指定目录下的脚本的，参见/etc/crontab)。</p>
+
+<p>其实也可以这样做：<br/>
+在init.rc的class_start default上加入</p>
+
+<pre><code>start sysinit
+</code></pre>
+
+<p>然后在所有service定义的后面加上：</p>
+
+<pre><code>service sysinit /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
+    disabled
+    oneshot
+</code></pre>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://forum.xda-developers.com/showthread.php?t=815557">http://forum.xda-developers.com/showthread.php?t=815557</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[使用iconv和convmv转换文本编码]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/31/convmv-and-iconv/"/>
+    <updated>2012-05-31T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/31/convmv-and-iconv</id>
+    <content type="html"><![CDATA[<h3>文本内容编码转换</h3>
+
+<p>文本显示乱码是因为文件本身的编码格式和编辑器打开文本所使用的编码格式不一致，使用iconv命令可以转换文本编码。如：</p>
+
+<pre><code>$ iconv -f coding1 -t coding2 file1 -o file2
+-f:指定文件原始编码
+-t:指定转换的目标编码
+file1:代转换的文件
+-o:指定输出文件
+</code></pre>
+
+<h3>文件名编码转换</h3>
+
+<p>常常有这样的情况，将一个rar文件解压后中文的文件名显示乱码，显示”invalid encoding“，利用convmv命令可以进行转换：</p>
+
+<pre><code>$ convmv -f gbk -t utf-8 -r --notest path/to/your/file
+-f:指定原始编码
+-t:指定转换的目标编码
+-r:如果目标文件是一个目录，递归处理目录下的文件
+--notest:转换后将文件重命名，默认情况下这个命令不会重命名文件
+</code></pre>
+]]></content>
+  </entry>
   
 </feed>

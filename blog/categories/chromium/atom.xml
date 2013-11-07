@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: chromium | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/blog/categories/chromium/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2013-11-06T16:49:12+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Chromium base库介绍]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/09/26/Chrominum-base-code-introduction/"/>
+    <updated>2013-09-26T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/09/26/Chrominum-base-code-introduction</id>
+    <content type="html"><![CDATA[<p>Chromium的base库包含了一些常用的基础代码，包括:</p>
+
+<pre><code>* 文件操作
+* json读写
+* 字符串操作
+* 时间操作
+* 智能指针
+</code></pre>
+
+<p>在线代码浏览：
+<a href="https://code.google.com/p/chromium/codesearch#chromium/src/base/">https://code.google.com/p/chromium/codesearch#chromium/src/base/</a></p>
+
+<h3>常用宏</h3>
+
+<ol>
+<li>DISALLOW_COPY/DISALLOW_ASSIGN/DISALLOW_COPY_AND_ASSIGN
+位于base/basictyps.h，它通过将拷贝构造函数和=运算符重载设置为private来禁用类对象的拷贝和赋值操作。
+示例用法：sql/transaction.h</li>
+</ol>
+
+
+<h3>智能指针</h3>
+
+<p>scoped_ptr: base/memory/scoped_ptr.h
+经过scoped_ptr封装的指针在出作用域后自动被释放, 该指针的ownership只能传递，不能拷贝。使用方法见头文件的注释。</p>
+
+<h3>文件操作</h3>
+
+<p>base/platform_file.h
+base/file_util.h
+base/files/file_path.h
+base/path_service.h</p>
+]]></content>
+  </entry>
+  
+</feed>

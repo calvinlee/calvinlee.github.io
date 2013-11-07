@@ -1,0 +1,1470 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="概要 Android基于Linux，Android的权限管理基于Linux的权限框架。此外，Android在此基础上为应用程序提供了permission机制，使得应用程序通过“申请-授予”的机制得以访问系统的敏感资源。权限的授予在应用程序安装过程中就已经确定了，在安装过程中，应用程序的gid， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/page/6">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/17/insight-into-android-permission/">Android 权限机制</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/17/insight-into-android-permission/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/17/insight-into-android-permission/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>概要</h3>
+
+<p>Android基于Linux，Android的权限管理基于Linux的权限框架。此外，Android在此基础上为应用程序提供了permission机制，使得应用程序通过“申请-授予”的机制得以访问系统的敏感资源。权限的授予在应用程序安装过程中就已经确定了，在安装过程中，应用程序的gid，uid，pid已经gids都会被分配。Android不支持在运行时动态进行权限授予。<a href="http://developer.android.com/guide/topics/security/security.html#arch">Why?</a></p>
+
+<h3>References</h3>
+
+<p><a href="http://en.wikipedia.org/wiki/Group_identifier#Primary_vs._supplementary">http://en.wikipedia.org/wiki/Group_identifier#Primary_vs._supplementary</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/17/handy-toolbox/">Handy Toolbox</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/17/handy-toolbox/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/17/handy-toolbox/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>这里记录一些我常用的一些方便高效的工具。</p>
+
+<h3>Firefox</h3>
+
+<ul>
+<li><a href="http://vimperator.org/vimperator">Vimperator</a></li>
+<li><a href="http://sessionmanager.mozdev.org/">Session Manager</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/evernote-web-clipper/">Evernote web clipper</a></li>
+<li><a href="http://www.teesoft.info/content/view/118/1/lang,en/">Autopager</a></li>
+</ul>
+
+
+<h3>Thunderbird</h3>
+
+<ul>
+<li><a href="https://addons.mozilla.org/en-US/thunderbird/addon/lightning/?src=search">Lightning</a></li>
+<li><a href="https://skydrive.live.com/redir.aspx?cid=71573c6596efd6ee&amp;resid=71573C6596EFD6EE!155&amp;parid=71573C6596EFD6EE!154">Firetray</a></li>
+</ul>
+
+
+<h3>画图</h3>
+
+<ul>
+<li><a href="https://skydrive.live.com/redir.aspx?cid=71573c6596efd6ee&amp;resid=71573C6596EFD6EE!146&amp;parid=71573C6596EFD6EE!145">JUDE</a> -UML工具</li>
+<li><a href="https://skydrive.live.com/redir.aspx?cid=71573c6596efd6ee&amp;resid=71573C6596EFD6EE!196&amp;parid=71573C6596EFD6EE!145">Edraw</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/17/different-reference-types-in-java/">Java的四种引用类型</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/17/different-reference-types-in-java/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/17/different-reference-types-in-java/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Java中有四种引用类型，按其引用强度由强到弱依次为：</p>
+
+<pre><code>Strong reference &gt; Soft reference &gt; Weak reference &gt; Phantom reference
+</code></pre>
+
+<h3>Strong reference</h3>
+
+<p>最常用的为strong reference，就是说只要某个对象还被一个强引用引用着，那么GC就不会回收它。使用强引用的一个弊端就是有可能引起内存泄漏。比如有一个hashmap集合，用来存储对象引用，如果你忘了在某个时机把这些元素remove掉，那么这些对象就会在这个hashmap的生命周期内被一直引用而不能被GC回收，更糟糕的是，如果这个对象体积很大，而又如果这个hashmap被声明为static的，那么随着程序的运行，内存总有被撑爆的那一刻。</p>
+
+<h3>Soft reference</h3>
+
+<p>而soft reference 就不同了，在内存资源极度紧张的情况下，GC会将被Soft reference 引用的对象回收以释放内存空间。这个特性非常适合用来做cache：在内存资源充裕的情况下，它和强引用一样，GC不会回收它，而在内存紧张的情况下，GC实在找不到更多可用的空间的情况下，Soft reference的对象会被回收掉。<br/>
+以下代码展示了基于Soft reference的缓存类的使用：</p>
+
+<pre><code>/*
+ * Copyright (C) 2009 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
+package com.android.providers.contacts;
+
+import com.android.providers.contacts.ContactsDatabaseHelper.NicknameLookupColumns;
+import com.android.providers.contacts.ContactsDatabaseHelper.Tables;
+import com.google.android.collect.Maps;
+
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+import java.lang.ref.SoftReference;
+import java.util.BitSet;
+import java.util.HashMap;
+
+
+/**
+ * Cache for common nicknames.
+ */
+public class CommonNicknameCache  {
+
+    // We will use this much memory (in bits) to optimize the nickname cluster lookup
+    private static final int NICKNAME_BLOOM_FILTER_SIZE = 0x1FFF;   // =long[128]
+    private BitSet mNicknameBloomFilter;
+
+    private HashMap&lt;String, SoftReference&lt;String[]&gt;&gt; mNicknameClusterCache = Maps.newHashMap();
+
+    private final SQLiteDatabase mDb;
+
+    public CommonNicknameCache(SQLiteDatabase db) {
+        mDb = db;
+    }
+
+    private final static class NicknameLookupPreloadQuery {
+        public final static String TABLE = Tables.NICKNAME_LOOKUP;
+
+        public final static String[] COLUMNS = new String[] {
+            NicknameLookupColumns.NAME
+        };
+
+        public final static int NAME = 0;
+    }
+
+    /**
+     * Read all known common nicknames from the database and populate a Bloom
+     * filter using the corresponding hash codes. The idea is to eliminate most
+     * of unnecessary database lookups for nicknames. Given a name, we will take
+     * its hash code and see if it is set in the Bloom filter. If not, we will know
+     * that the name is not in the database. If it is, we still need to run a
+     * query.
+     * &lt;p&gt;
+     * Given the size of the filter and the expected size of the nickname table,
+     * we should expect the combination of the Bloom filter and cache will
+     * prevent around 98-99% of unnecessary queries from running.
+     */
+    private void preloadNicknameBloomFilter() {
+        // 这个filter被设计成一个简化的hash表（没有处理hash冲突的情况，实际上也没有必要）
+        mNicknameBloomFilter = new BitSet(NICKNAME_BLOOM_FILTER_SIZE + 1);
+        Cursor cursor = mDb.query(NicknameLookupPreloadQuery.TABLE,
+                NicknameLookupPreloadQuery.COLUMNS,
+                null, null, null, null, null);
+        try {
+            int count = cursor.getCount();
+            for (int i = 0; i &lt; count; i++) {
+                cursor.moveToNext();
+                String normalizedName = cursor.getString(NicknameLookupPreloadQuery.NAME);
+                int hashCode = normalizedName.hashCode();
+                // 将元素put进hash表（有可能冲突），参见HashMap的put实现
+                // 和hashcode做与运算的这个值必须是“hash表长度-1”
+                mNicknameBloomFilter.set(hashCode &amp; NICKNAME_BLOOM_FILTER_SIZE);
+            }
+        } finally {
+            cursor.close();
+        }
+    }
+
+    /**
+     * Returns nickname cluster IDs or null. Maintains cache.
+     */
+    protected String[] getCommonNicknameClusters(String normalizedName) {
+        if (mNicknameBloomFilter == null) {
+            preloadNicknameBloomFilter();
+        }
+
+        int hashCode = normalizedName.hashCode();
+
+        // 如果没有找到，说明cache中**一定**不存在这个key所对应的值;
+        // 如果找到了，说明cache中**可能**存在这个key对应的值，需要进一步到cache中查找
+        if (!mNicknameBloomFilter.get(hashCode &amp; NICKNAME_BLOOM_FILTER_SIZE)) {
+            return null;
+        }
+
+        SoftReference&lt;String[]&gt; ref;
+        String[] clusters = null;
+
+        // 注意：这里需要同步对cache的访问
+        synchronized (mNicknameClusterCache) {
+            if (mNicknameClusterCache.containsKey(normalizedName)) {
+                ref = mNicknameClusterCache.get(normalizedName);
+                if (ref == null) {
+                    return null;
+                }
+                clusters = ref.get();
+            }
+        }
+
+        // 没有命中，这时才需要到DB中加载，并加入cache
+        if (clusters == null) {
+            clusters = loadNicknameClusters(normalizedName);
+            ref = clusters == null ? null : new SoftReference&lt;String[]&gt;(clusters);
+            synchronized (mNicknameClusterCache) {
+                mNicknameClusterCache.put(normalizedName, ref);
+            }
+        }
+        return clusters;
+    }
+
+    private interface NicknameLookupQuery {
+        String TABLE = Tables.NICKNAME_LOOKUP;
+
+        String[] COLUMNS = new String[] {
+            NicknameLookupColumns.CLUSTER
+        };
+
+        int CLUSTER = 0;
+    }
+
+    protected String[] loadNicknameClusters(String normalizedName) {
+        String[] clusters = null;
+        Cursor cursor = mDb.query(NicknameLookupQuery.TABLE, NicknameLookupQuery.COLUMNS,
+                NicknameLookupColumns.NAME + "=?", new String[] { normalizedName },
+                null, null, null);
+        try {
+            int count = cursor.getCount();
+            if (count &gt; 0) {
+                clusters = new String[count];
+                for (int i = 0; i &lt; count; i++) {
+                    cursor.moveToNext();
+                    clusters[i] = cursor.getString(NicknameLookupQuery.CLUSTER);
+                }
+            }
+        } finally {
+            cursor.close();
+        }
+        return clusters;
+    }
+}
+</code></pre>
+
+<p>这个缓存类实现的实际上是一个二级缓存：</p>
+
+<ol>
+<li>第一级是一个BitSet，实现为一个hash表，它充当了一个过滤器的作用。第一次加载时会从db中查找所有的数据，并通过hash算法插入到表中的适当位置，这个过程和HashMap的实现是一样的，只不过没有处理hash冲突的情况，当出现hash冲突时，会覆盖表中原有的值。</li>
+<li>第二级是一个HashMap，是真正的cache。其中的元素通过SoftReference引用。</li>
+</ol>
+
+
+<h3>Weak reference</h3>
+
+<p>Weak reference和Soft reference类似，区别在于一旦GC启动，被Weak reference引用的对象就会被回收，而不管当前内存资源是否充裕，因此，被Weak reference引用的对象具有更短的生命周期。但是，由于gc是一个优先级比较低的进程，Weak reference的对象不会像你想象中那么快就被回收了。</p>
+
+<h3>Phantom reference</h3>
+
+<p>Phantom reference 和以上几种引用都不同。它的<code>get()</code>方法永远都会返回null。那么它究竟有什么作用呢？<br/>
+TODO&hellip;</p>
+
+<h3>References</h3>
+
+<ul>
+<li><a href="http://weblogs.java.net/blog/enicholas/archive/2006/05/understanding_w.html">http://weblogs.java.net/blog/enicholas/archive/2006/05/understanding_w.html</a></li>
+<li><a href="http://improving.iteye.com/blog/436311">http://improving.iteye.com/blog/436311</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/">NoClassDefFoundError 和 ClassNotFoundException 的区别</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-12T00:00:00+08:00" pubdate data-updated="true">Mar 12<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>先看API解释：<br/>
+For ClassNotFoundException:</p>
+
+<pre><code>Thrown when an application tries to load in a class through its string name using:
+
+    * The forName method in class Class.
+    * The findSystemClass method in class ClassLoader.
+    * The loadClass method in class ClassLoader.
+
+but no definition for the class with the specified name could be found.
+</code></pre>
+
+<p>For NoClassDefFoundError:</p>
+
+<pre><code>Thrown if the Java Virtual Machine or a ClassLoader instance tries to load in the definition of a class (as part of a normal method call or as part of creating a new instance using the new expression) and no definition of the class could be found.
+
+The searched-for class definition existed when the currently executing class was compiled, but the definition can no longer be found.
+</code></pre>
+
+<p>简单的说，就是如果使用new SomeClass()的方式创建对象的，而这时ClassLoader装载SomeClass失败（可能因为权限不够，JNI错误,etc），就会抛出NoClassDefFoundError。<br/>
+而如果使用反射来装载一个对象，但是SomeClass不在CLASSPATH中，这时就会抛出ClassNotFoundException。</p>
+
+<p>Reference:<br/>
+<a href="http://stackoverflow.com/questions/1457863/what-is-the-difference-between-noclassdeffounderror-and-classnotfoundexception">http://stackoverflow.com/questions/1457863/what-is-the-difference-between-noclassdeffounderror-and-classnotfoundexception</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/02/my-first-post-on-git-pages/">使用Github Pages创建个人博客</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-02T00:00:00+08:00" pubdate data-updated="true">Mar 2<span>nd</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/02/my-first-post-on-git-pages/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/02/my-first-post-on-git-pages/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Github pages 是什么？</h2>
+
+<p>Github pages借助 git 工具和Jekyll（一个静态网站生成器），使得你可以将内容push到github，然后通过Jekyll发布成个人blog站点。通过github pages创建个人博客，至少有几个好处：</p>
+
+<ul>
+<li>文章内容使用markdown标记语言书写，你可以使用任何你喜欢的文本编辑器编辑文章。</li>
+<li>由于git的存在，你可以轻松的对你的文章进行版本控制。</li>
+<li>尤其重要的一点，在天朝，你无需担心哪天你的站点被无端屏蔽，还得爬墙过去抢救数据&mdash;因为你本地就有一套完整的站点，而且都是文本格式，非常易于备份。</li>
+</ul>
+
+
+<h2>搭建步骤</h2>
+
+<h3>创建github帐号</h3>
+
+<p>首先，你需要一个github帐号。
+登录github后，创建一个USERNAME.github.com的repository，根据向导生成pages。</p>
+
+<h3>安装本地环境</h3>
+
+<p>你需要在本地搭建运行环境，这样在编写文章的时候你可以在本地进行充分的调整，满意后再push到github。
+以下基于Ubuntu 10.04LTS系统安装，需要安装的包包括Ruby，RubyGems，jekyll和rake。</p>
+
+<pre><code>$ sudo apt-get install ruby1.9.1-full rubygems1.9.1
+</code></pre>
+
+<p>然后通过gem命令安装jekyll</p>
+
+<pre><code>$ sudo gem install jekyll
+WARNING:  You don't have /home/calvin/.gem/ruby/1.9.1/bin in your PATH,
+      gem executables will not run.
+ERROR:  Error installing jekyll:
+    liquid requires RubyGems version &gt;= 1.3.7
+</code></pre>
+
+<p>安装会出错，提示RubyGems版本过低。这时候需要到<a href="http://packages.ubuntu.com/maverick/all/rubygems1.8/download">http://packages.ubuntu.com/maverick/all/rubygems1.8/download</a> 下载离线安装包安装：</p>
+
+<pre><code>$ sudo dpkg -i Downloads/rubygems1.8_1.3.7-2_all.deb
+</code></pre>
+
+<p>安装完成后查看gem版本：</p>
+
+<pre><code>$ which gem
+/usr/bin/gem
+$ gem -v
+1.3.7
+</code></pre>
+
+<p>这时候可以继续安装jekyll了：</p>
+
+<pre><code>$ sudo gem install jekyll
+</code></pre>
+
+<p>安装jekyll后还需要安装rake工具，通过rake工具可以用来创建新的文章和页面，安装主题等等，十分方便。</p>
+
+<pre><code>$ sudo apt-get install rake
+</code></pre>
+
+<p>通过rake -T命令可以查看所有可用命令：</p>
+
+<pre><code>$ rake -T
+(in /home/calvin/development/github/calvinlee.github.com)
+rake page           # Create a new page.
+rake post           # Begin a new post in ./_posts
+rake preview        # Launch preview environment
+rake theme:install  # Install theme
+rake theme:package  # Package theme
+rake theme:switch   # Switch between Jekyll-bootstrap themes.
+</code></pre>
+
+<h3>安装Jekyll Bootstrap</h3>
+
+<p>由于jekyll仅仅是一个静态html的生成器，它不包含任何页面的templates，所以如果从头开始构建你的博客站点的话，还将要有很多工作要做。幸好，<a href="http://jekyllbootstrap.com/">Jekyll Bootstrap</a>已经提供了一套基本的构架，我们只需要在它的基础上定制，使之符合你口味即可。</p>
+
+<pre><code>$ git clone https://github.com/plusjade/jekyll-bootstrap.git USERNAME.github.com
+$ cd USERNAME.github.com
+$ git remote set-url origin git@github.com:USERNAME/USERNAME.github.com.git
+$ git push origin master
+</code></pre>
+
+<h3>开始个性博客之旅</h3>
+
+<p>首先在本地启动jekyll：</p>
+
+<pre><code>$ /var/lib/gems/1.8/gems/jekyll-0.11.2/bin/jekyll --server
+</code></pre>
+
+<p>然后你可以访问<a href="http://localhost:4000%E6%9F%A5%E7%9C%8BJekyll">http://localhost:4000%E6%9F%A5%E7%9C%8BJekyll</a> Bootstrap给你提供了什么，之后你就可以开始写你的文章了。</p>
+
+<pre><code>$ rake post title="my-first-post-on-git-pages" date="2012-03-02"
+</code></pre>
+
+<p>rake工具会为你生成posts/2012-03-02-my-first-post-on-git-pages.md
+你可以开始使用markdown标记语言编辑文章了！</p>
+
+<h3>发布</h3>
+
+<p>发布很简单，直接将文章内容推送到github即可，如果你修改了页面主题或者布局，也一并推送：</p>
+
+<pre><code>$ git add .
+$ git commit -m "Add new post"
+$ git push origin master
+</code></pre>
+
+<p>现在你就可以通过<a href="http://USERNAME.github.com%E8%AE%BF%E9%97%AE%E4%BD%A0%E7%9A%84%E9%A1%B5%E9%9D%A2%E4%BA%86%E3%80%82">http://USERNAME.github.com%E8%AE%BF%E9%97%AE%E4%BD%A0%E7%9A%84%E9%A1%B5%E9%9D%A2%E4%BA%86%E3%80%82</a></p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://daringfireball.net/projects/markdown/syntax">详尽的Markdown语法</a></li>
+<li><a href="http://www.pushiming.com/blog/2010/11/tips-on-markdown/">另外一篇Markdown简介</a></li>
+<li><a href="https://github.com/mojombo/jekyll/wiki/">Jekyll wiki</a></li>
+<li><a href="https://github.com/mojombo/jekyll/wiki/Sites">这里</a>是一些站点，有些是开放源代码的，你可以参照学习</li>
+<li><a href="https://github.com/mojombo/jekyll/wiki/Pagination">怎样对文章进行分页？</a></li>
+<li><a href="http://www.pizn.net/24-09-2011/use-github-pages-to-build-a-blog/">http://www.pizn.net/24-09-2011/use-github-pages-to-build-a-blog/</a></li>
+<li><a href="http://www.yangzhiping.com/tech/writing-space.html">http://www.yangzhiping.com/tech/writing-space.html</a></li>
+<li><a href="http://fastr.github.com/articles/Documenting-with-Jekyll.html">http://fastr.github.com/articles/Documenting-with-Jekyll.html</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/02/android-vold/">Android Vold 分析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-02T00:00:00+08:00" pubdate data-updated="true">Mar 2<span>nd</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/02/android-vold/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/02/android-vold/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Vold(Volume Daemon) 主要负责管理和控制外部存储设备，这些控制包括SD卡设备插拔，挂载，格式化等等.
+Vold在Android 平台上的作用相当于udev在Linux平台上的功能。</p>
+
+<h3>Vold的架构</h3>
+
+<p>Vold的架构大致如图：</p>
+
+<p><a href="/images/vold-architecture.png"><img src="/images/vold-architecture.png" alt="/images/vold-architecture.png" /></a></p>
+
+<ul>
+<li>Kernel：detect device hot-plug, load drivers</li>
+<li>Sysfs: generate events and send it to user space</li>
+<li>NetlinkManager: establish connection to sysfs, listen to uevents and process it</li>
+<li>VolumeManager: disk volume operation</li>
+<li>CommandListener:  wait for commands from MountService</li>
+<li>NativeDaemonConnector:establish connection between MountService and vold daemon</li>
+</ul>
+
+
+<p>其中，一张SD卡对应一个DirectVolume对象。</p>
+
+<p>Vold模块的类图如下：</p>
+
+<p><a href="/images/vold-class-diagram.png"><img src="/images/vold-class-diagram.png" alt="/images/vold-class-diagram.png" /></a></p>
+
+<h3>Vold startup</h3>
+
+<p>vold的启动分为两个过程，一是vold daemon的启动，二是Java层MountService的启动。</p>
+
+<h4>启动Vold daemon</h4>
+
+<p>Vold daemon由init进程启动，参见init.rc片段：</p>
+
+<p><a href="/images/vold-initrc.png"><img src="/images/vold-initrc.png" alt="/images/vold-initrc.png" /></a></p>
+
+<p>vold入口函数位于/system/vold/mail.cpp，启动后处理流程如下：</p>
+
+<p><a href="/images/vold-startup-sequence.png"><img src="/images/vold-startup-sequence.png" alt="/images/vold-startup-sequence.png" /></a></p>
+
+<p>1.Create directory /dev/block/vold
+1.Create singleton instance of VolumeManager , NetlinkManager  andCommandListener
+1.Process configuration file /system/etc/vold.fstab
+1.NetlinkManager creates connection between kernel and vold
+1.Manually trigger uevents by writing “add\n” to file in /sys/block
+1.CommandListener  starts listening commands from framework</p>
+
+<h4>启动MountService</h4>
+
+<p>1.MountService initialized by SystemServer on device starts up
+1.Create connection to vold</p>
+
+<p>After MountService is up, the vold system is ready.</p>
+
+<h3>Send commands from framework</h3>
+
+<p>以App层通过MountService 挂载一个volume为例，说明从上层向下层的调用流程。</p>
+
+<p><a href="/images/vold-send-commands-from-framework.png"><img src="/images/vold-send-commands-from-framework.png" alt="/images/vold-send-commands-from-framework.png" /></a></p>
+
+<ol>
+<li>NativeDaemonConnector::sendCommand()</li>
+<li>SocketListener::runListener() <code>&lt;</code>&mdash;vold accepting connections here</li>
+<li>FrameworkListener::onDataAvailable()</li>
+<li>FrameworkListener::dispatchCommand()</li>
+<li>FrameworkCommand::runCommand()&mdash;-CommandListener::VolumeCmd::runCommand()</li>
+<li>VolumeManager::mountVolume()</li>
+<li>Volume::mountVol()</li>
+</ol>
+
+
+<h3>Process events from kernel</h3>
+
+<p>处理kernel发出的挂载事件：</p>
+
+<p><a href="/images/vold-process-events-from-kernel.png"><img src="/images/vold-process-events-from-kernel.png" alt="/images/vold-process-events-from-kernel.png" /></a></p>
+
+<ol>
+<li>SocketListener::runListener <code>&lt;</code>&mdash;listening events from kernel</li>
+<li>NetlinkListener::onDataAvailable()</li>
+<li>NetlinkHandler::onEvent()</li>
+<li>VolumeManager::handleBlockEvent , VolumeManager::handleSwitchEvent , VolumeManager::handleUsbCompositeEvent</li>
+<li>DirectVolume::handleBlockEvent()</li>
+<li>DirectVolume::handleDiskAdded, DirectVolume::handlePartitionAdded, DirectVolume::handleDiskRemoved, DirectVolume::handlePartitionRemoved,DirectVolume::handleDiskChanged, DirectVolume::handlePartitionChanged,or ignore non add/remove/change event</li>
+</ol>
+
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://blog.csdn.net/qianjin0703/article/details/6362389">http://blog.csdn.net/qianjin0703/article/details/6362389</a></li>
+<li><a href="http://www.cnblogs.com/iceocean/articles/1594195.html">http://www.cnblogs.com/iceocean/articles/1594195.html</a></li>
+<li><a href="http://www.chinaunix.net/jh/4/822500.html">http://www.chinaunix.net/jh/4/822500.html</a></li>
+<li><a href="http://blog.csdn.net/fudan_abc/article/details/1768277">http://blog.csdn.net/fudan_abc/article/details/1768277</a></li>
+<li><a href="http://dongyulong.blog.51cto.com/1451604/389159">http://dongyulong.blog.51cto.com/1451604/389159</a></li>
+<li><a href="http://blog.csdn.net/datangsoc/article/details/5928132">http://blog.csdn.net/datangsoc/article/details/5928132</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/">Ubuntu10.04安装无线网卡ath9k_htc驱动</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-10-18T00:00:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>我的USB无线网卡型号为TL_WN721N，插在Ubuntu10.04上没有反应。据说10.10以后插上就可以用了，没有测试。</p>
+
+<p>第一步 确定ath9k_htc驱动支持你的网卡型号<br/>
+<a href="http://linuxwireless.org/en/users/Drivers/ath9k_htc/devices">这里</a> 列出了支持的型号列表，你可以通过lsusb查看自己的网卡型号是否在列表当中。</p>
+
+<p>第二步 安装firmwire<br/>
+从<a href="http://wireless.kernel.org/download/htc_fw/">这里</a>下载htc_9271.fw，拷贝到/lib/firmwire下</p>
+
+<p>第三步 安装compact wireless<br/>
+安装compact wireless有打包好的deb包，从这里下载GUI Program to install ath9k_htc，安装完后直接运行，等待安装完成重启机器就可以了。
+爱折腾的也可以到<a href="http://wireless.kernel.org/download/">这里</a>下载
+最新的compact wireless驱动，然后编译安装：</p>
+
+<pre><code>sudo make
+sudo make install
+sudo make unload
+sudo make load ath9k_htc
+</code></pre>
+
+<p>重启机器即可。</p>
+
+<p>Reference
+* <a href="http://forum.ubuntu.com.cn/viewtopic.php?f=116&amp;t=326568&amp;p=2388841">http://forum.ubuntu.com.cn/viewtopic.php?f=116&amp;t=326568&amp;p=2388841</a>
+* <a href="http://blog.chinaunix.net/space.php?uid=20620288&amp;do=blog&amp;id=2691282">http://blog.chinaunix.net/space.php?uid=20620288&amp;do=blog&amp;id=2691282</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/09/06/compile-cyanogenmod-for-htc-desire/">Compile CyanogenMod (Linux) for HTC Desire</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-09-06T00:00:00+08:00" pubdate data-updated="true">Sep 6<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/09/06/compile-cyanogenmod-for-htc-desire/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2011/09/06/compile-cyanogenmod-for-htc-desire/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>出现如下问题：<br/>
+1.repo init时报错：</p>
+
+<pre><code>......
+object 30d452905f166b316152f236422f85c8aa75a2d0
+type commit
+tag v1.7.5
+tagger Shawn O. Pearce &lt;sop@google.com&gt; 1307663540 -0700
+
+repo 1.7.5
+
+gpg: Signature made Fri 10 Jun 2011 07:52:20 AM CST using DSA key ID 920F5C65
+gpg: Can't check signature: public key not found
+error: could not verify the tag 'v1.7.5'
+</code></pre>
+
+<p>出错原因是曾使用repo sync从其它库sync过代码，删掉~/.repoconfig即可：</p>
+
+<pre><code>$ rm -rf ~/.repoconfig
+$ ./repo init -u git://github.com/CyanogenMod/android.git -b gingerbread
+gpg: keyring `/home/calvin/.repoconfig/gnupg/secring.gpg' created
+gpg: keyring `/home/calvin/.repoconfig/gnupg/pubring.gpg' created
+gpg: /home/calvin/.repoconfig/gnupg/trustdb.gpg: trustdb created
+gpg: key 920F5C65: public key "Repo Maintainer &lt;repo@android.kernel.org&gt;" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+
+Getting repo ...
+   from http://android.git.kernel.org/tools/repo.git
+。。。。
+</code></pre>
+
+<p>2.repo sync时报错：</p>
+
+<pre><code>......
+Fetching projects:   1% (3/285) 
+Initializing project platform/bootable/bootloader/legacy ...
+android.git.kernel.org[0: 130.239.17.13]: errno=Connection refused
+android.git.kernel.org[0: 149.20.4.77]: errno=Connection timed out
+android.git.kernel.org[0: 199.6.1.173]: errno=Connection refused
+android.git.kernel.org[0: 2001:4f8:8:10:1972:112:1:0]: errno=Network is unreachable
+android.git.kernel.org[0: 2001:500:60:10:1972:112:1:0]: errno=Network is unreachable
+android.git.kernel.org[0: 2001:6b0:e:4017:1972:112:1:0]: errno=Network is unreachable
+android.git.kernel.org[0: 2001:4f8:1:10:1972:112:1:0]: errno=Network is unreachable
+fatal: unable to connect a socket (Network is unreachable)
+error: Cannot fetch platform/bootable/bootloader/legacy
+</code></pre>
+
+<p>连接服务器时的问题，解决：<br/>
+修改.repo/manifest.xml中</p>
+
+<pre><code>  &lt;remote  name="korg"
+           fetch="git://android.git.kernel.org/"
+           review="review.source.android.com" /&gt;
+</code></pre>
+
+<p>为</p>
+
+<pre><code>  &lt;remote  name="korg"
+           fetch="http://android.git.kernel.org/"
+           review="review.source.android.com" /&gt;
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/05/07/android-monkey-jni-issues/">Android Monkey & Jni相关</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-05-07T00:00:00+08:00" pubdate data-updated="true">May 7<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/05/07/android-monkey-jni-issues/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2011/05/07/android-monkey-jni-issues/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>首先，android平台应用程序可能产生以下四种crash：
+* App层： Force close crash 和 ANR crash
+* Native层： Tombstone crash
+* Kernel层： Kernel panic 比较难定位，可以查看/proc/last_kmsg来辅助定位。</p>
+
+<p>最近需要通过monkey工具测试Tombstone类型的crash，抓取log并分析。通过monkey测试，如果要抓取native类型的crash，需要加上&mdash;monitor-native-crash参数：</p>
+
+<pre><code>seed=$(date +%Y%m%d%H%m%S)
+monkey -s $seed --pkg-whitelist-file ${your-package-list} --monitor-native-crashes --kill-process-after-error -v -v -v 2000000000
+</code></pre>
+
+<p>这样，monkey在跑出crash后，在/data/system/dropbox 和 /data/tombstones目录下会生成相关日志，moneky会停止发送事件流并退出测试.值得注意的是，/data/tombstones文件夹下只会保存10个日志，超过10个后，最早创建的会被替换。而monkey是通过监视这个文件夹下的文件数量变化来判断是否有tombtone类型的crash产生的。因此，当/data/tombstones文件夹下超过10个文件后，如果再有tombstone crash产生的话，monkey是不能检测到的，它会继续发送事件流。为了避免这个问题，可以在每次运行monkey之前先清空一下这个文件夹。</p>
+
+<p>另外，在settings.db中的secure表中有三个字段：dropbox:data_app_wtf,dropbox:data_app_anr,dropbox:data_app_crash。如果设置为enabled，每当有app crash之后，在/data/system/dropbox这个文件夹下都会产生相关的日志信息，这对于分析调试问题都是第一手的信息。</p>
+
+<h3>如何制造tombstone类型的crash？</h3>
+
+<p>这需要通过jni调用一个native的so文件，在本地代码中抛出异常即可。
+可以编写如下代码tombstone_gen.cpp:</p>
+
+<pre><code>int main(int argc, char **argv) {
+  int *p=0;
+  *p=1;    //will seg fault
+  return 0;
+}
+</code></pre>
+
+<p>参照development/samples/SimpleJNI的示例，运行build出的apk即可。</p>
+
+<p>关于jni调用，也有几个问题：</p>
+
+<p>1.FindClass,RegisterNatives等找不到：</p>
+
+<pre><code>    target thumb C: libtombstonec &lt;= development/samples/AndroidDemos/jni/tombstone_gen.c
+    development/samples/AndroidDemos/jni/tombstone_gen.c: In function 'registerNativeMethods':
+    development/samples/AndroidDemos/jni/tombstone_gen.c:48: error: request for member 'FindClass' in something not a structure or union
+    development/samples/AndroidDemos/jni/tombstone_gen.c:53: error: request for member 'RegisterNatives' in something not a structure or union
+    development/samples/AndroidDemos/jni/tombstone_gen.c: In function 'JNI_OnLoad':
+    development/samples/AndroidDemos/jni/tombstone_gen.c:97: error: request for member 'GetEnv' in something not a structure or union
+    make: *** [out/target/product/generic/obj/SHARED_LIBRARIES/libtombstonec_intermediates/tombstone_gen.o] Error 1
+
+问题原因在于：  
+如果是C程序，要用`(*env)-&gt;`  
+如果是C++要用 `env-&gt;`  
+因此有两种解决方法：  
+* 将 (*env)-&gt; 改为 env-&gt;  
+* 将c文件改为cpp文件，改为c++的方式编译。  
+</code></pre>
+
+<p>2.运行时异常java.lang.UnsatisfiedLinkError</p>
+
+<pre><code>tombstone_gen.cpp中
+
+    static const char *classPathName = "com/android/demo/AndroidDemos";
+
+类名有误，导致类链接错误。
+</code></pre>
+
+<p>最后，关于jni中JNINativeMethod相关解释：<br/>
+<a href="http://hi.baidu.com/zhlg_hzh/blog/item/f0d782081f2f45d963d986f5.html">http://hi.baidu.com/zhlg_hzh/blog/item/f0d782081f2f45d963d986f5.html</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/04/28/vim-tips/">Vim Tips</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-28T00:00:00+08:00" pubdate data-updated="true">Apr 28<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/04/28/vim-tips/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2011/04/28/vim-tips/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>移动</h2>
+
+<p><code>0</code> 移动到行首<br/>
+<code>$</code> 移动到行末<br/>
+<code>CTRL+ o</code> 回到上一视图<br/>
+<code>CTRL+ i</code> 前进到下一视图<br/>
+<code>ZZ</code> 保存更改并退出</p>
+
+<p><code>fx</code>  在当前行向前移动光标到下一个字符x (很明显, x可以是任意你想要移动到的字符). 这是一个超级有用的命令. 你可以输入;来重复前一个f命令.
+<code>tx</code>  和上面的命令基本相同, 除了移动光标到字符x之前而不是x字符本身. (这个真的很有用)<br/>
+<code>Fx</code>  在当前行向后移动光标到上一个字符x.</p>
+
+<p><code>zz</code> 将当前行置于屏幕中间<br/>
+<code>zt</code> 将当前行置于屏幕顶端<br/>
+<code>zb</code> 将当前行置于屏幕底端<br/>
+<code>CTRL+e</code> 移动光标所在行的位置，比如我光标在第10行，我想光标不动，但是所在行向上移<br/>
+<code>CTRL+y</code> 同上，但是向下移<br/>
+<code>%</code> match of next brace, bracket, comment</p>
+
+<p>在长句子内移动  <br/>
+在你编辑电子邮件或其他段落式文本的时候, 你可能注意到移动方向跳的行数比你料想的多. 这是因为你的段落对vim来说在很长的同一个行里. 用h, j, k, l移动前输入g可以让移动相对于屏幕看上去的行数而不是vim内部的行数.</p>
+
+<h2>复制-粘贴</h2>
+
+<p>1.选定文本块，使用v进入可视模式；移动光标键选定内容<br/>
+1.复制选定块到缓冲区，用y；<br/>
+复制整行，用yy;<br/>
+复制到系统剪切板 &ldquo;+y<br/>
+剪切到系统剪切板 &rdquo;+x<br/>
+1.剪切选定块到缓冲区，用d；剪切整行用dd<br/>
+1.粘贴缓冲区中的内容，用p</p>
+
+<p>vim文件间复制粘贴  <br/>
+<a href="http://www.cnblogs.com/jianyungsun/archive/2011/03/19/1988855.html">http://www.cnblogs.com/jianyungsun/archive/2011/03/19/1988855.html</a>  <br/>
+使用 yaw  命令复制当前光标所在单词</p>
+
+<p>用vi 复制第5行到第10行并粘贴到第12行之后？  <br/>
+：5,10 co 12</p>
+
+<h2>删除插入（s与c）</h2>
+
+<p>s删除光标当前字符，进入插入模式，等同于 x i  <br/>
+S删除当前行 进入插入模式，等同于 dd i  <br/>
+c change 同样是替代插入，不过c要与其他指令配合使用  <br/>
+如 cw 删除一个单词后i ，  <br/>
+c$ =C = D i  删除光标位置到行末后i  <br/>
+cc= S  <br/>
+d$= D  <br/>
+使用 yaw  命令复制当前光标所在单词</p>
+
+<p>删除<br/>
+向后删除一个词 dw 两个词 d2w<br/>
+向后删除到行尾 d$<br/>
+删除整行 dd<br/>
+df c 向后删至字符c出现的位置(包括该字符)<br/>
+dt c 向后删至字符c出现的位置(不包括该字符)<br/>
+d /text 向后删至内容text出现的位置(不包括该text内容)</p>
+
+<p>如果你在一个单词的中间而又想删掉这个单词，在你用 &ldquo;dw&rdquo; 前，你必须先移到这个单词  <br/>
+的开始处。这里还有一个更简单的方法：&#8221;daw&#8221;。  <br/>
+&ldquo;daw&rdquo; 的 &ldquo;d&rdquo; 是删除操作符。&#8221;aw&#8221; 是一个文本对象。提示：&#8221;aw&#8221; 表示 &ldquo;A Word&rdquo; (一个  <br/>
+单词)，这样，&#8221;daw&#8221; 就是 &ldquo;Delete A Word&rdquo; (删除一个单词)。确切地说，该单词后的空  <br/>
+格字符也被删除掉了。  <br/>
+diw     删除光标上的单词 (不包括空白字符)  <br/>
+daw     删除光标上的单词 (包括空白字符)</p>
+
+<p>还有句子的 is 也是一个文本对象 对句子进行操作。  <br/>
+另外还可以 ciw diw viw</p>
+
+<p>如果光标位于&#8221;&ldquo;,[],()之间，还可以  <br/>
+vi&rdquo;  <br/>
+ci&#8221;  <br/>
+参考 :help object-select</p>
+
+<h2>编辑</h2>
+
+<p>打开新文件 :e filename<br/>
+i 在游標所在字元前開始輸入文字(insert)。<br/>
+a 在游標所在字元後開始輸入文字(append)。<br/>
+o 在游標所在行下開一新行來輸入文字(open)。<br/>
+I 在行首開始輸入文字。此之行首指第一個非空白字元處，要從真正的第一個字<br/>
+元處開始輸人文字，可使用 0i 或 gI(Vim 才有)。<br/>
+A 在行尾開始輸入文字。這個好用，您不必管游標在此行的什麼地方，只要按 A<br/>
+就會在行尾等著您輸入文字。<br/>
+O 在游標所在行上開一新行來輸入文字。<br/>
+J 將下一行整行接至本行(Joint)。<br/>
+撤销 u<br/>
+在一行上撤销 U<br/>
+重做 CTRL r<br/>
+替换字母 rx(x为要替换的字母)<br/>
+改动单词直到单词末尾 ce<br/>
+将光标移到某一个字母上，输入ce，然后敲入正确的单词<br/>
+与此类推，还有cw，c$<br/>
+Typing a capital  R  enters Replace mode until ESC is pressed.</p>
+
+<p>. 重复前次的编辑动作<br/>
+`. 回到上次编辑的位置</p>
+
+<p>快速选中括号里的文本<br/>
+vi{ 选中｛｝中间的内容,不包括｛｝<br/>
+v<strong>a</strong>{ 选中｛｝中间内容，包括{}<br/>
+vi( 选中（）中间内容<br/>
+vi[ 选中[]中间内容<br/>
+vit 选中<tag></tag>中间的内容，编辑XML文件时特别有用<br/>
+vi&#8221; 选中&#8221;&ldquo;中间内容<br/>
+vi&#8217; 选中&#8217;&lsquo;中间的内容</p>
+
+<p>vis 选中一个句子<br/>
+viw 选中一个单词<br/>
+vip 选中一个段落<br/>
+&hellip;</p>
+
+<p>同时适用于c，y，d等motion。<br/>
+参考:h text-objects</p>
+
+<p>编辑二进制文件<br/>
+打开文件：vim -b file<br/>
+用vim -b datafile打开文件，用:%!xxd把二进制文件转换<br/>
+编辑完后用:%!xxd -r命令把编辑状态的文本转换成二进制数据<br/>
+具体描述可用:help 23.4察看帮助文档</p>
+
+<p>切换最近编辑的两个buffer<br/>
+CTRL-6 或 CTRL-^ 或 :e #</p>
+
+<p>大小写转换：<br/>
+gu或者gU或者~</p>
+
+<p>行编辑<br/>
+<code>:3,.d</code>            从3行删除到当前行<br/>
+<code>:.,3d</code>            从当前行删除到3行<br/>
+<code>:3,.+3d</code>          从3行删除到当前行后第三行<br/>
+<code>:3,.-1d</code>          从3行删除到当前行前一行<br/>
+<code>:.,3s/adb/def/g</code>  将当前行到第三行之间的abc替换为def<br/>
+<code>:345w file</code>       将第 345 行写入 file 文件<br/>
+<code>3,5w file</code>        将第 3 行至第 5 行写入 file 文件<br/>
+<code>:r file</code>          读取 file 文件的内容，插入当前光标所在行的后面<br/>
+<code>:e file</code>          编辑新文件 file 代替原有内容<br/>
+<code>:f file</code>          将当前文件重命名为 file<br/>
+<code>:f</code>               打印当前文件名称和状态，如文件的行数、光标所在的行号等</p>
+
+<h2>命令补全</h2>
+
+<p>When typing a  :  command, press CTRL-D to see possible completions.<br/>
+Press TAB to use one completion.</p>
+
+<p>使用关键字自动完成(补全)<br/>
+vim 有个非常好的关键字自动完成系统. 就是说你可以只输入很长的词的一部分, 按一个键, vim帮你把这个词自动补全. 比如说在你的代码中有一个变量叫iAmALongAndAwkwardVarName, 你可能不愿意每次用这个变量都把整个词打一遍, 这时候就可以用自动完成功能.<br/>
+要使用关键字自动完成, 只要输入一个字串的前几个字母 (比如 iAmAL) 然后按 <code>Ctrl-N</code>或者<code>Ctrl-P</code>. 如果vim没有选择你需要的字串, 继续按<code>Ctrl-N</code>或者<code>Ctrl-P</code> – vim会遍历所有和你输入的前几个字母匹配的字串.</p>
+
+<h2>搜索替换</h2>
+
+<ol>
+<li><p> CTRL-G  displays your location in the file and the file status.<br/>
+         G  moves to the end of the file.<br/>
+ number  G  moves to that line number.<br/>
+        gg  moves to the first line.</p></li>
+<li><p> Typing  /  followed by a phrase searches FORWARD for the phrase.<br/>
+ Typing  ?  followed by a phrase searches BACKWARD for the phrase.<br/>
+ After a search type  n  to find the next occurrence in the same direction<br/>
+ or  N  to search in the opposite direction.<br/>
+ CTRL-O takes you back to older positions, CTRL-I to newer positions.</p></li>
+<li><p> Typing  %  while the cursor is on a (,),[,],{, or } goes to its match.</p></li>
+<li><p> To substitute new for the first old in a line type    :s/old/new  这个命令只替换当前行的内容<br/>
+ To substitute new for all &lsquo;old&rsquo;s on a line type       :s/old/new/g<br/>
+ To substitute phrases between two line #&rsquo;s type       :#,#s/old/new/g<br/>
+ To substitute all occurrences in the file type        :%s/old/new/g<br/>
+ To ask for confirmation each time add &#8216;c&rsquo;             :%s/old/new/gc</p></li>
+</ol>
+
+
+<p>注：<br/>
+%代表当前编辑的内容<br/>
+#代表前一个编辑的内容<br/>
+如:<br/>
+:%!xxd 表示将当前所有内容用xxd命令处理</p>
+
+<p>搜索精确匹配<br/>
+如xxx是要查找的内容，输入<br/>
+<code>/\&lt;xxx\&gt;</code>，<br/>
+要在<code>&lt;&gt;</code> 前加\进行转义，告诉Vim <code>&lt;&gt;</code> 这个不是要查找的内容。<br/>
+<code>\&lt;</code> 表示只匹配单词的开头，<code>\&gt;</code>表示只匹配单词末尾，点<code>.</code>表示匹配任何字符。<br/>
+*搜索游标所在出的单词（精确匹配）<br/>
+#反向搜索游标所在出的单词（精确匹配）</p>
+
+<p>快速替换游标处的单词  <br/>
+把光标置于thisisaverylongword之上, 然后</p>
+
+<pre><code>:%s/&lt;CTRL+R&gt;&lt;CTRL+W&gt;/ABCD/g .  
+</code></pre>
+
+<p>在命令格式下, CTRL+R代表插入寄存器, CTRL+W代表当前单词.<br/>
+也可以通过寄存器的方式来使用.<br/>
+使用v选择一个区域, 然后 &ldquo;ay  , 存取寄存器a，然后</p>
+
+<pre><code>:%s/&lt;CTRL+R&gt;a/ABCD/g  
+</code></pre>
+
+<p>ABCD 可以用同样的方法,使用寄存器.</p>
+
+<p>重复修改：<br/>
+&ldquo;.&rdquo; 是 Vim 中一个非常简单而有用的命令。它重复最后一次的修改操作。</p>
+
+<pre><code>    /four&lt;Enter&gt;    找到第一个 "four"  
+    cwfive&lt;Esc&gt;     修改成 "five"  
+    n               找下一个 "four"  
+    .               重复修改操作  
+    n               找下一个 "four"  
+    .               重复修改  
+                    如此类推......  
+</code></pre>
+
+<p>搜索完毕后取消高亮<br/>
+:noh 或者 :nohlsearch</p>
+
+<h2>窗口和标签</h2>
+
+<p><code>CTRL+w w</code> 切换窗口<br/>
+<code>:tabedit file</code> 在新tab中打开文件<br/>
+<code>:tab split</code>  将当前窗口缓冲区内容在新tab中打开<br/>
+<code>:tabonly</code> 关闭其他所有标签<br/>
+<code>:tabc</code> 关闭当前标签页<br/>
+<code>:tabc 3</code> 关闭第三个标签页<br/>
+<code>gt</code> 切换tab显示<br/>
+<code>2gt</code> 显示第二个tab</p>
+
+<p>更改窗口宽度和高度<br/>
+<code>Crtl+w &gt;</code> 将当前窗口向右边扩展一行，将 <code>&gt;</code> 换成 <code>&lt;</code> 就是向左边扩展一行。也可以在之前使用数字代表扩展的行数<br/>
+<code>5 Ctrl+w &gt;</code> ,向右边扩展5行。<br/>
+<code>Ctrl+w +</code> 更改窗口高度。+ 增加高度，- 减小高度。</p>
+
+<p><code>:close</code> 关闭窗口<br/>
+实际上，任何退出编辑的命令都可以关闭窗口，象 &ldquo;:quit&rdquo; 和 &ldquo;ZZ&rdquo; 等。但 &ldquo;close&#8221;可以避免你在剩下一个窗口的时候不小心退出 Vim 了。</p>
+
+<p><code>:only</code> 关闭所有其它窗口<br/>
+如果你已经打开了一整套窗口，但现在只想编辑其中一个，可以使用这个命令。<br/>
+这个命令关闭除当前窗口外的所有窗口。如果要关闭的窗口中有一个没有存盘，Vim 会<br/>
+显示一个错误信息，并且那个窗口不会被关闭。</p>
+
+<h2>注释python代码</h2>
+
+<p>1.Ctrl + V 进入 VIM 的块操作模式<br/>
+1.使用 j, k 键上下移动，选中这三行，需要确保每行的首列包含在选中块中。<br/>
+1.键入 r ，即在替换行首字符。 输入 Python 的注释符 ‘＃’。<br/>
+1.按下 ESC 键。</p>
+
+<h2>删除重复行</h2>
+
+<p><code>:sort u</code>
+参见<code>:help sort</code></p>
+
+<h2>格式化文本</h2>
+
+<p>参见:h formatoptions, :h textwidth
+gq 对行内长文本进行换行
+gq{ 对一个段落进行自动换行</p>
+
+<h2>其他</h2>
+
+<p>K 显示游标所在的单词相关的man page<br/>
+：r!command 在游标处插入command的执行输出结果，如date命令将插入当前时间</p>
+
+<p>对齐文本<br/>
+以某一个分隔符为界在垂直方向上对齐文本，如：</p>
+
+<pre><code>name|age|sex  
+Alice|23|female  
+BobBobBobBob|25|male  
+</code></pre>
+
+<p>对齐后：</p>
+
+<pre><code>name         | age | sex  
+Alice        | 23  | female  
+BobBobBobBob | 25  | male  
+</code></pre>
+
+<p>这个功能在写代码时对齐变量十分有用，通过Align和Tabular两个插件可以轻松完成。<br/>
+<code>:%Align |</code>  将全文对齐 <br/>
+<code>:'&lt;,'&gt;Align = + - = |</code>  将选中的文本按+，-，=或者|对齐 <br/>
+更多选项参考<code>:help align</code></p>
+
+<p>另外，通过外部命令column也可以实现：<br/>
+<code>:%!column -t -s '|'</code></p>
+
+<p>VIM中按w时光标移动总要停顿一会儿才会响应<br/>
+原因是我map了一个以w开头的按键，导致每次按w后，vim都要等待一下判断是执行w还是继续接收输入。去掉这个map就好了。</p>
+
+<p>在线的colorscheme配色网站<br/>
+<a href="http://bytefluent.com/vivify/">http://bytefluent.com/vivify/</a></p>
+
+<h2>一些plugin：</h2>
+
+<ul>
+<li><a href="http://www.mirecle.com/2009/07/29/vim-python-indentation-and-inspection.html">http://www.mirecle.com/2009/07/29/vim-python-indentation-and-inspection.html</a></li>
+<li><a href="http://www.vimer.cn/2011/02/%E8%AE%A9vimgvim%E6%9B%B4%E5%A5%BD%E7%9A%84%E6%94%AF%E6%8C%81python%E8%AF%AD%E6%B3%95%E7%BC%A9%E8%BF%9B%E5%BC%BA%E7%83%88%E6%8E%A8%E8%8D%90.html">http://www.vimer.cn/2011/02/%E8%AE%A9vimgvim%E6%9B%B4%E5%A5%BD%E7%9A%84%E6%94%AF%E6%8C%81python%E8%AF%AD%E6%B3%95%E7%BC%A9%E8%BF%9B%E5%BC%BA%E7%83%88%E6%8E%A8%E8%8D%90.html</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/7/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/blog/page/5/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (9)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
+
+  </ul>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/26/Chrominum-base-code-introduction/">Chromium Base库介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/28/eclipse-debug-break-points/">Eclipse 调试中的五种断点</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/28/eclipse-content-assist/">Eclipse Content Assist失效解决</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

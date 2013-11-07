@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Linux | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/blog/categories/linux/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2013-11-06T16:49:12+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[禁用内核进程地址随机]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/11/04/disable-kernel-random-address/"/>
+    <updated>2013-11-04T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/11/04/disable-kernel-random-address</id>
+    <content type="html"><![CDATA[<p>今天接触了Linux下的VDSO（Virtual Dynamically-linked Shared Object)，用来使系统调用更加快速和高效，但在查看进程vdso.so在进程地址空间的分布时，发现每次打印出来的进程地址都不一样：</p>
+
+<pre><code>$ ldd /bin/ls
+    linux-vdso.so.1 =&gt;  (0x00007ffff7ffe000)
+    libselinux.so.1 =&gt; /lib/x86\_64-linux-gnu/libselinux.so.1 (0x00007ffff7dc0000)
+    librt.so.1 =&gt; /lib/x86\_64-linux-gnu/librt.so.1 (0x00007ffff7bb8000)
+    libacl.so.1 =&gt; /lib/x86\_64-linux-gnu/libacl.so.1 (0x00007ffff79af000)
+    libc.so.6 =&gt; /lib/x86\_64-linux-gnu/libc.so.6 (0x00007ffff75ef000)
+    libdl.so.2 =&gt; /lib/x86\_64-linux-gnu/libdl.so.2 (0x00007ffff73eb000)
+    /lib64/ld-linux-x86-64.so.2 (0x0000555555554000)
+    libpthread.so.0 =&gt; /lib/x86\_64-linux-gnu/libpthread.so.0 (0x00007ffff71cd000)
+    libattr.so.1 =&gt; /lib/x86\_64-linux-gnu/libattr.so.1 (0x00007ffff6fc8000)
+$ cat /proc/self/maps 
+00400000-0040b000 r-xp 00000000 08:05 1438995                            /bin/cat
+0060a000-0060b000 r--p 0000a000 08:05 1438995                            /bin/cat
+0060b000-0060c000 rw-p 0000b000 08:05 1438995                            /bin/cat
+0060c000-0062d000 rw-p 00000000 00:00 0                                  [heap]
+7ffff7337000-7ffff7a1a000 r--p 00000000 08:05 137790                     /usr/lib/locale/locale-archive
+7ffff7a1a000-7ffff7bcf000 r-xp 00000000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7bcf000-7ffff7dcf000 ---p 001b5000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7dcf000-7ffff7dd3000 r--p 001b5000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7dd3000-7ffff7dd5000 rw-p 001b9000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7dd5000-7ffff7dda000 rw-p 00000000 00:00 0 
+7ffff7dda000-7ffff7dfc000 r-xp 00000000 08:05 407692                     /lib/x86\_64-linux-gnu/ld-2.15.so
+7ffff7fd9000-7ffff7fdc000 rw-p 00000000 00:00 0 
+7ffff7ff9000-7ffff7ffb000 rw-p 00000000 00:00 0 
+7ffff7ffb000-7ffff7ffc000 r-xp 00000000 00:00 0                          [vdso]
+7ffff7ffc000-7ffff7ffd000 r--p 00022000 08:05 407692                     /lib/x86\_64-linux-gnu/ld-2.15.so
+7ffff7ffd000-7ffff7fff000 rw-p 00023000 08:05 407692                     /lib/x86\_64-linux-gnu/ld-2.15.so
+7ffffffde000-7ffffffff000 rw-p 00000000 00:00 0                          [stack]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+</code></pre>
+
+<p>原来在现代Linux内核中，为了安全起见，会对每个进程的进程地址进行随机化。用以下命令即可禁用这个功能：</p>
+
+<pre><code>echo "0" &gt; /proc/sys/kernel/randomize_va_space
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[使用lvm管理磁盘分区]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/07/05/use-lvm-to-extends-disk-capacity/"/>
+    <updated>2012-07-05T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/07/05/use-lvm-to-extends-disk-capacity</id>
+    <content type="html"><![CDATA[<p>最近在给新同学安装Ubuntu系统后发现有的同学home分区空间不够了，于是研究了下利用lvm对home空间进行扩容。<br/>
+lvm的概念介绍来自<a href="http://hi.baidu.com/sinyo/blog/item/d793be3e866682f9828b13c6.html">这里</a>.</p>
+
+<p>LVM是逻辑盘卷管理（Logical Volume Manager）的简称，它是Linux环境下对磁盘分区进行管理的一种机制，LVM是建立在硬盘和分区之上的一个逻辑层，来提高磁盘分区管理的灵活性。通过LVM系统管理员可以轻松管理磁盘分区，如：将若干个磁盘分区连接为一个整块的卷组（volume group），形成一个存储池。管理员可以在卷组上随意创建逻辑卷组（logical volumes），并进一步在逻辑卷组上创建文件系统。管理员通过LVM可以方便的调整存储卷组的大小，并且可以对磁盘存储按照组的方式进行命名、管理和分配，例如按照使用用途进行定义：“development”和“sales”，而不是使用物理磁盘名“sda”和“sdb”。而且当系统添加了新的磁盘，通过LVM管理员就不必将磁盘的文件移动到新的磁盘上以充分利用新的存储空间，而是直接扩展文件系统跨越磁盘即可。</p>
+
+<hr />
+
+<h3>lvm的基本组成</h3>
+
+<p>lvm包括以下几个概念：</p>
+
+<ul>
+<li>Physical volume (PV)<br/>
+指代磁盘上的物理分区</li>
+<li>Volume group (VG)<br/>
+VG类似与物理硬盘，由多个物理分区组成，可以在VG上创建一个或者多个逻辑卷（LV）</li>
+<li>Logical volume (LV)<br/>
+在VG的基础上划分出来的逻辑分区，在这个分区上可以建立文件系统，如home</li>
+<li>Physical extent (PE)<br/>
+每个逻辑卷被划分的最小可寻址单元，一般为4MB。</li>
+</ul>
+
+
+<p>接下来记录一下对home分区进行扩容的过程。</p>
+
+<h3>准备工作</h3>
+
+<p>已有的环境：<br/>
+/dev/sda5 是一块windows分区，格式为fat32;<br/>
+/dev/sda9 为当前home所在的分区，格式为ext4.<br/>
+现在需要把/dev/sda5合并到home分区中。在建立lvm分区之前，需要备份这两块分区中的数据，因为之后的操作会对这两块分区进行格式化。</p>
+
+<p>首先备份两块分区的数据，重启机器进入recovery模式，以root用户登录，卸载home所在的/dev/sda9</p>
+
+<pre><code># umount /home
+</code></pre>
+
+<h3>安装lvm</h3>
+
+<pre><code># apt-get install lvm2
+</code></pre>
+
+<h3>修改物理分区类型为8e</h3>
+
+<p>作为PV的物理分区类型必须为8e，表示这是一块lvm的物理分区。我们使用fdisk对/dev/sda5和/dev/sda9这两个物理分区的分区类型进行修改。</p>
+
+<pre><code># fdisk /dev/sda
+
+WARNING: DOS-compatible mode is deprecated. It's strongly recommended to
+         switch off the mode (command 'c') and change display units to
+         sectors (command 'u').
+
+Command (m for help): t
+Partition number (1-10): 5
+Hex code (type L to list codes): 8e
+Changed system type of partition 5 to 8e (Linux LVM)
+Command (m for help): t
+Partition number (1-10): 9
+Hex code (type L to list codes): 8e
+Changed system type of partition 9 to 8e (Linux LVM)
+Command (m for help): w       //将修改写入磁盘
+</code></pre>
+
+<p>最后<code>fdisk -l</code>查看一下修改后的分区。</p>
+
+<h3>创建物理卷</h3>
+
+<pre><code># pvcreate /dev/sda5
+pvcreate -- physical volume "/dev/sda5" successfully created
+# pvcreate /dev/sda9
+pvcreate -- physical volume "/dev/sda9" successfully created
+# pvdisplay
+</code></pre>
+
+<h3>创建卷组</h3>
+
+<pre><code># vgcreate lvm_sda /dev/sda5 // 以/dev/sda5为基础创建一个名为lvm_sda的卷组
+# vgextend lvm_sda /dev/sda9 // 将/dev/sda9添加进lvm_sda卷组
+# vgdisplay lvm_sda
+</code></pre>
+
+<h3>创建逻辑卷</h3>
+
+<pre><code># lvcreate -L 150G lvm_sda -n lvolhome
+</code></pre>
+
+<p>这里在lvm_sda上创建了一个150G的名为lvolhome的逻辑卷,这时会生成/dev/lvm_sda/lvolhome设备节点。</p>
+
+<h3>创建文件系统</h3>
+
+<pre><code># mkfs.ext4 /dev/lvm_sda/lvolhome
+</code></pre>
+
+<p>然后将其挂载到/home，并创建对应用户的home目录。</p>
+
+<pre><code># mount /dev/lvm_sda/lvolhome /home
+# cd /home
+# mkdir calvin
+# chown -R calvin:calvin calvin/
+</code></pre>
+
+<h3>设置开机挂载逻辑卷</h3>
+
+<pre><code># vi /etc/fstab
+</code></pre>
+
+<p>删除已有的home挂载信息，添加：</p>
+
+<pre><code>/dev/lvm_sda/lvolhome /home ext4 defaults 0 2
+</code></pre>
+
+<p>重启系统，done。</p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://blog.csdn.net/jianghuyue/article/details/6001957">http://blog.csdn.net/jianghuyue/article/details/6001957</a></li>
+<li><a href="http://www.linuxhomenetworking.com/wiki/index.php/Quick_HOWTO_:_Ch27_:_Expanding_Disk_Capacity">http://www.linuxhomenetworking.com/wiki/index.php/Quick_HOWTO_:_Ch27_:_Expanding_Disk_Capacity</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[使用iconv和convmv转换文本编码]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/31/convmv-and-iconv/"/>
+    <updated>2012-05-31T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/31/convmv-and-iconv</id>
+    <content type="html"><![CDATA[<h3>文本内容编码转换</h3>
+
+<p>文本显示乱码是因为文件本身的编码格式和编辑器打开文本所使用的编码格式不一致，使用iconv命令可以转换文本编码。如：</p>
+
+<pre><code>$ iconv -f coding1 -t coding2 file1 -o file2
+-f:指定文件原始编码
+-t:指定转换的目标编码
+file1:代转换的文件
+-o:指定输出文件
+</code></pre>
+
+<h3>文件名编码转换</h3>
+
+<p>常常有这样的情况，将一个rar文件解压后中文的文件名显示乱码，显示”invalid encoding“，利用convmv命令可以进行转换：</p>
+
+<pre><code>$ convmv -f gbk -t utf-8 -r --notest path/to/your/file
+-f:指定原始编码
+-t:指定转换的目标编码
+-r:如果目标文件是一个目录，递归处理目录下的文件
+--notest:转换后将文件重命名，默认情况下这个命令不会重命名文件
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[pstree命令使用]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/28/pstree/"/>
+    <updated>2012-05-28T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/28/pstree</id>
+    <content type="html"><![CDATA[<p>pstree命令以树状形式显示运行中的进程，使用这个命令可以方便的查看进程之间的父子关系。
+一些选项：</p>
+
+<pre><code>-h：高亮当前进程
+-p：显示进程pid
+-u：显示uid
+-a：显示启动进程的命令
+-l：对长于132个字符会被截断显示，使用这个选项关闭这个功能
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[.xinitrc and .xprofile]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/24/xinitrc-and-xprofile/"/>
+    <updated>2012-05-24T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/24/xinitrc-and-xprofile</id>
+    <content type="html"><![CDATA[<p>如果使用startx或者slim等命令启动X，会source ~/.xinitrc。<br/>
+如果使用登录管理器GDM或者KDM，会source ~/.xprofile，忽略~/.xinitrc。</p>
+
+<p>为了统一，干脆这样好了：</p>
+
+<pre><code>ln -s ~/.xinitrc ~/.xprofile
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

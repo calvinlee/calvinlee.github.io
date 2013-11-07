@@ -1,0 +1,343 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Android Vold 分析 - 且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="Vold(Volume Daemon) 主要负责管理和控制外部存储设备，这些控制包括SD卡设备插拔，挂载，格式化等等.
+Vold在Android 平台上的作用相当于udev在Linux平台上的功能。 Vold的架构 Vold的架构大致如图： Kernel：detect device hot- &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/2012/03/02/android-vold">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Android Vold 分析</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-02T00:00:00+08:00" pubdate data-updated="true">Mar 2<span>nd</span>, 2012</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Vold(Volume Daemon) 主要负责管理和控制外部存储设备，这些控制包括SD卡设备插拔，挂载，格式化等等.
+Vold在Android 平台上的作用相当于udev在Linux平台上的功能。</p>
+
+<h3>Vold的架构</h3>
+
+<p>Vold的架构大致如图：</p>
+
+<p><a href="/images/vold-architecture.png"><img src="/images/vold-architecture.png" alt="/images/vold-architecture.png" /></a></p>
+
+<ul>
+<li>Kernel：detect device hot-plug, load drivers</li>
+<li>Sysfs: generate events and send it to user space</li>
+<li>NetlinkManager: establish connection to sysfs, listen to uevents and process it</li>
+<li>VolumeManager: disk volume operation</li>
+<li>CommandListener:  wait for commands from MountService</li>
+<li>NativeDaemonConnector:establish connection between MountService and vold daemon</li>
+</ul>
+
+
+<p>其中，一张SD卡对应一个DirectVolume对象。</p>
+
+<p>Vold模块的类图如下：</p>
+
+<p><a href="/images/vold-class-diagram.png"><img src="/images/vold-class-diagram.png" alt="/images/vold-class-diagram.png" /></a></p>
+
+<h3>Vold startup</h3>
+
+<p>vold的启动分为两个过程，一是vold daemon的启动，二是Java层MountService的启动。</p>
+
+<h4>启动Vold daemon</h4>
+
+<p>Vold daemon由init进程启动，参见init.rc片段：</p>
+
+<p><a href="/images/vold-initrc.png"><img src="/images/vold-initrc.png" alt="/images/vold-initrc.png" /></a></p>
+
+<p>vold入口函数位于/system/vold/mail.cpp，启动后处理流程如下：</p>
+
+<p><a href="/images/vold-startup-sequence.png"><img src="/images/vold-startup-sequence.png" alt="/images/vold-startup-sequence.png" /></a></p>
+
+<p>1.Create directory /dev/block/vold
+1.Create singleton instance of VolumeManager , NetlinkManager  andCommandListener
+1.Process configuration file /system/etc/vold.fstab
+1.NetlinkManager creates connection between kernel and vold
+1.Manually trigger uevents by writing “add\n” to file in /sys/block
+1.CommandListener  starts listening commands from framework</p>
+
+<h4>启动MountService</h4>
+
+<p>1.MountService initialized by SystemServer on device starts up
+1.Create connection to vold</p>
+
+<p>After MountService is up, the vold system is ready.</p>
+
+<h3>Send commands from framework</h3>
+
+<p>以App层通过MountService 挂载一个volume为例，说明从上层向下层的调用流程。</p>
+
+<p><a href="/images/vold-send-commands-from-framework.png"><img src="/images/vold-send-commands-from-framework.png" alt="/images/vold-send-commands-from-framework.png" /></a></p>
+
+<ol>
+<li>NativeDaemonConnector::sendCommand()</li>
+<li>SocketListener::runListener() <code>&lt;</code>&mdash;vold accepting connections here</li>
+<li>FrameworkListener::onDataAvailable()</li>
+<li>FrameworkListener::dispatchCommand()</li>
+<li>FrameworkCommand::runCommand()&mdash;-CommandListener::VolumeCmd::runCommand()</li>
+<li>VolumeManager::mountVolume()</li>
+<li>Volume::mountVol()</li>
+</ol>
+
+
+<h3>Process events from kernel</h3>
+
+<p>处理kernel发出的挂载事件：</p>
+
+<p><a href="/images/vold-process-events-from-kernel.png"><img src="/images/vold-process-events-from-kernel.png" alt="/images/vold-process-events-from-kernel.png" /></a></p>
+
+<ol>
+<li>SocketListener::runListener <code>&lt;</code>&mdash;listening events from kernel</li>
+<li>NetlinkListener::onDataAvailable()</li>
+<li>NetlinkHandler::onEvent()</li>
+<li>VolumeManager::handleBlockEvent , VolumeManager::handleSwitchEvent , VolumeManager::handleUsbCompositeEvent</li>
+<li>DirectVolume::handleBlockEvent()</li>
+<li>DirectVolume::handleDiskAdded, DirectVolume::handlePartitionAdded, DirectVolume::handleDiskRemoved, DirectVolume::handlePartitionRemoved,DirectVolume::handleDiskChanged, DirectVolume::handlePartitionChanged,or ignore non add/remove/change event</li>
+</ol>
+
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://blog.csdn.net/qianjin0703/article/details/6362389">http://blog.csdn.net/qianjin0703/article/details/6362389</a></li>
+<li><a href="http://www.cnblogs.com/iceocean/articles/1594195.html">http://www.cnblogs.com/iceocean/articles/1594195.html</a></li>
+<li><a href="http://www.chinaunix.net/jh/4/822500.html">http://www.chinaunix.net/jh/4/822500.html</a></li>
+<li><a href="http://blog.csdn.net/fudan_abc/article/details/1768277">http://blog.csdn.net/fudan_abc/article/details/1768277</a></li>
+<li><a href="http://dongyulong.blog.51cto.com/1451604/389159">http://dongyulong.blog.51cto.com/1451604/389159</a></li>
+<li><a href="http://blog.csdn.net/datangsoc/article/details/5928132">http://blog.csdn.net/datangsoc/article/details/5928132</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Calvin Lee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-02T00:00:00+08:00" pubdate data-updated="true">Mar 2<span>nd</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>Android</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/" title="Previous Post: Ubuntu10.04安装无线网卡ath9k_htc驱动">&laquo; Ubuntu10.04安装无线网卡ath9k_htc驱动</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/03/02/my-first-post-on-git-pages/" title="Next Post: 使用Github Pages创建个人博客">使用Github Pages创建个人博客 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (9)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
+
+  </ul>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/26/Chrominum-base-code-introduction/">Chromium Base库介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/28/eclipse-debug-break-points/">Eclipse 调试中的五种断点</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/28/eclipse-content-assist/">Eclipse Content Assist失效解决</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

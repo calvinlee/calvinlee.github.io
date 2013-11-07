@@ -1,0 +1,1048 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="在提交历史中查找指定文本 git log -G'password' --all or git rev-list --all | (
+while read revision; do git grep -F 'password' $revision
+done
+) or for revision in &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/page/2">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/10/18/git-tricks/">Git Tips and Tricks</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-10-18T00:00:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/10/18/git-tricks/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/10/18/git-tricks/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>在提交历史中查找指定文本</h3>
+
+<pre><code>git log -G'password' --all
+</code></pre>
+
+<p>or</p>
+
+<pre><code>git rev-list --all | (
+while read revision; do
+    git grep -F 'password' $revision
+done
+)
+</code></pre>
+
+<p>or</p>
+
+<pre><code>for revision in `git rev-list --all`; 
+do
+    git grep -F 'password' $revision;
+done
+</code></pre>
+
+<p>or
+<code>git log -S'bad\_code' path/to/file</code> 查看指定代码片段在哪个版本出现过。
+<code>git blame path/to/file</code>: 查看指定文件的每一行的最后修改时间是在哪个版本，但不能查看删除的行或者被替换的行
+参见man git-blame.</p>
+
+<h3>git commit</h3>
+
+<p><code>git commit -c &lt;commit&gt;</code>  reedit commit message of <commit>
+<code>git commit -C &lt;commit&gt;</code>  reuse commit message of <commit></p>
+
+<h3>git底层命令</h3>
+
+<p>git ls-tree<br/>
+git write-tree<br/>
+git ls-files<br/>
+git cat-file<br/>
+git rev-parse</p>
+
+<p>.git/refs 保存所有引用的命名空间
+.git/refs/heads 所有的本地分支</p>
+
+<p>git commit &mdash;allow-empty &mdash;amend</p>
+
+<p>[TODO] strace命令</p>
+
+<p>.git/index 包含文件索引的目录树，记录了文件名和文件的状态信息，文件的内容存储在.git/objects中，文件索引建立了文件和对象库中的文件对象之间的对应关系。</p>
+
+<p>git checkout . / git checkout &mdash; <file><br/>
+丢弃workspace中的内容，保留暂存区的内容</p>
+
+<p>git checkout HEAD . / git checkout HEAD <file><br/>
+用HEAD指向的commit中的内容替代workspace和暂存区的内容，这将导致当前workspace和暂存区的内容被丢弃。</p>
+
+<h3>使用git reflog挽回错误的reset</h3>
+
+<p>git reflog<br/>
+git reflog show master</p>
+
+<p>分支的变更记录都会被记录在.git/logs/refs下，通过 git reflog命令可以获得分支的历史变更记录，然后可以通过git reset 命令将HEAD任意重置到任意一个提交。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/10/16/string-interning/">Java 字符串的==和equals</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-10-16T00:00:00+08:00" pubdate data-updated="true">Oct 16<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/10/16/string-interning/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/10/16/string-interning/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>实例</h3>
+
+<p>问题起源于这段代码：</p>
+
+<pre><code>if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
+    Log.d(TAG, "mounted");
+} else {
+    Log.d(TAG, "umounted");
+}
+</code></pre>
+
+<p>在SD卡处于mounted的状态下，这个case打印出umounted.</p>
+
+<h3>问题</h3>
+
+<p>现在SD卡处于mounted的状态，所以Environment.getExternalStorageState()方法会返回&#8221;mounted&#8221;。<br/>
+跟踪Environment.getExternalStorageState方法的实现，如果SD卡处于mounted的状态，该方法返回Environment.MEDIA_MOUNTED这个字符串常量。
+那么问题是，Environment.MEDIA_MOUNTED是一个字符串常量，一个字符串常量在JVM中只有一份，== 符号比较的是两边的对象是否是同一个引用，这样来说这里应该输出&#8221;mounted&#8221;才对，为什么会输出&#8221;umounted&#8221;呢？也就是说等号两边的两个字符串不是同一个引用。</p>
+
+<p>原因在于只有在编译期确定的字符串常量才会被放进常量池，这个常量池会被保存在class文件中，稍后被JVM加载。而对于运行时才生成的字符串是不会放入常量池的。Environment.getExternalStorageState()方法返回的字符串虽然是一个字符串常量，但是这个常量在编译期并未确定，所以该方法返回的字符串不是从常量池中取得的。</p>
+
+<p><code>String.intern()</code>方法用于在运行时将一个字符串加入常量池中，所以对这个例子，<code>Environment.getExternalStorageState().intern() == Environment.MEDIA\_MOUNTED</code>才会返回true。</p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/String_interning">http://en.wikipedia.org/wiki/String_interning</a></li>
+<li><a href="http://blog.csdn.net/jcc3120/article/details/2118870">http://blog.csdn.net/jcc3120/article/details/2118870</a></li>
+<li><a href="http://stackoverflow.com/questions/767372/java-string-equals-versus">http://stackoverflow.com/questions/767372/java-string-equals-versus</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/08/05/two-ways-of-defining-strings-in-c/">C语言字符串定义与初始化</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-05T00:00:00+08:00" pubdate data-updated="true">Aug 5<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/08/05/two-ways-of-defining-strings-in-c/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/08/05/two-ways-of-defining-strings-in-c/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>字符串的两种定义方式</h3>
+
+<ol>
+<li><p>char数组</p>
+
+<p> char sa[] = &ldquo;hello world&rdquo;;</p></li>
+<li><p>char指针</p>
+
+<p> char *sp = &ldquo;hello world&rdquo;;</p></li>
+</ol>
+
+
+<p>这两种方式都产生了一个&#8221;hello world&#8221;的<strong>字符串常量</strong>,字符串常量存储在静态存储区中，静态存储区中的内容在程序运行的整个过程中都存在，而且只存储一份。</p>
+
+<h3>数组与指针的关系</h3>
+
+<p>在第一种定义中，字符串常量在编译时就已经分配好了空间，但直到运行时才会为数组分配存储空间，这时，存储在静态存储区中的字符串常量会被拷贝一份到数组中，此后，数组名sa与&amp;sa[0]等价。重要的是，sa是一个常量，你不能修改sa的值，你可以通过sa+1来标识数组里的下一个元素，也可以修改数组里的元素。然而，sa++是不允许的，因为自增运算符只能作用于变量而不是常量。</p>
+
+<p>第二种定义中，程序运行时只为指针变量sp分配了存储空间，用来字符串常量&#8221;hello world&#8221;的地址，这时，字符串常量没有被拷贝。sp的值是可以改变的，如++sp将指向字符e。</p>
+
+<p>总之，数组初始化是从静态存储区中把一个字符串拷贝给数组，而指针初始化只是复制这个字符串的地址。</p>
+
+<h3>示例</h3>
+
+<pre><code>#include &lt;stdio.h&gt;
+
+int main(int args, char **argv) {
+    char sa[] = "hello world";
+    char *sp = "hello world";
+
+    // sa++; 错误，sa是常量
+    sp++;
+
+    sa[1] = 'M';
+    *(sa+2) = 'X';
+    // sp[1] = 'M'; // 错误，不能修改常量值
+
+    printf("%s\n", sa);
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/08/05/c-function-pointer/">C语言函数指针与指针函数</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-05T00:00:00+08:00" pubdate data-updated="true">Aug 5<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/08/05/c-function-pointer/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/08/05/c-function-pointer/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><pre><code>#include &lt;stdio.h&gt;
+
+int bar(int, char*);
+
+// 指针函数
+char *echo_hello(char *s) {
+    char *result;
+    int len = strlen(s) + strlen("hello ") + 1;
+    result = (char *)malloc(len * sizeof(char));
+    memset(result,0, len * sizeof(char));
+    snprintf(result, len, "%s%s", "hello ", s);
+    return result;
+}
+
+int main(int args, char **argv) {
+    // 函数指针
+    int  (*foo) (int, char *);
+
+    foo = bar;
+    foo = &amp;bar;
+
+    foo(2, "hello world");
+    (*foo)(2, "hello world");
+
+    printf("%s\n", echo_hello("programmer!"));
+}
+
+int bar(int a, char *s) {
+    printf("calling bar, int=%d, string=%s\n", a, s);
+}
+</code></pre>
+
+<h3>Reference</h3>
+
+<p><a href="http://blog.csdn.net/porscheyin/article/details/3461632/">http://blog.csdn.net/porscheyin/article/details/3461632/</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/07/05/use-lvm-to-extends-disk-capacity/">使用lvm管理磁盘分区</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-07-05T00:00:00+08:00" pubdate data-updated="true">Jul 5<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/07/05/use-lvm-to-extends-disk-capacity/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/07/05/use-lvm-to-extends-disk-capacity/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近在给新同学安装Ubuntu系统后发现有的同学home分区空间不够了，于是研究了下利用lvm对home空间进行扩容。<br/>
+lvm的概念介绍来自<a href="http://hi.baidu.com/sinyo/blog/item/d793be3e866682f9828b13c6.html">这里</a>.</p>
+
+<p>LVM是逻辑盘卷管理（Logical Volume Manager）的简称，它是Linux环境下对磁盘分区进行管理的一种机制，LVM是建立在硬盘和分区之上的一个逻辑层，来提高磁盘分区管理的灵活性。通过LVM系统管理员可以轻松管理磁盘分区，如：将若干个磁盘分区连接为一个整块的卷组（volume group），形成一个存储池。管理员可以在卷组上随意创建逻辑卷组（logical volumes），并进一步在逻辑卷组上创建文件系统。管理员通过LVM可以方便的调整存储卷组的大小，并且可以对磁盘存储按照组的方式进行命名、管理和分配，例如按照使用用途进行定义：“development”和“sales”，而不是使用物理磁盘名“sda”和“sdb”。而且当系统添加了新的磁盘，通过LVM管理员就不必将磁盘的文件移动到新的磁盘上以充分利用新的存储空间，而是直接扩展文件系统跨越磁盘即可。</p>
+
+<hr />
+
+<h3>lvm的基本组成</h3>
+
+<p>lvm包括以下几个概念：</p>
+
+<ul>
+<li>Physical volume (PV)<br/>
+指代磁盘上的物理分区</li>
+<li>Volume group (VG)<br/>
+VG类似与物理硬盘，由多个物理分区组成，可以在VG上创建一个或者多个逻辑卷（LV）</li>
+<li>Logical volume (LV)<br/>
+在VG的基础上划分出来的逻辑分区，在这个分区上可以建立文件系统，如home</li>
+<li>Physical extent (PE)<br/>
+每个逻辑卷被划分的最小可寻址单元，一般为4MB。</li>
+</ul>
+
+
+<p>接下来记录一下对home分区进行扩容的过程。</p>
+
+<h3>准备工作</h3>
+
+<p>已有的环境：<br/>
+/dev/sda5 是一块windows分区，格式为fat32;<br/>
+/dev/sda9 为当前home所在的分区，格式为ext4.<br/>
+现在需要把/dev/sda5合并到home分区中。在建立lvm分区之前，需要备份这两块分区中的数据，因为之后的操作会对这两块分区进行格式化。</p>
+
+<p>首先备份两块分区的数据，重启机器进入recovery模式，以root用户登录，卸载home所在的/dev/sda9</p>
+
+<pre><code># umount /home
+</code></pre>
+
+<h3>安装lvm</h3>
+
+<pre><code># apt-get install lvm2
+</code></pre>
+
+<h3>修改物理分区类型为8e</h3>
+
+<p>作为PV的物理分区类型必须为8e，表示这是一块lvm的物理分区。我们使用fdisk对/dev/sda5和/dev/sda9这两个物理分区的分区类型进行修改。</p>
+
+<pre><code># fdisk /dev/sda
+
+WARNING: DOS-compatible mode is deprecated. It's strongly recommended to
+         switch off the mode (command 'c') and change display units to
+         sectors (command 'u').
+
+Command (m for help): t
+Partition number (1-10): 5
+Hex code (type L to list codes): 8e
+Changed system type of partition 5 to 8e (Linux LVM)
+Command (m for help): t
+Partition number (1-10): 9
+Hex code (type L to list codes): 8e
+Changed system type of partition 9 to 8e (Linux LVM)
+Command (m for help): w       //将修改写入磁盘
+</code></pre>
+
+<p>最后<code>fdisk -l</code>查看一下修改后的分区。</p>
+
+<h3>创建物理卷</h3>
+
+<pre><code># pvcreate /dev/sda5
+pvcreate -- physical volume "/dev/sda5" successfully created
+# pvcreate /dev/sda9
+pvcreate -- physical volume "/dev/sda9" successfully created
+# pvdisplay
+</code></pre>
+
+<h3>创建卷组</h3>
+
+<pre><code># vgcreate lvm_sda /dev/sda5 // 以/dev/sda5为基础创建一个名为lvm_sda的卷组
+# vgextend lvm_sda /dev/sda9 // 将/dev/sda9添加进lvm_sda卷组
+# vgdisplay lvm_sda
+</code></pre>
+
+<h3>创建逻辑卷</h3>
+
+<pre><code># lvcreate -L 150G lvm_sda -n lvolhome
+</code></pre>
+
+<p>这里在lvm_sda上创建了一个150G的名为lvolhome的逻辑卷,这时会生成/dev/lvm_sda/lvolhome设备节点。</p>
+
+<h3>创建文件系统</h3>
+
+<pre><code># mkfs.ext4 /dev/lvm_sda/lvolhome
+</code></pre>
+
+<p>然后将其挂载到/home，并创建对应用户的home目录。</p>
+
+<pre><code># mount /dev/lvm_sda/lvolhome /home
+# cd /home
+# mkdir calvin
+# chown -R calvin:calvin calvin/
+</code></pre>
+
+<h3>设置开机挂载逻辑卷</h3>
+
+<pre><code># vi /etc/fstab
+</code></pre>
+
+<p>删除已有的home挂载信息，添加：</p>
+
+<pre><code>/dev/lvm_sda/lvolhome /home ext4 defaults 0 2
+</code></pre>
+
+<p>重启系统，done。</p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://blog.csdn.net/jianghuyue/article/details/6001957">http://blog.csdn.net/jianghuyue/article/details/6001957</a></li>
+<li><a href="http://www.linuxhomenetworking.com/wiki/index.php/Quick_HOWTO_:_Ch27_:_Expanding_Disk_Capacity">http://www.linuxhomenetworking.com/wiki/index.php/Quick_HOWTO_:_Ch27_:_Expanding_Disk_Capacity</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/06/19/setComponentEnabledSetting-doesnt-work-on-widget/">setComponentEnabledSetting Doesn&#8217;t Work on Widget</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-06-19T00:00:00+08:00" pubdate data-updated="true">Jun 19<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/06/19/setComponentEnabledSetting-doesnt-work-on-widget/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/06/19/setComponentEnabledSetting-doesnt-work-on-widget/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>需求</h3>
+
+<p>有一个系统属性disable_widget用来标识是否需要禁用某个widget，如果是，那么禁用某个widget.</p>
+
+<h3>实现与问题</h3>
+
+<p><code>PackageManager.setComponentEnabledSetting</code> 可以用来禁用某个组件，包括activity，receiver等等。被禁用的组件会被持久化到/data/system/packages.xml中，如：</p>
+
+<pre><code>&lt;package name="com.android.setupwizard" codePath="/system/app/SetupWizard.apk" nativeLibraryPath="/data/data/com.android.setupwizard/lib" flags="1" ft="13349457a90" it="13349457a90" ut="13349457a90" version="130" userId="10016"&gt;
+  &lt;sigs count="1"&gt;
+  &lt;cert index="0" /&gt;
+  &lt;/sigs&gt;
+  &lt;disabled-components&gt;
+  &lt;item name="com.android.setupwizard.SetupWizardActivity" /&gt;
+  &lt;/disabled-components&gt;
+&lt;/package&gt;
+</code></pre>
+
+<p>因为widget实际上就是个reveiver，它接收android.appwidget.action.APPWIDGET_UPDATE的action，所以开始的思路是：<br/>
+创建一个BroadcastReceiver，接收Intent.ACTION_BOOT_COMPLETED这个动作，从而在启动完成后调用SystemProperties.get(&ldquo;disable_widget&rdquo;)，如果需要禁用这个widget，那么调用：</p>
+
+<pre><code>PackageManager.setComponentEnabledSetting(widgetComponentName，PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP);
+</code></pre>
+
+<p>但是问题是，调用这个方法disable掉这个widget后，发现必须把设备重启之后才能生效&hellip;<br/>
+经过一番挖掘，发现问题出在com.android.server.AppWidgetService.java。</p>
+
+<p>开机后，SystemServer会调用AppWidgetService的systemReady()方法，这个方法通过PackageManager查询所有的widget receiver组件，保存到mInstalledProviders变量列表中，并持久化widget信息到/data/system/appwidgets.xml中。
+而在Launcher上长按添加widget时的那个widget列表信息也是通过AppWidgetService取得mInstalledProviders列表。</p>
+
+<p>问题在于我们通过PackageManager.setComponentEnabledSetting（）禁用掉某个widget后，packagemanager确实将这个组件disable了，但是AppWidgetService却没有去从packagemanager reload widget信息，这就导致了mInstalledProviders中保存的widget信息还是开机时load进来的那些信息，并没有与pm进行同步。直到下一次开机调用systemReady重新加载widget信息才会刷新这个列表。</p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://code.google.com/p/android/issues/detail?id=6533">Dynamically enabling or disabling a widget with PackageManager.setComponentEnabledSetting does not work</a></li>
+<li><a href="http://blog.csdn.net/yinlijun2004/article/details/6136108">http://blog.csdn.net/yinlijun2004/article/details/6136108</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/06/06/multipart-formdata-and-application-x-www-form-urlencoded/">Multipart/form-data与application/x-www-form-urlencoded</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-06-06T00:00:00+08:00" pubdate data-updated="true">Jun 6<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/06/06/multipart-formdata-and-application-x-www-form-urlencoded/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/06/06/multipart-formdata-and-application-x-www-form-urlencoded/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在浏览器上提交表单时，根据提交的方式，get或者post，表单数据被封装进url或者http头中，这是http请求的Content-Type字段值默认为<code>application/x-www-form-urlencoded</code>。</p>
+
+<pre><code>POST /upload HTTP/1.1
+Host: localhost:8080
+Origin: http://localhost:8080
+User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-us) AppleWebKit/531.2+ (KHTML, like Gecko) Version/5.0 Safari/531.2+
+Accept: application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+Referer: http://localhost:8080/
+Content-Type: application/x-www-form-urlencoded
+Accept-Encoding: gzip
+Cookie: JSESSIONID=18DE3AD950262E1EDA9A453A8C3BF430
+Content-Length: 14
+
+username=scott
+
+HTTP/1.1 
+200 OK
+Server: Apache-Coyote/1.1
+Content-Length: 0
+Date: Wed, 06 Jun 2012 06:31:20 GMT
+</code></pre>
+
+<p>这种情况下在服务器端使用<code>request.getParameter("username")</code>就可以取出scott这个值。</p>
+
+<p>当需要通过表单上传文件时，这时enctype必须为<code>multipart/form-data</code>或者<code>multipart/mixed</code>。比如：</p>
+
+<pre><code>&lt;form method="post" action="upload"
+    enctype="multipart/form-data"&gt;
+        &lt;input type="file" name="upload_file"/&gt;
+        &lt;input type="text" name="username"/&gt;
+        &lt;input type="submit" value="Submit" /&gt;
+&lt;/form&gt;
+</code></pre>
+
+<p>这时浏览器会以表单为单位将所有提交数据进行分割，并分隔符boundary分隔:</p>
+
+<pre><code>POST /upload HTTP/1.1
+Host: localhost:8080
+Origin: http://localhost:8080
+User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-us) AppleWebKit/531.2+ (KHTML, like Gecko) Version/5.0 Safari/531.2+
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundarysJagkbbAojjjPOh8
+Accept: application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+Referer: http://localhost:8080/
+Accept-Encoding: gzip
+Cookie: JSESSIONID=18DE3AD950262E1EDA9A453A8C3BF430
+Content-Length: 33076
+
+------WebKitFormBoundarysJagkbbAojjjPOh8
+Content-Disposition: form-data; name="upload_file"; filename="mmssms.db-shm"
+Content-Type: application/octet-stream
+.....
+.....
+------WebKitFormBoundarysJagkbbAojjjPOh8
+Content-Disposition: form-data; name="username"
+
+scott
+------WebKitFormBoundarysJagkbbAojjjPOh8--
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Length: 343
+Date: Wed, 06 Jun 2012 06:47:49 GMT
+</code></pre>
+
+<p>这时在server端就不能用request.getParameter这种方式获取表单数据了，必须对request的数据进行解码。这部分工作已经有现成的库帮我们做了，比如<a href="http://commons.apache.org/fileupload/">Apache Common Fileupload</a>。</p>
+
+<h3>Reference</h3>
+
+<p><a href="http://zh.wikipedia.org/wiki/MIME">http://zh.wikipedia.org/wiki/MIME</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/06/02/write-file-in-vim-without-sudo/">拉风的vim保存方法</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-06-02T00:00:00+08:00" pubdate data-updated="true">Jun 2<span>nd</span>, 2012</time>
+        
+           | <a href="/blog/2012/06/02/write-file-in-vim-without-sudo/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/06/02/write-file-in-vim-without-sudo/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>用vim编辑root用户的文件时，经常忘了敲sudo，结果保存不了。一个work around是保存为一个临时文件，然后sudo cp回去，不过从现在开始，我们可以这样做，输入：</p>
+
+<pre><code>:w !sudo tee %
+</code></pre>
+
+<p>%代表当前编辑文件的文件路径，<code>tee %</code>表示把stdin的输入输入到stdout，同时保存到一个文件。<br/>
+<code>w !{cmd}</code>意思是说执行一个外部命令cmd，同时把当前缓冲区的内从通过管道连接到cmd的stdin。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/05/31/improve-sd-card-read-speed/">改善SD卡读取速度</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-31T00:00:00+08:00" pubdate data-updated="true">May 31<span>st</span>, 2012</time>
+        
+           | <a href="/blog/2012/05/31/improve-sd-card-read-speed/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/31/improve-sd-card-read-speed/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>一年前刷了CM的rom，发现sd卡速度下降了很多，今天看见有人发了一个kernel的patch改善这个问题，原理是修改sys文件系统下的一个read_ahead_kb参数值，这个值指定了每次从SD卡上读取数据时预读的大小。</p>
+
+<pre><code>adb shell 'echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb'
+</code></pre>
+
+<p>但这个值也不是越大越好，128是个比较平衡的值，因为在读取小文件的情况下，如果这个值太大，那么预读的数据很大几率是无用的数据，反而降低性能，<a href="http://forum.xda-developers.com/showthread.php?t=1032317">这个</a>帖子有详细的分析。</p>
+
+<p>这个值的定义在/include/linux/mm.h中：</p>
+
+<pre><code>/* readahead.c */
+#define VM_MAX_READAHEAD    128 /* kbytes */
+#define VM_MIN_READAHEAD    16  /* kbytes (includes current page) */
+</code></pre>
+
+<h3>设置开机生效</h3>
+
+<p>注意：重启后这个设置就失效了，为了避免每次开机后都要设置，可以在init.rc脚本中加上：</p>
+
+<pre><code>write /sys/devices/virtual/bdi/179:0/read_ahead_kb 128
+</code></pre>
+
+<p>或者利用init.d脚本的支持，在/system/etc/init.d目录下创建一个文件10sdcard:</p>
+
+<pre><code>#!/system/bin/sh
+echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb
+
+这样每次开机后都会执行这段脚本。
+</code></pre>
+
+<h3>CM支持init.d开机脚本的方法</h3>
+
+<ol>
+<li><p>在init.rc的class_start default上加上</p>
+
+<pre><code># Run sysinit
+exec /system/bin/sysinit
+
+class_start default
+</code></pre></li>
+<li><p>建立文件/system/bin/sysinit</p>
+
+<pre><code>#!/system/bin/sh
+
+export PATH=/sbin:/system/sbin:/system/bin:/system/xbin
+/system/bin/logwrapper /system/xbin/run-parts /system/etc/init.d
+</code></pre></li>
+</ol>
+
+
+<p>然后将启动脚本放在/system/etc/init.d目录下，这些脚本以数字命名，run-parts命令按照顺序排序依次执行这些脚本(cron命令也是利用run-parts命令执行指定目录下的脚本的，参见/etc/crontab)。</p>
+
+<p>其实也可以这样做：<br/>
+在init.rc的class_start default上加入</p>
+
+<pre><code>start sysinit
+</code></pre>
+
+<p>然后在所有service定义的后面加上：</p>
+
+<pre><code>service sysinit /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
+    disabled
+    oneshot
+</code></pre>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://forum.xda-developers.com/showthread.php?t=815557">http://forum.xda-developers.com/showthread.php?t=815557</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/05/31/convmv-and-iconv/">使用iconv和convmv转换文本编码</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-31T00:00:00+08:00" pubdate data-updated="true">May 31<span>st</span>, 2012</time>
+        
+           | <a href="/blog/2012/05/31/convmv-and-iconv/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/31/convmv-and-iconv/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>文本内容编码转换</h3>
+
+<p>文本显示乱码是因为文件本身的编码格式和编辑器打开文本所使用的编码格式不一致，使用iconv命令可以转换文本编码。如：</p>
+
+<pre><code>$ iconv -f coding1 -t coding2 file1 -o file2
+-f:指定文件原始编码
+-t:指定转换的目标编码
+file1:代转换的文件
+-o:指定输出文件
+</code></pre>
+
+<h3>文件名编码转换</h3>
+
+<p>常常有这样的情况，将一个rar文件解压后中文的文件名显示乱码，显示”invalid encoding“，利用convmv命令可以进行转换：</p>
+
+<pre><code>$ convmv -f gbk -t utf-8 -r --notest path/to/your/file
+-f:指定原始编码
+-t:指定转换的目标编码
+-r:如果目标文件是一个目录，递归处理目录下的文件
+--notest:转换后将文件重命名，默认情况下这个命令不会重命名文件
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/3/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (9)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
+
+  </ul>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/26/Chrominum-base-code-introduction/">Chromium Base库介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/28/eclipse-debug-break-points/">Eclipse 调试中的五种断点</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/28/eclipse-content-assist/">Eclipse Content Assist失效解决</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

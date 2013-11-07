@@ -1,0 +1,771 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="背景 用户按下Home键将程序置于后台运行或者应用启动其他activity，比如系统浏览器，短信等，需要向系统发送通知，用户做完别的操作后，点击通知栏，回到应用。 问题 在什么时机发送通知？
+用户按下Home的事件在应用层时捕捉不到的，因此只能从activity生命周期方法着手。 方法一 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/page/7">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/11/22/the-use-of-onuserleavehint/">利用onUserLeaveHint发送后台运行通知</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-11-22T00:00:00+08:00" pubdate data-updated="true">Nov 22<span>nd</span>, 2010</time>
+        
+           | <a href="/blog/2010/11/22/the-use-of-onuserleavehint/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/11/22/the-use-of-onuserleavehint/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>背景</h3>
+
+<p>用户按下Home键将程序置于后台运行或者应用启动其他activity，比如系统浏览器，短信等，需要向系统发送通知，用户做完别的操作后，点击通知栏，回到应用。</p>
+
+<h3>问题</h3>
+
+<p>在什么时机发送通知？
+用户按下Home的事件在应用层时捕捉不到的，因此只能从activity生命周期方法着手。</p>
+
+<h3>方法一</h3>
+
+<p>系统所有activity继承一个BaseActivity，在BaseActivity中维护一个当前可见的activity数组：</p>
+
+<pre><code>protected static ArrayList sVisibleActivities = new ArrayList();
+</code></pre>
+
+<p>在onResume中，将当前activity保存，同时清除所有通知：</p>
+
+<pre><code>protected void onResume()
+{
+if (!sVisibleActivities.contains(this))
+{
+sVisibleActivities.add(this);
+}
+
+// 清除系统消息
+mNotificationManager.cancel(R.id.notify);
+}
+
+在onStop中，清除保存的当前activity：
+protected void onStop()
+{
+if (sVisibleActivities.contains(this))
+{
+sVisibleActivities.remove(this);
+}
+
+// 如果当前没有可见的activity，则发送系统通知
+if (sVisibleActivities.isEmpty())
+{
+sendBackgroundNotify();
+}
+
+super.onStop();
+}
+</code></pre>
+
+<p>这种方式在大多数情况下工作良好，可以达到需求，但是问题时，当前台的activity被至于后台时，onStop()方法<strong>不一定</strong>会被调用，因此通知有可能不会被发出！</p>
+
+<h3>方法二</h3>
+
+<p>几经周折，发现activity有一个生命周期方法可以达到目的：</p>
+
+<pre><code>protected void onUserLeaveHint ()
+
+Since: API Level 3
+Called as part of the activity lifecycle when an activity is about to go into the background as the result of user choice.
+For example, when the user presses the Home key, onUserLeaveHint() will be called, but when an incoming phone call causes the in-call Activity to be automatically brought to the foreground,
+ onUserLeaveHint() will not be called on the activity being interrupted. In cases when it is invoked, this method is called right before the activity's onPause() callback.
+This callback and onUserInteraction() are intended to help activities manage status bar notifications intelligently; specifically, for helping activities determine the proper time to cancel a notfication.
+</code></pre>
+
+<p>从文档来看，这个方法似乎就是为了按下Home键时这样的场景设计的。<br/>
+这样，在onUserLeaveHint里发出系统通知即可。<br/>
+但是问题又来了，如果启动应用，从一个activity依次调用startActivity，finish关闭自己，启动一个新的activity时，onUserLeaveHint也会被调用&hellip;.</p>
+
+<p>再次翻阅文档，发现Intent中的一个Flag：</p>
+
+<pre><code>    public static final int FLAG_ACTIVITY_NO_USER_ACTION
+
+    Since: API Level 3
+    If set, this flag will prevent the normal onUserLeaveHint() callback from occurring on the current frontmost activity before it is paused as the newly-started activity is brought to the front.
+
+    Typically, an activity can rely on that callback to indicate that an explicit user action has caused their activity to be moved out of the foreground.
+    The callback marks an appropriate point in the activity's lifecycle for it to dismiss any notifications that it intends to display "until the user has seen them," such as a blinking LED.
+    If an activity is ever started via any non-user-driven events such as phone-call receipt or an alarm handler, this flag should be passed to Context.startActivity, ensuring that the pausing activity does not think the user has acknowledged its notification.
+</code></pre>
+
+<p>这正是我想要的，这样，在启动activity时，往intent中加上这个flag，onUserLeaveHint就不会再被调用了，hoory&hellip;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/10/25/debugging-android-source-from-eclipse/">在eclipse中调试Android源代码</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-25T00:00:00+08:00" pubdate data-updated="true">Oct 25<span>th</span>, 2010</time>
+        
+           | <a href="/blog/2010/10/25/debugging-android-source-from-eclipse/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/10/25/debugging-android-source-from-eclipse/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>1.编译android 代码树，编译sdk</p>
+
+<pre><code>编译注意：  
+1.gcc的版本过高，由于android源码编译要求为4.3，如果gcc版本为4.4，那么编译可能会失败，我的系统是ubuntu 10.04,默认的gcc版本为4.4，gcc-4.4太严格，那么怎样从gcc-4.4降到gcc- 4.3呢？  
+    1.安装gcc-4.3  
+          `$ sudo apt-get install gcc-4.3 g++-4.3`  
+    2.修复gcc相关链接  
+
+        $ cd /usr/bin
+        $sudo ln -snf gcc-4.3 gcc
+        $sudo ln -snf g++-4.3 g++
+        $sudo ln -snf cpp-4.3 cpp
+
+    将gcc,g++链接至4.3版本即可。  
+
+2.JDK 5.0, update 12 or higher.Java 6 is not supported, because of incompatibilities with @Override.  
+3.安装编译必须的软件包  
+
+    $ sudo apt-get install git-core gnupg flex bison gperf build-essential zip curl sun-java5-jdk zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev ia32-libs x11proto-core-dev libx11-dev lib32readline5-dev lib32z-dev
+参见http://source.android.com/source/download.html
+</code></pre>
+
+<p>2、拷贝development/ide/eclipse/.classpath到.classpath.</p>
+
+<p>3、启动 eclipse ，按照这个步骤 File->New->Java Project (不是 Android Project) &ndash;>Create project from existing source 选到代码树根目录 .</p>
+
+<p>4、在经过长时间等待之后， source code将被导入project，正常情况下应该没有error。</p>
+
+<p>5启动模拟器</p>
+
+<pre><code>[calvin@calvin-desktop ~/android/source-code/android_1.5_Sourcecode 10:28:03 ] $ . build/envsetup.sh
+[calvin@calvin-desktop ~/android/source-code/android_1.5_Sourcecode 10:28:18 ] $ lunch 1
+[calvin@calvin-desktop ~/android/source-code/android_1.5_Sourcecode 10:30:31 ] $ ./out/host/linux-x86/bin/emulator
+</code></pre>
+
+<p>6、在ddms中选中要调试的进程</p>
+
+<p>7、在source code中设置断点</p>
+
+<p>8、在eclipse里, Run->Debug Configuration->Remote Java Application->New, 设置 Connection port to 8700 (DDMS’s 默认端口),即可正常调试了</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/10/23/data-connection-during-apn-switches/">APN切换后数据连接过程</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-23T00:00:00+08:00" pubdate data-updated="true">Oct 23<span>rd</span>, 2010</time>
+        
+           | <a href="/blog/2010/10/23/data-connection-during-apn-switches/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/10/23/data-connection-during-apn-switches/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>注册观察者回调</h3>
+
+<p>GsmDataConnectionTracker在实例化时，会注册一个观察者，监视apn数据库的变化。</p>
+
+<pre><code>p.getContext().getContentResolver().registerContentObserver(
+            Telephony.Carriers.CONTENT_URI, true, apnObserver);
+</code></pre>
+
+<p>当用户通过UI改变apn并保存后，Settings app将更新后的数据写入apn数据库。</p>
+
+<h3>GsmDataConnectionTracker切换APN</h3>
+
+<p>Settings app更新apn数据库后，GsmDataConnectionTracker注册的ApnChangeObserver的onChange被调用，发送<code>EVENT_APN_CHANGED</code>消息：</p>
+
+<pre><code>sendMessage(obtainMessage(EVENT_APN_CHANGED));
+</code></pre>
+
+<p>接着onApnChanged()@GsmDataConnectionTracker.java被调用</p>
+
+<pre><code>  -trySetupData(Phone.REASON_APN_CHANGED)@GsmDataConnectionTracker.java
+    --setupData(String reason)@GsmDataConnectionTracker.java
+
+    private boolean setupData(String reason) {
+    ApnSetting apn;
+    GsmDataConnection pdp;
+
+    apn = getNextApn();
+    if (apn == null) return false;
+
+    //获取一个状态为inactive的pdp连接对象
+    pdp = findFreePdp();
+    if (pdp == null) {
+        if (DBG) log("setupData: No free GsmDataConnection found!");
+        return false;
+    }
+    mActiveApn = apn;
+    mActivePdp = pdp;
+
+    Message msg = obtainMessage();
+    msg.what = EVENT_DATA_SETUP_COMPLETE;
+    msg.obj = reason;
+
+    //开始激活这个pdp
+    //在android2.0.1版本时，有一个PdpConnection.java来进行连接，2.2时这个类被删掉了，connect的功能合并到GsmDataConnection里面
+    pdp.connect(msg, apn);
+
+    //设置这个pdp连接状态为INITING
+    setState(State.INITING);
+    if (DBG) log("setupData for reason: "+reason);
+
+    //通知上层应用数据连接状态改变
+    phone.notifyDataConnection(reason);
+    return true;
+}
+</code></pre>
+
+<p>其中，在这一层，数据连接共七个状态：</p>
+
+<pre><code>    IDLE,
+    INITING,
+    CONNECTING,
+    SCANNING,
+    CONNECTED,
+    DISCONNECTING,
+    FAILED
+</code></pre>
+
+<p>对上层应用来说，这七个状态划分为四种状态（getDataConnectionState()@GSMPhone.java）：</p>
+
+<pre><code>CONNECTED, CONNECTING, DISCONNECTED, SUSPENDED;
+</code></pre>
+
+<p>分别对应TelephonyManager的四种连接状态。</p>
+
+<h3>激活PDP连接</h3>
+
+<p>开始激活PDP连接时，设置状态为State.INITING，调用phone.notifyDataConnection(reason)发出通知，后续调用过程为：</p>
+
+<pre><code>    notifyDataConnection(String reason)@PhoneBase.java
+      --notifyDataConnection(Phone sender, String reason)@DefaultPhoneNotifier.java
+        .
+        .   这里需要经过IPC调用
+        .
+        notifyDataConnection()@TelephonyRegistry.java
+          --onDataConnectionStateChanged()
+</code></pre>
+
+<p>当连接成功后，onDataSetupComplete（）@GsmDataConnectionTracker.java被调用
+通过phone.notifyDataConnection(reason);回调应用层的onDataConnectionStateChanged()方法。</p>
+
+<p>ps:可以通过adb logcat -b radio查看激活数据连接时，radio层的log输出。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/10/02/code-snippets-for-global-actions-dialog/">Android关机界面代码</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-02T00:00:00+08:00" pubdate data-updated="true">Oct 2<span>nd</span>, 2010</time>
+        
+           | <a href="/blog/2010/10/02/code-snippets-for-global-actions-dialog/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/10/02/code-snippets-for-global-actions-dialog/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Android中长按Power键默认会弹出对话框让用户选择“飞行模式”，“静音”，“关机”等功能,弹出对话框的代码位于：
+<code>frameworks\policies\base\phone\com\android\internal\policy\impl\PhoneWindowManager.java</code></p>
+
+<pre><code>private final Runnable mPowerLongPress = new Runnable() {
+    public void run() {
+        // The context isn't read
+        if (mLongPressOnPowerBehavior &lt; 0) {
+            mLongPressOnPowerBehavior = mContext.getResources().getInteger(
+                    com.android.internal.R.integer.config_longPressOnPowerBehavior);
+        }
+        switch (mLongPressOnPowerBehavior) {
+        case LONG_PRESS_POWER_NOTHING:
+            break;
+        case LONG_PRESS_POWER_GLOBAL_ACTIONS:
+            mPowerKeyHandled = true;
+            performHapticFeedbackLw(null, HapticFeedbackConstants.LONG_PRESS, false);
+            sendCloseSystemWindows(SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
+            showGlobalActionsDialog();
+            break;
+        case LONG_PRESS_POWER_SHUT_OFF:
+            mPowerKeyHandled = true;
+            performHapticFeedbackLw(null, HapticFeedbackConstants.LONG_PRESS, false);
+            sendCloseSystemWindows(SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
+            ShutdownThread.shutdown(mContext, true);
+            break;
+        }
+    }
+};
+
+void showGlobalActionsDialog() {
+    if (mGlobalActions == null) {
+        mGlobalActions = new GlobalActions(mContext);
+    }
+    final boolean keyguardShowing = mKeyguardMediator.isShowingAndNotHidden();
+    mGlobalActions.showDialog(keyguardShowing, isDeviceProvisioned());
+    if (keyguardShowing) {
+        // since it took two seconds of long press to bring this up,
+        // poke the wake lock so they have some time to see the dialog.
+        mKeyguardMediator.pokeWakelock();
+    }
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/09/09/understanding-on-http-11-cache-control/">HTTP/1.1 Cache-Control的理解</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-09-09T00:00:00+08:00" pubdate data-updated="true">Sep 9<span>th</span>, 2010</time>
+        
+           | <a href="/blog/2010/09/09/understanding-on-http-11-cache-control/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/09/09/understanding-on-http-11-cache-control/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>网页的缓存是由HTTP消息头中的“Cache-control”来控制的，常见的取值有
+* private
+* no-cache
+* max-age
+* must-revalidate</p>
+
+<p>等，默认为private。其作用根据不同的重新浏览方式分为以下几种情况：</p>
+
+<p>（1） 打开新窗口<br/>
+如果指定cache-control的值为private、no-cache、must-revalidate，那么打开新窗口访问时都会重新访问服务器。而如果指定了max-age值，那么在此值内的时间里就不会重新访问服务器，例如：</p>
+
+<pre><code>Cache-control: max-age=5
+</code></pre>
+
+<p>表示当访问此网页后的5秒内再次访问不会向服务器发起请求</p>
+
+<p>（2） 在地址栏输入地址回车<br/>
+如果值为private或must-revalidate，则只有第一次访问时会访问服务器，以后就不再访问。如果值为no-cache，那么每次都会访问。如果值为max-age，则在过期之前不会重复访问。</p>
+
+<p>（3） 按后退按扭<br/>
+如果值为private、must-revalidate、max-age，则不会重访问，而如果为no-cache，则每次都重复访问</p>
+
+<p>（4） 按刷新按扭<br/>
+无论为何值，都会重复访问</p>
+
+<p>cache-control字段取值含义：
+<a href="/images/http_cache_control.jpg"><img src="/images/http_cache_control.jpg" alt="/images/http_cache_control.jpg" /></a></p>
+
+<p>Reference:<br/>
+<a href="http://www.blogjava.net/dashi99/archive/2008/12/30/249207.html">http://www.blogjava.net/dashi99/archive/2008/12/30/249207.html</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/06/09/usage-of-drawable-level-list/">利用level-list显示图片</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-06-09T00:00:00+08:00" pubdate data-updated="true">Jun 9<span>th</span>, 2010</time>
+        
+           | <a href="/blog/2010/06/09/usage-of-drawable-level-list/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/06/09/usage-of-drawable-level-list/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>有时候，我们为了在一个ImageView中显示不同的图片，往往会使用：</p>
+
+<pre><code>if (条件1) {
+    image.setBackground(R.id.xxx1);
+} else if (条件2) {
+    image.setBackground(R.id.xxx2);
+} ...
+</code></pre>
+
+<p>可以用另一个简便的方法实现相同的功能。</p>
+
+<p>首先，在res/drawable下建立一个xml文件，内容如下</p>
+
+<pre><code>&lt;level-list xmlns:android="http://schemas.android.com/apk/res/android"&gt;
+    &lt;item android:maxLevel="4" android:drawable="@drawable/stat_sys_battery_0" /&gt;
+    &lt;item android:maxLevel="14" android:drawable="@drawable/stat_sys_battery_10" /&gt;
+    &lt;item android:maxLevel="29" android:drawable="@drawable/stat_sys_battery_20" /&gt;
+    &lt;item android:maxLevel="49" android:drawable="@drawable/stat_sys_battery_40" /&gt;
+    &lt;item android:maxLevel="69" android:drawable="@drawable/stat_sys_battery_60" /&gt;
+    &lt;item android:maxLevel="89" android:drawable="@drawable/stat_sys_battery_80" /&gt;
+    &lt;item android:maxLevel="100" android:drawable="@drawable/stat_sys_battery_100" /&gt;
+&lt;/level-list&gt;
+</code></pre>
+
+<p>然后在layout中把ImageView的src设置成已创建好的xml文件。
+程序中需要更新图片时，只需要使用</p>
+
+<pre><code>imageview.getDrawable().setLevel(50)
+</code></pre>
+
+<p>Android会根据level的值自动选择对应的图片。显示剩余电量就是用这个方法来显示不同图片的。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/06/09/issues-on-webviewclearhistory/">WebView.clearHistory()的问题</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-06-09T00:00:00+08:00" pubdate data-updated="true">Jun 9<span>th</span>, 2010</time>
+        
+           | <a href="/blog/2010/06/09/issues-on-webviewclearhistory/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/06/09/issues-on-webviewclearhistory/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>Q:</h3>
+
+<p>I call WebView.clearHistory(), but I am still able to go back after
+doing so. I want to reuse a WebView, but I don&rsquo;t want the back button
+to allow the user to go back further than the current &ldquo;session&rdquo; of
+using the WebView. Anybody know what is the best way to handle this? I
+thought for sure that clearHistory() would do it.</p>
+
+<h3>A:</h3>
+
+<p>I recently had the same issue. What I found is that you have to clear
+history AFTER the (first) page loads. It appears that the history
+clears everything before the current page so if your browser is at
+page &ldquo;A&rdquo;, you clear history and navigate to page &ldquo;B&rdquo; your history will
+be &ldquo;A&rdquo; &ldquo;B&rdquo;, not just &ldquo;B&rdquo;, but if you clear history when &ldquo;B&rdquo; finishes
+loading you will have only &ldquo;B&rdquo;.
+In my case I end up using &ldquo;onPageFinished&rdquo; method of the
+WebViwClient, but in this case you have to know what your start page
+is and clear the history only after it otherwise you will be clearing
+the history after every page navigated after the first.
+Stefan</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/blog/page/6/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (9)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
+
+  </ul>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/26/Chrominum-base-code-introduction/">Chromium Base库介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/28/eclipse-debug-break-points/">Eclipse 调试中的五种断点</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/28/eclipse-content-assist/">Eclipse Content Assist失效解决</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

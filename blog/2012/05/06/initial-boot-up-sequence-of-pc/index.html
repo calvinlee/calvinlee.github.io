@@ -1,0 +1,373 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Archlinux开机初始化基本步骤 - 且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="以下是对计算机开机加电后的自举流程的一个大致理解。 MBR 计算机开机后CPU处于16位实模式下，加上4位的偏移量，CPU能寻址的范围是20位，也就是1 MB的地址空间。CPU从存储器地址为0xFFFF0的位置读取一条跳转指令，这条指令将下一条指令地址指向系统BIOS的初始地址。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/2012/05/06/initial-boot-up-sequence-of-pc">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Archlinux开机初始化基本步骤</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-06T00:00:00+08:00" pubdate data-updated="true">May 6<span>th</span>, 2012</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>以下是对计算机开机加电后的自举流程的一个大致理解。</p>
+
+<h3>MBR</h3>
+
+<p>计算机开机后CPU处于16位实模式下，加上4位的偏移量，CPU能寻址的范围是20位，也就是1 MB的地址空间。CPU从存储器地址为0xFFFF0的位置读取一条跳转指令，这条指令将下一条指令地址指向系统BIOS的初始地址。对后BIOS程序执行机器自检POST（power on self test）,检查系统基本的硬件设备，并检索系统中包含可启动代码的设备，所谓可启动的设备是指第一个扇区（sector）的最后两个字节包含0xAA55（boot签名），可以通过如下命令查看硬盘第一个扇区的信息：</p>
+
+<pre><code>$ sudo dd if=/dev/sda1 of=sector.bin bs=512 count=1
+1+0 records in
+1+0 records out
+512 bytes (512 B) copied, 0.0245341 s, 20.9 kB/s
+$ od -x sector.bin
+</code></pre>
+
+<p>启动设备的第一个扇区的512字节称为MBR（master boot record），MBR存放三部分内容：</p>
+
+<ol>
+<li>boot loader stage1程序     446字节 　　</li>
+<li>硬盘分区表                        64字节 　　</li>
+<li>该扇区的有效标示(OxAA55)              2字节</li>
+</ol>
+
+
+<p>BIOS检索到可启动的设备后，将这个设备的MBR区域的stage1程序加载到起始地址为0x7C00的一块内存区域，然后从这个地址执行stage1程序。接下来的启动过程分为几个阶段：</p>
+
+<h3>Bootloader</h3>
+
+<h4>stage1加载执行stage1.5</h4>
+
+<p>  stage1.5位于MBR区域后的30K范围内, 它包含文件系统相关的驱动代码, stage1.5可加载的文件系统包括：</p>
+
+<pre><code>  $ /bin/ls /boot/grub/*stage1_5
+  /boot/grub/e2fs_stage1_5  /boot/grub/ffs_stage1_5      /boot/grub/jfs_stage1_5      /boot/grub/reiserfs_stage1_5  /boot/grub/vstafs_stage1_5
+  /boot/grub/fat_stage1_5   /boot/grub/iso9660_stage1_5  /boot/grub/minix_stage1_5  /boot/grub/ufs2_stage1_5    /boot/grub/xfs_stage1_5
+  $ file /boot/grub/reiserfs_stage1_5
+  /boot/grub/reiserfs_stage1_5: GRand Unified Bootloader stage1_5 version 3.2, identifier 0x5, GRUB version 0.97, configuration file /boot/grub/stage2
+  $ file /boot/grub/stage2
+  /boot/grub/stage2: GRand Unified Bootloader stage2 version 3.2, identifier 0x0, GRUB version 0.97, configuration file /boot/grub/menu.lst
+</code></pre>
+
+<h4>stage1.5加载stage2</h4>
+
+<p>  在stage2阶段通过/boot/grub/menu.lst生成可启动的系统列表，并启动一个图形化的选择界面：</p>
+
+<pre><code>  timeout   7
+  default   0
+  color light-blue/black light-cyan/blue
+
+  # (0) Arch Linux
+  title  Arch Linux
+  root   (hd0,7)
+  kernel /boot/vmlinuz-linux root=/dev/sda8 ro
+  initrd /boot/initramfs-linux.img
+
+  # (1) Arch Linux
+  title  Arch Linux Fallback
+  root   (hd0,7)
+  kernel /boot/vmlinuz-linux root=/dev/sda8 ro
+  initrd /boot/initramfs-linux-fallback.img
+
+  # (2) Windows
+  title Microsoft Windows 7
+  rootnoverify (hd0,1)
+  makeactive
+  chainloader +1
+</code></pre>
+
+<p>menu.lst指定了kernel和initrd镜像的路径。</p>
+
+<h4>解压kernel</h4>
+
+<p>当选择进入某个系统后，对应的kernel被载入内存并解压，控制权转移到kernel，kernel接下来初始化硬件，加载必要的驱动模块</p>
+
+<h4>加载initrd镜像</h4>
+
+<p>加载initrd（init ram filesystem，初始ram文件系统），在内存中展开位一个虚拟的文件系统，并执行其中的init脚本,通过以下命令可以揭开这个image文件，查看这个init脚本做了什么：</p>
+
+<pre><code>  $ cp /boot/initramfs-linux.img /tmp/initramfs/initramfs-linux.gz
+  $ gzip -d initramfs-linux.gz 
+  $ file initramfs-linux 
+  initramfs-linux: ASCII cpio archive (SVR4 with no CRC)
+  $ cpio -i &lt;initramfs-linux 
+  16076 blocks
+  [calvin@arch-laptop /tmp/initramfs 01:11:09 ]
+  $ ls
+  total 7.9M
+  lrwxrwxrwx 1 calvin calvin    7 May  7 01:11 bin -&gt; usr/bin
+  -rw-r--r-- 1 calvin calvin   70 May  7 01:11 config
+  drwxr-xr-x 2 calvin calvin   40 May  7 01:11 dev
+  drwxr-xr-x 3 calvin calvin  100 May  7 01:11 etc
+  drwxr-xr-x 2 calvin calvin   60 May  7 01:11 hooks
+  -rwxr-xr-x 1 calvin calvin 3.2K May  7 01:11 init
+  -rw-r--r-- 1 calvin calvin 7.2K May  7 01:11 init_functions
+  -rw-r--r-- 1 calvin calvin 7.9M May  7 01:10 initramfs-linux
+  lrwxrwxrwx 1 calvin calvin    7 May  7 01:11 lib -&gt; usr/lib
+  drwxr-xr-x 2 calvin calvin   40 May  7 01:11 new_root
+  drwxr-xr-x 2 calvin calvin   40 May  7 01:11 proc
+  drwxr-xr-x 2 calvin calvin   40 May  7 01:11 run
+  lrwxrwxrwx 1 calvin calvin    7 May  7 01:11 sbin -&gt; usr/bin
+  drwxr-xr-x 2 calvin calvin   40 May  7 01:11 sys
+  drwxr-xr-x 2 calvin calvin   40 May  7 01:11 tmp
+  drwxr-xr-x 4 calvin calvin  100 May  7 01:11 usr
+  -rw-r--r-- 1 calvin calvin    5 May  7 01:11 VERSION
+</code></pre>
+
+<p>执行这个init脚本时，屏幕上会输出以下信息：</p>
+
+<pre><code>  :: Starting udevd...
+  done.
+  ... ... 
+</code></pre>
+
+<h4>启动init进程</h4>
+
+<p>挂载真正的根文件系统，执行/sbin/init程序。<br/>
+init程序首先读取/etc/inittab文件,这个过程参照<a href="https://wiki.archlinux.org/index.php/Arch_Boot_Process_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29#init:_The_Arch_boot_scripts">here</a></p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Linux_startup_process#Overview_of_typical_process">http://en.wikipedia.org/wiki/Linux_startup_process#Overview_of_typical_process</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Booting#Boot_sequence_on_standard_PC_.28IBM-PC_compatible.29">http://en.wikipedia.org/wiki/Booting#Boot_sequence_on_standard_PC_.28IBM-PC_compatible.29</a></li>
+<li><a href="http://www.cnblogs.com/bangerlee/archive/2012/03/11/2388275.html">http://www.cnblogs.com/bangerlee/archive/2012/03/11/2388275.html</a></li>
+<li><a href="http://blog.sina.com.cn/s/blog_4c2edd700100cne2.html">http://blog.sina.com.cn/s/blog_4c2edd700100cne2.html</a></li>
+<li><a href="http://www.ibm.com/developerworks/linux/library/l-linuxboot/">http://www.ibm.com/developerworks/linux/library/l-linuxboot/</a></li>
+<li><a href="https://wiki.archlinux.org/index.php/Arch_Boot_Process_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)#init:_The_Arch_boot_scripts">https://wiki.archlinux.org/index.php/Arch_Boot_Process_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)#init:_The_Arch_boot_scripts</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Real_mode">http://en.wikipedia.org/wiki/Real_mode</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Calvin Lee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-06T00:00:00+08:00" pubdate data-updated="true">May 6<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/linux/'>Linux</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/05/04/archlinux-adjustment-tips/" title="Previous Post: Archlinux调教小记">&laquo; Archlinux调教小记</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/05/11/cpp-learning-tips/" title="Next Post: C++ tips">C++ tips &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (9)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
+
+  </ul>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/26/Chrominum-base-code-introduction/">Chromium Base库介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/28/eclipse-debug-break-points/">Eclipse 调试中的五种断点</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/01/28/eclipse-content-assist/">Eclipse Content Assist失效解决</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
