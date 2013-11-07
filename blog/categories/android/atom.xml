@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Android | 且听风吟]]></title>
   <link href="http://calvinlee.github.io/blog/categories/android/atom.xml" rel="self"/>
   <link href="http://calvinlee.github.io/"/>
-  <updated>2013-11-07T18:14:33+08:00</updated>
+  <updated>2013-11-07T18:14:56+08:00</updated>
   <id>http://calvinlee.github.io/</id>
   <author>
     <name><![CDATA[Calvin Lee]]></name>
@@ -33,67 +33,123 @@
 
 <p>Android所谓UI线程的启动位于ActivityThread.java，在其main方法中会启动这个消息循环：</p>
 
-<p>{% codeblock lang:java %}
-public static void main(String[] args) {</p>
-
-<pre><code>...
-
-Looper.prepareMainLooper();
-if (sMainThreadHandler == null) {
-    sMainThreadHandler = new Handler();
-}
-
-ActivityThread thread = new ActivityThread();
-thread.attach(false);
-
-Looper.loop();
-</code></pre>
-
-<p>}
-{% endcodeblock %}</p>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;...</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Looper</span><span class="o">.</span><span class="na">prepareMainLooper</span><span class="o">();</span>
+</span><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">sMainThreadHandler</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">sMainThreadHandler</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Handler</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">ActivityThread</span> <span class="n">thread</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ActivityThread</span><span class="o">();</span>
+</span><span class='line'><span class="n">thread</span><span class="o">.</span><span class="na">attach</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Looper</span><span class="o">.</span><span class="na">loop</span><span class="o">();</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>首先调用<code>Looper.prepareMainLooper()</code>方法：</p>
 
-<p>{% codeblock lang:java %}</p>
-
-<pre><code>/**
- * Initialize the current thread as a looper, marking it as an
- * application's main looper. The main looper for your application
- * is created by the Android environment, so you should never need
- * to call this function yourself.  See also: {@link #prepare()}
- */
-public static void prepareMainLooper() {
-    prepare();
-    setMainLooper(myLooper());
-    // main looper是不允许退出的，否则应用程序就没得玩了
-    myLooper().mQueue.mQuitAllowed = false;
-}
-
- /** Initialize the current thread as a looper.
-  * This gives you a chance to create handlers that then reference
-  * this looper, before actually starting the loop. Be sure to call
-  * {@link #loop()} after calling this method, and end it by calling
-  * {@link #quit()}.
-  * 
-  * prepare方法将实例化一个Looper对象，并保存到一个ThreadLocal变量里, 这个
-  * looper稍后可以通过myLooper()方法取出
-  */
-public static void prepare() {
-    if (sThreadLocal.get() != null) {
-        throw new RuntimeException("Only one Looper may be created per thread");
-    }
-    sThreadLocal.set(new Looper());
-}
-
-private Looper() {
-    // 初始化一个消息队列，其实现稍后解释
-    mQueue = new MessageQueue();
-    mRun = true;
-    mThread = Thread.currentThread();
-}
-</code></pre>
-
-<p>{% endcodeblock %}</p>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="cm">/**</span>
+</span><span class='line'><span class="cm"> * Initialize the current thread as a looper, marking it as an</span>
+</span><span class='line'><span class="cm"> * application&#39;s main looper. The main looper for your application</span>
+</span><span class='line'><span class="cm"> * is created by the Android environment, so you should never need</span>
+</span><span class='line'><span class="cm"> * to call this function yourself.  See also: {@link #prepare()}</span>
+</span><span class='line'><span class="cm"> */</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">prepareMainLooper</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">prepare</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">setMainLooper</span><span class="o">(</span><span class="n">myLooper</span><span class="o">());</span>
+</span><span class='line'>    <span class="c1">// main looper是不允许退出的，否则应用程序就没得玩了</span>
+</span><span class='line'>    <span class="n">myLooper</span><span class="o">().</span><span class="na">mQueue</span><span class="o">.</span><span class="na">mQuitAllowed</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'> <span class="cm">/** Initialize the current thread as a looper.</span>
+</span><span class='line'><span class="cm">  * This gives you a chance to create handlers that then reference</span>
+</span><span class='line'><span class="cm">  * this looper, before actually starting the loop. Be sure to call</span>
+</span><span class='line'><span class="cm">  * {@link #loop()} after calling this method, and end it by calling</span>
+</span><span class='line'><span class="cm">  * {@link #quit()}.</span>
+</span><span class='line'><span class="cm">  * </span>
+</span><span class='line'><span class="cm">  * prepare方法将实例化一个Looper对象，并保存到一个ThreadLocal变量里, 这个</span>
+</span><span class='line'><span class="cm">  * looper稍后可以通过myLooper()方法取出</span>
+</span><span class='line'><span class="cm">  */</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">prepare</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">sThreadLocal</span><span class="o">.</span><span class="na">get</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">&quot;Only one Looper may be created per thread&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="n">sThreadLocal</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="k">new</span> <span class="n">Looper</span><span class="o">());</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">private</span> <span class="nf">Looper</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">// 初始化一个消息队列，其实现稍后解释</span>
+</span><span class='line'>    <span class="n">mQueue</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MessageQueue</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">mRun</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">mThread</span> <span class="o">=</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>接下来调用Looper.loop()启动消息循环：</p>
 
