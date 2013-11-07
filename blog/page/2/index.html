@@ -9,8 +9,9 @@
   <meta name="author" content="Calvin Lee">
 
   
-  <meta name="description" content="#include &lt;stdio.h&gt; int bar(int, char*); // 指针函数
-char *echo_hello(char *s) { char *result; int len = strlen(s) + strlen("hello ") + 1; result &hellip;">
+  <meta name="description" content="字符串 &mdash;> Epoch $ date -d "2012/11/29" +%s
+1354118400 Epoch &mdash;> 字符串 $ date -d@1354118400
+Thu Nov 29 00:00:00 CST 2012 或者加上格式控制： $ date -d@ &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -69,6 +70,307 @@ char *echo_hello(char *s) { char *result; int len = strlen(s) + strlen("hello ")
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/11/29/convertion-between-epoch-and-regular-time/">Unix Epoch 与 时间字符串的转换</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-11-29T00:00:00+08:00" pubdate data-updated="true">Nov 29<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/11/29/convertion-between-epoch-and-regular-time/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/11/29/convertion-between-epoch-and-regular-time/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>字符串 &mdash;> Epoch</h3>
+
+<pre><code>$ date -d "2012/11/29" +%s
+1354118400
+</code></pre>
+
+<h3>Epoch &mdash;> 字符串</h3>
+
+<pre><code>$ date -d@1354118400
+Thu Nov 29 00:00:00 CST 2012
+</code></pre>
+
+<p>或者加上格式控制：</p>
+
+<pre><code>$ date -d@1354118400 '+%Y-%m-%d %H:%M:%S'
+2012-11-29 00:00:00
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/10/18/git-tricks/">Git Tips and Tricks</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-10-18T00:00:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/10/18/git-tricks/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/10/18/git-tricks/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>在提交历史中查找指定文本</h3>
+
+<pre><code>git log -G'password' --all
+</code></pre>
+
+<p>or</p>
+
+<pre><code>git rev-list --all | (
+while read revision; do
+    git grep -F 'password' $revision
+done
+)
+</code></pre>
+
+<p>or</p>
+
+<pre><code>for revision in `git rev-list --all`; 
+do
+    git grep -F 'password' $revision;
+done
+</code></pre>
+
+<p>or
+<code>git log -S'bad\_code' path/to/file</code> 查看指定代码片段在哪个版本出现过。
+<code>git blame path/to/file</code>: 查看指定文件的每一行的最后修改时间是在哪个版本，但不能查看删除的行或者被替换的行
+参见man git-blame.</p>
+
+<h3>git commit</h3>
+
+<p><code>git commit -c &lt;commit&gt;</code>  reedit commit message of <commit>
+<code>git commit -C &lt;commit&gt;</code>  reuse commit message of <commit></p>
+
+<h3>git底层命令</h3>
+
+<p>git ls-tree<br/>
+git write-tree<br/>
+git ls-files<br/>
+git cat-file<br/>
+git rev-parse</p>
+
+<p>.git/refs 保存所有引用的命名空间
+.git/refs/heads 所有的本地分支</p>
+
+<p>git commit &mdash;allow-empty &mdash;amend</p>
+
+<p>[TODO] strace命令</p>
+
+<p>.git/index 包含文件索引的目录树，记录了文件名和文件的状态信息，文件的内容存储在.git/objects中，文件索引建立了文件和对象库中的文件对象之间的对应关系。</p>
+
+<p>git checkout . / git checkout &mdash; <file><br/>
+丢弃workspace中的内容，保留暂存区的内容</p>
+
+<p>git checkout HEAD . / git checkout HEAD <file><br/>
+用HEAD指向的commit中的内容替代workspace和暂存区的内容，这将导致当前workspace和暂存区的内容被丢弃。</p>
+
+<h3>使用git reflog挽回错误的reset</h3>
+
+<p>git reflog<br/>
+git reflog show master</p>
+
+<p>分支的变更记录都会被记录在.git/logs/refs下，通过 git reflog命令可以获得分支的历史变更记录，然后可以通过git reset 命令将HEAD任意重置到任意一个提交。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/10/16/string-interning/">Java 字符串的==和equals</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-10-16T00:00:00+08:00" pubdate data-updated="true">Oct 16<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/10/16/string-interning/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/10/16/string-interning/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>实例</h3>
+
+<p>问题起源于这段代码：</p>
+
+<pre><code>if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
+    Log.d(TAG, "mounted");
+} else {
+    Log.d(TAG, "umounted");
+}
+</code></pre>
+
+<p>在SD卡处于mounted的状态下，这个case打印出umounted.</p>
+
+<h3>问题</h3>
+
+<p>现在SD卡处于mounted的状态，所以Environment.getExternalStorageState()方法会返回&#8221;mounted&#8221;。<br/>
+跟踪Environment.getExternalStorageState方法的实现，如果SD卡处于mounted的状态，该方法返回Environment.MEDIA_MOUNTED这个字符串常量。
+那么问题是，Environment.MEDIA_MOUNTED是一个字符串常量，一个字符串常量在JVM中只有一份，== 符号比较的是两边的对象是否是同一个引用，这样来说这里应该输出&#8221;mounted&#8221;才对，为什么会输出&#8221;umounted&#8221;呢？也就是说等号两边的两个字符串不是同一个引用。</p>
+
+<p>原因在于只有在编译期确定的字符串常量才会被放进常量池，这个常量池会被保存在class文件中，稍后被JVM加载。而对于运行时才生成的字符串是不会放入常量池的。Environment.getExternalStorageState()方法返回的字符串虽然是一个字符串常量，但是这个常量在编译期并未确定，所以该方法返回的字符串不是从常量池中取得的。</p>
+
+<p><code>String.intern()</code>方法用于在运行时将一个字符串加入常量池中，所以对这个例子，<code>Environment.getExternalStorageState().intern() == Environment.MEDIA\_MOUNTED</code>才会返回true。</p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/String_interning">http://en.wikipedia.org/wiki/String_interning</a></li>
+<li><a href="http://blog.csdn.net/jcc3120/article/details/2118870">http://blog.csdn.net/jcc3120/article/details/2118870</a></li>
+<li><a href="http://stackoverflow.com/questions/767372/java-string-equals-versus">http://stackoverflow.com/questions/767372/java-string-equals-versus</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/08/05/two-ways-of-defining-strings-in-c/">C语言字符串定义与初始化</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-08-05T00:00:00+08:00" pubdate data-updated="true">Aug 5<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/08/05/two-ways-of-defining-strings-in-c/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/08/05/two-ways-of-defining-strings-in-c/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>字符串的两种定义方式</h3>
+
+<ol>
+<li><p>char数组</p>
+
+<p> char sa[] = &ldquo;hello world&rdquo;;</p></li>
+<li><p>char指针</p>
+
+<p> char *sp = &ldquo;hello world&rdquo;;</p></li>
+</ol>
+
+
+<p>这两种方式都产生了一个&#8221;hello world&#8221;的<strong>字符串常量</strong>,字符串常量存储在静态存储区中，静态存储区中的内容在程序运行的整个过程中都存在，而且只存储一份。</p>
+
+<h3>数组与指针的关系</h3>
+
+<p>在第一种定义中，字符串常量在编译时就已经分配好了空间，但直到运行时才会为数组分配存储空间，这时，存储在静态存储区中的字符串常量会被拷贝一份到数组中，此后，数组名sa与&amp;sa[0]等价。重要的是，sa是一个常量，你不能修改sa的值，你可以通过sa+1来标识数组里的下一个元素，也可以修改数组里的元素。然而，sa++是不允许的，因为自增运算符只能作用于变量而不是常量。</p>
+
+<p>第二种定义中，程序运行时只为指针变量sp分配了存储空间，用来字符串常量&#8221;hello world&#8221;的地址，这时，字符串常量没有被拷贝。sp的值是可以改变的，如++sp将指向字符e。</p>
+
+<p>总之，数组初始化是从静态存储区中把一个字符串拷贝给数组，而指针初始化只是复制这个字符串的地址。</p>
+
+<h3>示例</h3>
+
+<pre><code>#include &lt;stdio.h&gt;
+
+int main(int args, char **argv) {
+    char sa[] = "hello world";
+    char *sp = "hello world";
+
+    // sa++; 错误，sa是常量
+    sp++;
+
+    sa[1] = 'M';
+    *(sa+2) = 'X';
+    // sp[1] = 'M'; // 错误，不能修改常量值
+
+    printf("%s\n", sa);
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -638,443 +940,6 @@ export PATH=/sbin:/system/sbin:/system/bin:/system/xbin
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/05/31/convmv-and-iconv/">使用iconv和convmv转换文本编码</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-31T00:00:00+08:00" pubdate data-updated="true">May 31<span>st</span>, 2012</time>
-        
-           | <a href="/blog/2012/05/31/convmv-and-iconv/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/31/convmv-and-iconv/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>文本内容编码转换</h3>
-
-<p>文本显示乱码是因为文件本身的编码格式和编辑器打开文本所使用的编码格式不一致，使用iconv命令可以转换文本编码。如：</p>
-
-<pre><code>$ iconv -f coding1 -t coding2 file1 -o file2
--f:指定文件原始编码
--t:指定转换的目标编码
-file1:代转换的文件
--o:指定输出文件
-</code></pre>
-
-<h3>文件名编码转换</h3>
-
-<p>常常有这样的情况，将一个rar文件解压后中文的文件名显示乱码，显示”invalid encoding“，利用convmv命令可以进行转换：</p>
-
-<pre><code>$ convmv -f gbk -t utf-8 -r --notest path/to/your/file
--f:指定原始编码
--t:指定转换的目标编码
--r:如果目标文件是一个目录，递归处理目录下的文件
---notest:转换后将文件重命名，默认情况下这个命令不会重命名文件
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/05/29/dynamic-proxy/">Java动态代理</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-29T00:00:00+08:00" pubdate data-updated="true">May 29<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/05/29/dynamic-proxy/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/29/dynamic-proxy/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>概念</h3>
-
-<p>Java动态代理是代理模式的延伸，之所以称为”动态“，是因为我们不用去设计代理类，代理类的字节码在运行时被动态生成后由classloader加载进JVM后运行。<br/>
-动态代理相关类有：</p>
-
-<pre><code>java.lang.reflect.Proxy  
-这个类的主要作用是在运行时生成代理类的字节码，并通过这个字节码生成代理类对象供客户端使用。  
-
-java.lang.reflect.InvocationHandler  
-这个接口只定义了一个invoke方法，它是调用真实的被代理对象的地方，我们可以在这个方法里加上额外的代理逻辑，如果日志记录，访问鉴权等。  
-
-Object invoke(Object proxy, Method method, Object[] args);
-
-proxy参数是生成的代理类对象的引用，就像后面分析的，它的类型是$Proxy0，继承了Proxy类并实现了和被代理对象公共的业务接口。  
-method是当前被调用的被代理方法。  
-args是当前被调用的被代理方法的参数列表。
-</code></pre>
-
-<p><a href="/images/dynamic_proxy.png"><img src="/images/dynamic_proxy.png" alt="/images/dynamic_proxy.png" /></a></p>
-
-<p>利用动态代理的机制，我们可以实现典型的AOP(Aspect-oriented programming)编程模式，实际上，这也是Spring AOP的实现原理。</p>
-
-<h3>举例</h3>
-
-<p>首先是被代理类和代理类公共的业务接口：</p>
-
-<pre><code>public interface Subject {
-    void request();
-}
-</code></pre>
-
-<p>AOP业务接口：</p>
-
-<pre><code>public interface AopLogger {
-    void logBefore();
-
-    void logAfter();
-}
-</code></pre>
-
-<p>被代理类：</p>
-
-<pre><code>public class RealSubject implements Subject {
-    public void request() {
-        System.out
-                .println("Processing request in real subject...");
-    }
-}
-</code></pre>
-
-<p>委托对象类：</p>
-
-<pre><code>import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-
-public class RequestInvocationHandler implements InvocationHandler {
-    private Subject originalObj;
-
-    private AopLogger logger;
-
-    public RequestInvocationHandler(Subject originalObj) {
-        super();
-        this.originalObj = originalObj;
-    }
-
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        // do some processing before the method invocation
-        System.out.println("Before requesting real subject...");
-        logger.logBefore();
-        // TODO:
-        // how to use this proxy object?
-
-        // invoke the method
-        Object result = method.invoke(originalObj, args);
-
-        // do some processing after the method invocation
-        logger.logAfter();
-        System.out.println("After requesting real subject...");
-        return result;
-    }
-
-    public AopLogger getLogger() {
-        return logger;
-    }
-
-    public void setLogger(AopLogger logger) {
-        this.logger = logger;
-    }
-}
-</code></pre>
-
-<p>客户端测试代码：</p>
-
-<pre><code>import java.lang.reflect.Field;
-import java.lang.reflect.Proxy;
-import java.util.Properties;
-
-public class Client {
-
-    public static void main(String[] args) throws Exception {
-        // ***** save proxy class into file *******
-        Field field = System.class.getDeclaredField("props");
-        field.setAccessible(true);
-        Properties props = (Properties) field.get(null);
-        props.put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
-        // ****************************************
-
-        // TODO:
-        // 怎样防止客户端绕过proxy直接调用RealSubject的方法？
-        Subject origObj = new RealSubject();
-        Subject proxy = (Subject) getProxy(origObj);
-
-        proxy.request();
-    }
-
-    private static Object getProxy(Subject origObj) {
-        RequestInvocationHandler handler = new RequestInvocationHandler(origObj);
-        handler.setLogger(new AopLogger() {
-
-            @Override
-            public void logBefore() {
-                System.out.println("AOP logger working before...");
-            }
-
-            @Override
-            public void logAfter() {
-                System.out.println("AOP logger working after...");
-            }
-
-        });
-
-        // 这里会通过ProxyGenerator类生成代理类的字节码，并由origObj所在的classloader加载进JVM，然后通过反射实例化出一个代理对象
-        return Proxy.newProxyInstance(origObj.getClass().getClassLoader(), origObj.getClass()
-                .getInterfaces(), handler);
-    }
-
-}
-</code></pre>
-
-<p>在Client测试代码中加上如下代码后可以将生成的代理类字节码保存到本地文件中：</p>
-
-<pre><code>  Field field = System.class.getDeclaredField("props");
-  field.setAccessible(true);
-  Properties props = (Properties) field.get(null);
-  props.put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
-</code></pre>
-
-<p>反编译这个class文件后察看可以更清楚幕后究竟做了什么：</p>
-
-<pre><code>import com.java.demo.dynamic_proxy.Subject;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.lang.reflect.UndeclaredThrowableException;
-
-public final class $Proxy0 extends Proxy
-  implements Subject {
-  private static Method m1;
-  private static Method m3;
-  private static Method m0;
-  private static Method m2;
-
-  public $Proxy0(InvocationHandler paramInvocationHandler)
-    throws {
-    super(paramInvocationHandler);
-  }
-
-  public final boolean equals(Object paramObject)
-    throws {
-    try {
-      return ((Boolean)this.h.invoke(this, m1, new Object[] { paramObject })).booleanValue();
-    }
-    catch (Error localError) {
-      throw localError;
-    }
-    catch (Throwable localThrowable) {
-    }
-    throw new UndeclaredThrowableException(localThrowable);
-  }
-
-  public final void request()
-    throws {
-    try {
-      // 转发给InvocationHanlder对象处理
-      this.h.invoke(this, m3, null);
-      return;
-    }
-    catch (Error localError) {
-      throw localError;
-    }
-    catch (Throwable localThrowable) {
-    }
-    throw new UndeclaredThrowableException(localThrowable);
-  }
-
-  public final int hashCode()
-    throws {
-    try {
-      return ((Integer)this.h.invoke(this, m0, null)).intValue();
-    }
-    catch (Error localError) {
-      throw localError;
-    }
-    catch (Throwable localThrowable) {
-    }
-    throw new UndeclaredThrowableException(localThrowable);
-  }
-
-  public final String toString()
-    throws {
-    try {
-      return (String)this.h.invoke(this, m2, null);
-    }
-    catch (Error localError) {
-      throw localError;
-    }
-    catch (Throwable localThrowable) {
-    }
-    throw new UndeclaredThrowableException(localThrowable);
-  }
-
-  static {
-    try {
-      m1 = Class.forName("java.lang.Object").getMethod("equals", new Class[] { Class.forName("java.lang.Object") });
-      m3 = Class.forName("com.java.demo.dynamic_proxy.Subject").getMethod("request", new Class[0]);
-      m0 = Class.forName("java.lang.Object").getMethod("hashCode", new Class[0]);
-      m2 = Class.forName("java.lang.Object").getMethod("toString", new Class[0]);
-      return;
-    }
-    catch (NoSuchMethodException localNoSuchMethodException) {
-      throw new NoSuchMethodError(localNoSuchMethodException.getMessage());
-    }
-    catch (ClassNotFoundException localClassNotFoundException) {
-    }
-    throw new NoClassDefFoundError(localClassNotFoundException.getMessage());
-  }
-}
-</code></pre>
-
-<h3>Reference</h3>
-
-<ul>
-<li><a href="http://chjl2020.iteye.com/blog/517835">http://chjl2020.iteye.com/blog/517835</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/05/28/pstree/">Pstree命令使用</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-28T00:00:00+08:00" pubdate data-updated="true">May 28<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/05/28/pstree/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/28/pstree/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>pstree命令以树状形式显示运行中的进程，使用这个命令可以方便的查看进程之间的父子关系。
-一些选项：</p>
-
-<pre><code>-h：高亮当前进程
--p：显示进程pid
--u：显示uid
--a：显示启动进程的命令
--l：对长于132个字符会被截断显示，使用这个选项关闭这个功能
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/05/25/zen-of-cs/">Zen of CS</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-25T00:00:00+08:00" pubdate data-updated="true">May 25<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/05/25/zen-of-cs/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/25/zen-of-cs/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>计算机科学领域的任何问题都可以通过增加一个间接的中间层来解决</h3>
-
-<p>All problems in computer science can be solved by another level of indirection&hellip; Except for the problem of too many layers of indirection.</p>
-
-<ul>
-<li><a href="http://en.wikipedia.org/wiki/Abstraction_layer">http://en.wikipedia.org/wiki/Abstraction_layer</a></li>
-<li><a href="http://en.wikipedia.org/wiki/David_Wheeler_(computer_scientist)">http://en.wikipedia.org/wiki/David_Wheeler_(computer_scientist)</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -1090,8 +955,9 @@ public final class $Proxy0 extends Proxy
     <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/android/'>Android (10)</a></li>
-<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
 <li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
 <li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
 <li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
@@ -1103,13 +969,17 @@ public final class $Proxy0 extends Proxy
 <li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
 <li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
 <li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
-<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
 
   </ul>
 </section>
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
@@ -1125,10 +995,6 @@ public final class $Proxy0 extends Proxy
     
       <li class="post">
         <a href="/blog/2013/01/28/eclipse-debug-break-points/">Eclipse 调试中的五种断点</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/01/28/eclipse-content-assist/">Eclipse Content Assist失效解决</a>
       </li>
     
   </ul>
