@@ -9,8 +9,8 @@
   <meta name="author" content="Calvin Lee">
 
   
-  <meta name="description" content="概念 Java动态代理是代理模式的延伸，之所以称为”动态“，是因为我们不用去设计代理类，代理类的字节码在运行时被动态生成后由classloader加载进JVM后运行。
-动态代理相关类有： java.lang.reflect.Proxy 这个类的主要作用是在运行时生成代理类的字节码， &hellip;">
+  <meta name="description" content="如果使用startx或者slim等命令启动X，会source ~/.xinitrc。
+如果使用登录管理器GDM或者KDM，会source ~/.xprofile，忽略~/.xinitrc。 为了统一，干脆这样好了： ln -s ~/.xinitrc ~/.xprofile ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -69,384 +69,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/05/29/dynamic-proxy/">Java动态代理</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-29T00:00:00+08:00" pubdate data-updated="true">May 29<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/05/29/dynamic-proxy/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/29/dynamic-proxy/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>概念</h3>
-
-<p>Java动态代理是代理模式的延伸，之所以称为”动态“，是因为我们不用去设计代理类，代理类的字节码在运行时被动态生成后由classloader加载进JVM后运行。<br/>
-动态代理相关类有：</p>
-
-<pre><code>java.lang.reflect.Proxy  
-这个类的主要作用是在运行时生成代理类的字节码，并通过这个字节码生成代理类对象供客户端使用。  
-
-java.lang.reflect.InvocationHandler  
-这个接口只定义了一个invoke方法，它是调用真实的被代理对象的地方，我们可以在这个方法里加上额外的代理逻辑，如果日志记录，访问鉴权等。  
-
-Object invoke(Object proxy, Method method, Object[] args);
-
-proxy参数是生成的代理类对象的引用，就像后面分析的，它的类型是$Proxy0，继承了Proxy类并实现了和被代理对象公共的业务接口。  
-method是当前被调用的被代理方法。  
-args是当前被调用的被代理方法的参数列表。
-</code></pre>
-
-<p><a href="/images/dynamic_proxy.png"><img src="/images/dynamic_proxy.png" alt="/images/dynamic_proxy.png" /></a></p>
-
-<p>利用动态代理的机制，我们可以实现典型的AOP(Aspect-oriented programming)编程模式，实际上，这也是Spring AOP的实现原理。</p>
-
-<h3>举例</h3>
-
-<p>首先是被代理类和代理类公共的业务接口：</p>
-
-<pre><code>public interface Subject {
-    void request();
-}
-</code></pre>
-
-<p>AOP业务接口：</p>
-
-<pre><code>public interface AopLogger {
-    void logBefore();
-
-    void logAfter();
-}
-</code></pre>
-
-<p>被代理类：</p>
-
-<pre><code>public class RealSubject implements Subject {
-    public void request() {
-        System.out
-                .println("Processing request in real subject...");
-    }
-}
-</code></pre>
-
-<p>委托对象类：</p>
-
-<pre><code>import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-
-public class RequestInvocationHandler implements InvocationHandler {
-    private Subject originalObj;
-
-    private AopLogger logger;
-
-    public RequestInvocationHandler(Subject originalObj) {
-        super();
-        this.originalObj = originalObj;
-    }
-
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        // do some processing before the method invocation
-        System.out.println("Before requesting real subject...");
-        logger.logBefore();
-        // TODO:
-        // how to use this proxy object?
-
-        // invoke the method
-        Object result = method.invoke(originalObj, args);
-
-        // do some processing after the method invocation
-        logger.logAfter();
-        System.out.println("After requesting real subject...");
-        return result;
-    }
-
-    public AopLogger getLogger() {
-        return logger;
-    }
-
-    public void setLogger(AopLogger logger) {
-        this.logger = logger;
-    }
-}
-</code></pre>
-
-<p>客户端测试代码：</p>
-
-<pre><code>import java.lang.reflect.Field;
-import java.lang.reflect.Proxy;
-import java.util.Properties;
-
-public class Client {
-
-    public static void main(String[] args) throws Exception {
-        // ***** save proxy class into file *******
-        Field field = System.class.getDeclaredField("props");
-        field.setAccessible(true);
-        Properties props = (Properties) field.get(null);
-        props.put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
-        // ****************************************
-
-        // TODO:
-        // 怎样防止客户端绕过proxy直接调用RealSubject的方法？
-        Subject origObj = new RealSubject();
-        Subject proxy = (Subject) getProxy(origObj);
-
-        proxy.request();
-    }
-
-    private static Object getProxy(Subject origObj) {
-        RequestInvocationHandler handler = new RequestInvocationHandler(origObj);
-        handler.setLogger(new AopLogger() {
-
-            @Override
-            public void logBefore() {
-                System.out.println("AOP logger working before...");
-            }
-
-            @Override
-            public void logAfter() {
-                System.out.println("AOP logger working after...");
-            }
-
-        });
-
-        // 这里会通过ProxyGenerator类生成代理类的字节码，并由origObj所在的classloader加载进JVM，然后通过反射实例化出一个代理对象
-        return Proxy.newProxyInstance(origObj.getClass().getClassLoader(), origObj.getClass()
-                .getInterfaces(), handler);
-    }
-
-}
-</code></pre>
-
-<p>在Client测试代码中加上如下代码后可以将生成的代理类字节码保存到本地文件中：</p>
-
-<pre><code>  Field field = System.class.getDeclaredField("props");
-  field.setAccessible(true);
-  Properties props = (Properties) field.get(null);
-  props.put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
-</code></pre>
-
-<p>反编译这个class文件后察看可以更清楚幕后究竟做了什么：</p>
-
-<pre><code>import com.java.demo.dynamic_proxy.Subject;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.lang.reflect.UndeclaredThrowableException;
-
-public final class $Proxy0 extends Proxy
-  implements Subject {
-  private static Method m1;
-  private static Method m3;
-  private static Method m0;
-  private static Method m2;
-
-  public $Proxy0(InvocationHandler paramInvocationHandler)
-    throws {
-    super(paramInvocationHandler);
-  }
-
-  public final boolean equals(Object paramObject)
-    throws {
-    try {
-      return ((Boolean)this.h.invoke(this, m1, new Object[] { paramObject })).booleanValue();
-    }
-    catch (Error localError) {
-      throw localError;
-    }
-    catch (Throwable localThrowable) {
-    }
-    throw new UndeclaredThrowableException(localThrowable);
-  }
-
-  public final void request()
-    throws {
-    try {
-      // 转发给InvocationHanlder对象处理
-      this.h.invoke(this, m3, null);
-      return;
-    }
-    catch (Error localError) {
-      throw localError;
-    }
-    catch (Throwable localThrowable) {
-    }
-    throw new UndeclaredThrowableException(localThrowable);
-  }
-
-  public final int hashCode()
-    throws {
-    try {
-      return ((Integer)this.h.invoke(this, m0, null)).intValue();
-    }
-    catch (Error localError) {
-      throw localError;
-    }
-    catch (Throwable localThrowable) {
-    }
-    throw new UndeclaredThrowableException(localThrowable);
-  }
-
-  public final String toString()
-    throws {
-    try {
-      return (String)this.h.invoke(this, m2, null);
-    }
-    catch (Error localError) {
-      throw localError;
-    }
-    catch (Throwable localThrowable) {
-    }
-    throw new UndeclaredThrowableException(localThrowable);
-  }
-
-  static {
-    try {
-      m1 = Class.forName("java.lang.Object").getMethod("equals", new Class[] { Class.forName("java.lang.Object") });
-      m3 = Class.forName("com.java.demo.dynamic_proxy.Subject").getMethod("request", new Class[0]);
-      m0 = Class.forName("java.lang.Object").getMethod("hashCode", new Class[0]);
-      m2 = Class.forName("java.lang.Object").getMethod("toString", new Class[0]);
-      return;
-    }
-    catch (NoSuchMethodException localNoSuchMethodException) {
-      throw new NoSuchMethodError(localNoSuchMethodException.getMessage());
-    }
-    catch (ClassNotFoundException localClassNotFoundException) {
-    }
-    throw new NoClassDefFoundError(localClassNotFoundException.getMessage());
-  }
-}
-</code></pre>
-
-<h3>Reference</h3>
-
-<ul>
-<li><a href="http://chjl2020.iteye.com/blog/517835">http://chjl2020.iteye.com/blog/517835</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/05/28/pstree/">Pstree命令使用</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-28T00:00:00+08:00" pubdate data-updated="true">May 28<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/05/28/pstree/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/28/pstree/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>pstree命令以树状形式显示运行中的进程，使用这个命令可以方便的查看进程之间的父子关系。
-一些选项：</p>
-
-<pre><code>-h：高亮当前进程
--p：显示进程pid
--u：显示uid
--a：显示启动进程的命令
--l：对长于132个字符会被截断显示，使用这个选项关闭这个功能
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/05/25/zen-of-cs/">Zen of CS</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-25T00:00:00+08:00" pubdate data-updated="true">May 25<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/05/25/zen-of-cs/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/25/zen-of-cs/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>计算机科学领域的任何问题都可以通过增加一个间接的中间层来解决</h3>
-
-<p>All problems in computer science can be solved by another level of indirection&hellip; Except for the problem of too many layers of indirection.</p>
-
-<ul>
-<li><a href="http://en.wikipedia.org/wiki/Abstraction_layer">http://en.wikipedia.org/wiki/Abstraction_layer</a></li>
-<li><a href="http://en.wikipedia.org/wiki/David_Wheeler_(computer_scientist)">http://en.wikipedia.org/wiki/David_Wheeler_(computer_scientist)</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -824,98 +446,6 @@ Java提供了动态代理的支持，结构如下：</p>
 动态代理机制使得不用再手工编写代理类，只需要指定一个业务接口和一个委托对象，便能动态的获取代理对象，这个代理对象将来自客户端的调用分派到委托对象上执行，而委托对象可以根据需要添加必要的控制逻辑。</p>
 
 <p><strong>模式的最终目的是封装变化，不变的是接口，变化的是实现</strong></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/05/11/cpp-learning-tips/">C++ Tips</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-11T00:00:00+08:00" pubdate data-updated="true">May 11<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/05/11/cpp-learning-tips/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/11/cpp-learning-tips/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>字符串</h3>
-
-<p>C++中有两种字符串的表示方法：
-1. C风格的字符串</p>
-
-<pre><code>    #include &lt;cstring&gt;
-    const char *st = "The expense of spirit\n";
-</code></pre>
-
-<ol>
-<li><p>标准C++引入的 string 类类型(建议使用)</p>
-
-<pre><code> #include &lt;string&gt;
- string st( "The expense of spirit\n" );
-</code></pre>
-
-<p>参照：<a href="http://www.cplusplus.com/reference/string/string/">http://www.cplusplus.com/reference/string/string/</a></p></li>
-</ol>
-
-
-<p>互相转换：</p>
-
-<pre><code>// C style to C++ stype
-string s1;
-const char *pc = "a character array";
-s1 = pc; 
-
-// c++ stype to c style
-const char *str = s1.c_str();
-</code></pre>
-
-<h3>函数</h3>
-
-<h4>内联函数</h4>
-
-<p>内敛函数在其调用点上被展开，这样省去了函数调用的开销。在类定义中被定义的函数被自动视为inline函数，也可以用inline关键字显示声明一个函数为内敛函数。</p>
-
-<h3>对象的创建与销毁</h3>
-
-<h4>创建对象</h4>
-
-<p>圆点成员选择运算符(.)前面加对象名称或者对象的引用，则可以访问对象的成员;箭头成员选择运算符(&ndash;>)前面加对象的指针，则可以访问对象的成员。<br/>
-析构函数不接受任何参数，也不返回任何值，析构函数不可以执行返回类型，甚至void也不行，一个类只能有一个析构函数，而且不能重载析构函数。</p>
-
-<h4>拷贝构造函数</h4>
-
-<p>当一个对象用本类的另外一个对象实例进行初始化时，拷贝构造函数被自动调用：</p>
-
-<pre><code>ClassA a(100);
-ClassA b = a;
-</code></pre>
-
-<p>拷贝构造函数形为：<code>ClassA(const ClassA&amp;)</code>
-浅拷贝与深拷贝</p>
 </div>
   
   
@@ -1306,6 +836,887 @@ com.java.demo.OuterClass$NonStaticInner(com.java.demo.OuterClass);
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/26/android-init-socket/">Android get control socket</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-26T00:00:00+08:00" pubdate data-updated="true">Apr 26<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/26/android-init-socket/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/26/android-init-socket/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>/hardware/ril/libril/ril.cpp下有如下代码：</p>
+
+<pre><code>s_fdListen = android_get_control_socket(SOCKET_NAME_RIL);
+if (s_fdListen &lt; 0) {
+    LOGE("Failed to get socket '" SOCKET_NAME_RIL "'");
+    exit(-1);
+}
+
+if (listen(s_fdListen, 4)) {
+    exit(1);
+}
+s_fdCommand = accept(s_fdListen, (sockaddr *) &amp;peeraddr, &amp;socklen);
+</code></pre>
+
+<p>这个android_get_control_socket函数有什么作用呢？
+android_get_control_socket函数定义在/system/core/include/cutils/sockets.h:</p>
+
+<pre><code>#define ANDROID_SOCKET_ENV_PREFIX   "ANDROID_SOCKET_"
+#define ANDROID_SOCKET_DIR      "/dev/socket"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ * android_get_control_socket - simple helper function to get the file
+ * descriptor of our init-managed Unix domain socket. `name' is the name of the
+ * socket, as given in init.rc. Returns -1 on error.
+ *
+ * This is inline and not in libcutils proper because we want to use this in
+ * third-party daemons with minimal modification.
+ */
+static inline int android_get_control_socket(const char *name)
+{
+    char key[64] = ANDROID_SOCKET_ENV_PREFIX;
+    const char *val;
+    int fd;
+
+    /* build our environment variable, counting cycles like a wolf ... */
+#if HAVE_STRLCPY
+    strlcpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+        name,
+        sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+#else   /* for the host, which may lack the almightly strncpy ... */
+    strncpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+        name,
+        sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+    key[sizeof(key)-1] = '\0';
+#endif
+
+    val = getenv(key); // socket名字和对应的socket文件的文件描述符以键值对的形式存储在环境变量中， 
+    if (!val)
+        return -1;
+
+    errno = 0;
+    fd = strtol(val, NULL, 10);
+    if (errno)
+        return -1;
+
+    return fd;
+}
+</code></pre>
+
+<p>init.rc
+/system/core/init/readme.txt</p>
+
+<p>/system/core/init/util.c</p>
+
+<pre><code>/*
+ * create_socket - creates a Unix domain socket in ANDROID_SOCKET_DIR
+ * ("/dev/socket") as dictated in init.rc. This socket is inherited by the
+ * daemon. We communicate the file descriptor's value via the environment
+ * variable ANDROID_SOCKET_ENV_PREFIX&lt;name&gt; ("ANDROID_SOCKET_foo").
+ */
+int create_socket(const char *name, int type, mode_t perm, uid_t uid, gid_t gid)
+{
+    struct sockaddr_un addr;
+    int fd, ret;
+
+    fd = socket(PF_UNIX, type, 0);
+    if (fd &lt; 0) {
+        ERROR("Failed to open socket '%s': %s\n", name, strerror(errno));
+        return -1;
+    }
+
+    memset(&amp;addr, 0 , sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    snprintf(addr.sun_path, sizeof(addr.sun_path), ANDROID_SOCKET_DIR"/%s",
+             name);
+
+    ret = unlink(addr.sun_path);
+    if (ret != 0 &amp;&amp; errno != ENOENT) {
+        ERROR("Failed to unlink old socket '%s': %s\n", name, strerror(errno));
+        goto out_close;
+    }
+
+    ret = bind(fd, (struct sockaddr *) &amp;addr, sizeof (addr));
+    if (ret) {
+        ERROR("Failed to bind socket '%s': %s\n", name, strerror(errno));
+        goto out_unlink;
+    }
+
+    chown(addr.sun_path, uid, gid);
+    chmod(addr.sun_path, perm);
+
+    INFO("Created socket '%s' with mode '%o', user '%d', group '%d'\n",
+         addr.sun_path, perm, uid, gid);
+
+    return fd;
+
+out_unlink:
+    unlink(addr.sun_path);
+out_close:
+    close(fd);
+    return -1;
+}
+</code></pre>
+
+<p>init.c</p>
+
+<pre><code>static void publish_socket(const char *name, int fd)
+{
+    char key[64] = ANDROID_SOCKET_ENV_PREFIX;
+    char val[64];
+
+    strlcpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+            name,
+            sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+    snprintf(val, sizeof(val), "%d", fd);
+    add_environment(key, val); //添加到环境变量中
+
+    /* make sure we don't close-on-exec */
+    fcntl(fd, F_SETFD, 0);
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/21/android-window-management-architecture/">Android 窗口管理</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-21T00:00:00+08:00" pubdate data-updated="true">Apr 21<span>st</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/21/android-window-management-architecture/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/21/android-window-management-architecture/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>基本概念</h3>
+
+<ul>
+<li><p>Surface</p>
+
+<p>Surface就是每个View的画布，View及其子类都要画在surface上。<br/>
+Surface都是双缓冲的，back buffer用来绘制，front buffer用来合成。每个surface对象对应surfaceflinger里面的一个layer，SurfaceFlinger负责将各个layer的front buffer合成（composite），然后将合成后的数据输出到frame buffer驱动并最终绘制到屏幕上。</p></li>
+<li><p>Window</p>
+
+<p>Window可以看作desktop上的window的概念。Window类定义了顶层视图的一些属性以及对这些属性的方法，包括背景，title，一些按键事件处理（如Volume up和Volump down按键在MediaController所属的Window里面被设置位控制媒体音量大小）以及一些其他的window feature，它含有一个window manager对象用来addView，removeView，updateView等等，window manager通过和运行在system_server进程的window manager service建立联系来实现这些操作。每一个Window都对应一个Surface对象用来渲染添加到window里面的内容。<br/>
+Window的实现为PhoneWindow。</p></li>
+<li><p>View</p>
+
+<p>View是添加到window里面的和用户产生交互的UI控件。View与ViewGroup一起组成了一个树状结构，每一个Window都有一个View的层级树与之关联。这个view的层级树组成了这个window的样式和行为。DecorView作为顶层view被添加到PhoneWindow中。</p></li>
+<li><p>SurfaceView</p>
+
+<p>每个SurfaceView拥有一个独立的Surface对象。</p></li>
+<li><p>ViewRoot:
+每一个view的层级树对应一个ViewRoot，也就是说one viewroot per window。每个ViewRoot对象都有一个对应的Surface对象用来绘制UI，当window需要重绘时（比如一个view调用了invalidate()方法），重绘的操作都是这个ViewRoot对应的Surface上进行的。Surface首先被lock住，然后返回一个可供重绘的Canvas，然后在view层级树中遍历，并把这个Canvas对象依次传递给每个View的onDraw方法。重绘结束后这个surface被unlock，然后交由surface finger进行组合。View层级树中的所有view均在这个Canvas对象上绘制。<br/>
+ViewRoot是GUI管理系统与GUI呈现系统之间的桥梁，主要作用有：</p>
+
+<ol>
+<li> 向DecorView分发从WindowManagerService收到的用户发起的event事件，如按键，触屏，轨迹球等事件；</li>
+<li> 与WindowManagerService交互，完成整个Activity的GUI的绘制。</li>
+</ol>
+</li>
+</ul>
+
+
+<p><a href="/images/android-window-architecture.png"><img src="/images/android-window-architecture.png" alt="/images/android-window-architecture.png" /></a></p>
+
+<ul>
+<li><p>Bitmap</p>
+
+<p>Bitmap可以看作是一块数据存储区域，用来存储像素数据。</p></li>
+<li><p>Canvas
+每个Canvas底层都对应一个Bitmap对象，Canvas提供了一些绘制图形的接口，比如画直线，画圆，这些方法是在这个bitmap上操作的。</p></li>
+<li><p>Paint
+用来描述绘制时使用的颜色，风格等。</p></li>
+<li><p>Drawable:
+绘制的基本对象。</p></li>
+</ul>
+
+
+<p>以上四种对象构成绘制图形的四个基本元素，如图：</p>
+
+<p><a href="/images/android_graphics.png"><img src="/images/android_graphics.png" alt="/images/android_graphics.png" /></a></p>
+
+<h3>窗口类</h3>
+
+<p><a href="/images/android-window-class.png"><img src="/images/android-window-class.png" alt="/images/android-window-class.png" /></a></p>
+
+<h3>Activity.attach</h3>
+
+<ul>
+<li>ActivityManagerService.startActivity
+
+<ul>
+<li>ActivityThread.performLaunchActivity
+
+<ul>
+<li>Activity.attach
+
+<ul>
+<li>PolicyManager.makeNewWindow //实例化一个activity或者dialog或者widget的地方才会make new window</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>ActivityThread.handleResumeActivity
+
+<ul>
+<li>WindowManagerImpl.addView //添加DecorView到WindowManager中
+
+<ul>
+<li>new ViewRootImpl // 实例化一个ViewRoot对象
+
+<ul>
+<li>WindowManagerService.openSession //建立ViewRoot到WMS的通信桥梁</li>
+</ul>
+</li>
+<li>ViewRootImpl.setView
+
+<ul>
+<li>requestLayout</li>
+<li>IWindowSession.add // 将这个ViewRoot的IWindow对象（ViewRootImpl.W）添加到WMS中，作为WMS到ViewRoot的通信桥梁
+
+<ul>
+<li>WindowManagerService.addWindow</li>
+</ul>
+</li>
+<li>ViewRootImpl.performTraversals //负责绘制View hierarchy，绘制的目的地是对应Surface的back buffer。这个方法总是在UI线程中调用
+
+<ul>
+<li>DecorView.dispatchAttachedToWindow
+
+<ul>
+<li>DecorView.measure</li>
+</ul>
+</li>
+<li>ViewRootImpl.relayoutWindow // 通过WMS创建一个Surface对象，赋值给ViewRoot持有的Surface对象
+
+<ul>
+<li>WindowManagerService.relayoutWindow</li>
+</ul>
+</li>
+<li>DecorView.measure</li>
+<li>DecorView.layout</li>
+<li>ViewRootImpl.draw // 根据一个dirty的矩形区域决定重绘范围。这里有两种情况：是否使用GL绘制<br/>
+  // 如果不使用GL绘制
+
+<ul>
+<li>Surface.lockCanvas // 传入drity的区域，获取一个bitmap存储区，与一个Canvas对象绑定并返回</li>
+<li>Canvas.save</li>
+<li>DecorView.draw //绘制View hierarchy tree</li>
+<li>Canvas.restoreToCount</li>
+<li>Surface.unlockCanvasAndPost</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<h3>WindowManagerService.addWindow</h3>
+
+<ul>
+<li>WindowManagerService.addWindow
+
+<ul>
+<li>new WindowState</li>
+<li>WindowState.attach
+
+<ul>
+<li>WindowManagerService.Session.windowAddedLocked
+
+<ul>
+<li>new SurfaceSession() // Create a new connection with the surface flinger
+
+<ul>
+<li>SurfaceSession_init(android_view_Surface.cpp)
+
+<ul>
+<li>new SurfaceComposerClient(android_view_Surface.cpp)
+
+<ul>
+<li>onFirstRef(SurfaceComposerClient.cpp)
+
+<ul>
+<li>getComposerService //ComposerService 用于获取SurfaceFlinger服务，它是一个单例，每个进程一个实例</li>
+<li>BpSurfaceComposer.createConnection(SurfaceComposerClient.cpp)
+
+<ul>
+<li>SurfaceFlinger.createConnection(SurfaceFlinger.cpp)
+
+<ul>
+<li>new BnSurfaceComposerClient // 这个client对象接收来自客户端的请求，并转发给SurfaceFlinger, 主要两个接口：createSurface和destroySurface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>addWindowToListInOrderLocked</li>
+<li>updateFocusedWindowLocked</li>
+<li>assignLayersLocked</li>
+</ul>
+</li>
+</ul>
+
+
+<p>ComposerService</p>
+
+<pre><code>class ComposerService : public Singleton&lt;ComposerService&gt;
+{
+    //实际对象为BpSurfaceComposer,通过它与SurfaceFlinger进行通信，
+    //BnSurfaceComposer是SurfaceFlinger的子类
+    sp&lt;ISurfaceComposer&gt; mComposerService;
+
+    //实际对象为BpMemoryHeap,它在SurfaceFlinger中对应为管理一个4096字节的
+    //一个MemoryHeapBase对象，在SurfaceFlinger::readyToRun中创建
+    sp&lt;IMemoryHeap&gt; mServerCblkMemory;
+
+    //为MemoryHeapBase管理的内存在用户空间的基地址，通过mmap而来，
+    //具体见MemoryHeapBase::mapfd
+    surface_flinger_cblk_t volatile* mServerCblk;
+    ComposerService();
+    friend class Singleton&lt;ComposerService&gt;;
+public:
+    static sp&lt;ISurfaceComposer&gt; getComposerService();
+    static surface_flinger_cblk_t const volatile * getControlBlock();
+};
+
+ComposerService::ComposerService()
+: Singleton&lt;ComposerService&gt;() {
+    const String16 name("SurfaceFlinger");
+    //获取SurfaceFlinger服务，即BpSurfaceComposer对象
+    while (getService(name, &amp;mComposerService) != NO_ERROR) {
+        usleep(250000);
+    }
+    //获取shared control block
+    mServerCblkMemory = mComposerService-&gt;getCblk();
+    //获取shared control block 的基地址
+    mServerCblk = static_cast&lt;surface_flinger_cblk_t volatile *&gt;(
+            mServerCblkMemory-&gt;getBase());
+}
+</code></pre>
+
+<p>这一步的主要作用：<br/>
+将新的Window添加到WMS，并为这个Window对象获取一个SurfaceFlinger的代理对象BpSurfaceComposerClient。</p>
+
+<h3>WindowManagerService.relayoutWindow</h3>
+
+<ul>
+<li>WindowManagerService.relayoutWindow
+
+<ul>
+<li>WindowManagerService.WindowState.createSurfaceLocked
+
+<ul>
+<li>SurfaceComposerClient.createSurface(android_view_Surface.cpp)
+
+<ul>
+<li>BpSurfaceComposerClient.createSurface // 在上一步已经获得了
+
+<ul>
+<li>Client::createSurface(SurfaceFlinger.cpp)
+
+<ul>
+<li>SurfaceFlinger::createSurface
+
+<ul>
+<li>SurfaceFlinger.createNormalSurface
+
+<ul>
+<li>new Layer
+
+<ul>
+<li>onFirstRef > new SurfaceTextureLayer
+
+<ul>
+<li>new SurfaceTexture
+
+<ul>
+<li>SurfaceFlinger::createGraphicBufferAlloc</li>
+</ul>
+</li>
+<li>new LayerBaseClient(LayerBase.cpp)
+
+<ul>
+<li>new LayerBase(LayerBase.cpp)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Layer.setBuffers(Layer.cpp) // 为这个layer分配GraphicBuffers
+
+<ul>
+<li>new SurfaceLayer
+
+<ul>
+<li>new LayerBaseClient::Surface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>SurfaceFlinger.addClientLayer
+
+<ul>
+<li>BnSurfaceComposerClient.attachLayer</li>
+<li>addLayer_l // 将这个layer加入Z轴</li>
+</ul>
+</li>
+<li>Layer.getSurface
+
+<ul>
+<li>Layer::createSurface(Layer.cpp)
+
+<ul>
+<li>new BSurface // BSurface实现了ISurface接口</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>new SurfaceControl</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<p><a href="http://blog.csdn.net/myarrow/article/details/7180561">这篇文章</a>的这张图很好的描述了SurfaceComposerClient对象内的状态：</p>
+
+<p><a href="/images/android-surface-interfaces.jpeg"><img src="/images/android-surface-interfaces.jpeg" alt="/images/android-surface-interfaces.jpeg" /></a></p>
+
+<h3>Surface.lockCanvas</h3>
+
+<ul>
+<li>Surface.lockCanvas
+
+<ul>
+<li>Surface_lockCanvas(android_view_Surface.cpp)
+
+<ul>
+<li>getSurface
+
+<ul>
+<li>SurfaceControl.getSurface
+
+<ul>
+<li>new Surface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Surface.lock(Surface.cpp)
+
+<ul>
+<li>SurfaceTextureClient::lock
+
+<ul>
+<li>dequeueBuffer</li>
+<li>lockBuffer</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>new SkBitmap</li>
+</ul>
+</li>
+</ul>
+
+
+<p>Gralloc</p>
+
+<ol>
+<li>Used to allocate and map graphics memory to app processes</li>
+<li>Facilitates graphics memory export via Binder IPC mechanism</li>
+<li>Provides cache synchronization points</li>
+<li>Also used for framebuffer discovery</li>
+</ol>
+
+
+<h3>Surface.unlockCanvasAndPost</h3>
+
+<ul>
+<li>Surface.lockCanvas
+
+<ul>
+<li>Surface_lockCanvas(android_view_Surface.cpp)
+
+<ul>
+<li>getSurface
+
+<ul>
+<li>SurfaceControl.getSurface
+
+<ul>
+<li>new Surface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Surface.lock(Surface.cpp)
+
+<ul>
+<li>SurfaceTextureClient::unlockAndPost</li>
+<li>GraphicBuffer.unlock</li>
+<li>queueBuffer</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://www.mail-archive.com/android-framework@googlegroups.com/msg01901.html">http://www.mail-archive.com/android-framework@googlegroups.com/msg01901.html</a></li>
+<li><a href="http://stackoverflow.com/questions/4576909/understanding-canvas-and-surface-concepts">http://stackoverflow.com/questions/4576909/understanding-canvas-and-surface-concepts</a></li>
+<li><a href="http://www.androidenea.com/2010/03/share-memory-using-ashmem-and-binder-in.html">关于MemoryHeapBase</a></li>
+<li><a href="http://blog.csdn.net/myarrow/article/details/7180561">http://blog.csdn.net/myarrow/article/details/7180561</a></li>
+<li><a href="http://blog.csdn.net/droidphone/article/details/5972568">http://blog.csdn.net/droidphone/article/details/5972568</a></li>
+</ul>
+
+
+<h3>待续&hellip;</h3>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/20/diff-files-over-ssh/">Diff Files Over SSH</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-20T00:00:00+08:00" pubdate data-updated="true">Apr 20<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/20/diff-files-over-ssh/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/20/diff-files-over-ssh/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>比较单个文件</h3>
+
+<pre><code>ssh user@host "cat path/to/remote/file" | diff path/to/local/file -
+</code></pre>
+
+<h3>比较目录</h3>
+
+<p>利用sshfs将远程目录mount到本地，然后你就可以像比较本地目录一样操作这两个目录了。
+安装sshfs</p>
+
+<pre><code>sudo apt-get install sshfs
+</code></pre>
+
+<p>这会同时安装sshfs和<a href="http://en.wikipedia.org/wiki/Filesystem_in_Userspace">fuse</a></p>
+
+<p>加载fuse模块到内核</p>
+
+<pre><code>sudo modprobe fuse
+</code></pre>
+
+<p>挂载远程目录到本地的挂载点，执行比较</p>
+
+<pre><code>$ mkdir local-mount-point
+$ sshfs user@host:/path/to/remote/dir local-mount-point
+$ diff -r /path/to/local/dir local-mount-point
+</code></pre>
+
+<p>最后，umount这个目录</p>
+
+<pre><code>$ fusermount -u local-mount-point
+</code></pre>
+
+<p>umount的时候可能提示failed to unmount device or resource busy的错误信息，这时可以：</p>
+
+<pre><code>$ fusermount -m local-mount-point  // 查看哪些进程在使用这个挂载点
+$ fusermount -k pid                // 杀掉这个进程
+$ fusermount -u local-mount-point
+</code></pre>
+
+<p>另外，fusermount命令的setuid属性被设置了，所以运行的时候可能会有权限问题，需要把当前用户添加到fuse这个用户组中：</p>
+
+<pre><code>sudo adduser &lt;username&gt; fuse
+sudo chown root:fuse /dev/fuse
+sudo chmod +x /dev/fusermount
+</code></pre>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://www.howtogeek.com/howto/ubuntu/how-to-mount-a-remote-folder-using-ssh-on-ubuntu/">http://www.howtogeek.com/howto/ubuntu/how-to-mount-a-remote-folder-using-ssh-on-ubuntu/</a></li>
+<li><a href="https://wiki.archlinux.org/index.php/Sshfs">https://wiki.archlinux.org/index.php/Sshfs</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/15/ubuntu-gcc-cannot-find-lc/">Ubuntu下gcc编译找不到libc.so</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-15T00:00:00+08:00" pubdate data-updated="true">Apr 15<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/15/ubuntu-gcc-cannot-find-lc/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/15/ubuntu-gcc-cannot-find-lc/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前几天升级了Ubuntu系统，今天编译时出现如下错误：</p>
+
+<pre><code>$ gcc buffer.c 
+/usr/bin/ld: cannot find -lc
+collect2: ld returned 1 exit status
+</code></pre>
+
+<p>明显是ld找不到libc.so，可能时升级系统引起的。
+查看/etc/ld.so.conf:</p>
+
+<pre><code>$ cat /etc/ld.so.conf
+include /etc/ld.so.conf.d/*.conf
+$ cat /etc/ld.so.conf.d/*.conf
+/usr/lib/mesa
+# Multiarch support
+/lib/i486-linux-gnu
+/usr/lib/i486-linux-gnu
+# Multiarch support
+/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu
+/lib/i686-linux-gnu
+/usr/lib/i686-linux-gnu
+/usr/lib/alsa-lib
+# libc default configuration
+/usr/local/lib
+</code></pre>
+
+<p>刷新ld conf cache：</p>
+
+<pre><code>$ sudo ldconfig
+</code></pre>
+
+<p>还是不能解决问题。
+之后</p>
+
+<pre><code>$ locate libc.so
+/lib/i386-linux-gnu/libc.so.6
+/usr/lib/i386-linux-gnu/libc.so
+$ sudo ln -s /usr/lib/i386-linux-gnu/libc.so /usr/lib/libc.so
+</code></pre>
+
+<p>再编译，成功了，ld.so.conf中已经包含了/usr/lib/i386-linux-gnu目录了，按理说应该可以找到libc.so，不知道为何要在/usr/lib下建个软链接才行。不解，留待日后再研究。</p>
+
+<hr />
+
+<h3>Update</h3>
+
+<h4>编译期链接</h4>
+
+<p>当编译完成生成目标文件（.o）后，ld程序会对目标文件进行链接。(GCC没有调用ld进行链接，它调用一个名为collect2的程序，然后由collect2调用ld来进行链接)<br/>
+默认情况下，GCC在编译阶段搜索头文件的路径为：</p>
+
+<pre><code>1. /usr/local/include/
+2. /usr/include/
+</code></pre>
+
+<p>在链接搜索库文件的路径为：</p>
+
+<pre><code>1. /usr/local/lib/
+2. /usr/lib/
+</code></pre>
+
+<p>通过gcc选项指定搜索路径</p>
+
+<ul>
+<li>头文件的搜索路径可以通过gcc -I选项指定。</li>
+<li>库文件的搜索路径可以通过gcc -L选项指定。</li>
+</ul>
+
+
+<p>通过环境变量指定搜索路径</p>
+
+<ul>
+<li>环境变量C_INCLUDE_PATH(for c)和CPLUS_INCLUDE_PATH(for c++)可以指定头文件搜索路径</li>
+<li>环境变量LIBRARY_PATH可以指定库文件搜索路径</li>
+</ul>
+
+
+<p>搜索顺序为：</p>
+
+<ol>
+<li>-I或者-L指定的路径</li>
+<li>通过环境变量指定的路径</li>
+<li>默认路径</li>
+</ol>
+
+
+<p>参考<a href="http://www.network-theory.co.uk/docs/gccintro/gccintro_21.html">here</a></p>
+
+<h4>运行时进行动态链接</h4>
+
+<p>运行一个程序时，ld.so/ld-linux.so会对程序依赖的共享库进行搜索，然后装载进内存，进行重定位，最后控制权移交给程序开始运行。ld.so搜索依赖的共享库的路径顺序为：</p>
+
+<ol>
+<li>查找环境变量LD_LIBRARY_PATH指定的路径。然而如果这个程序的setuid/setgid为被设置，这个步骤被忽略</li>
+<li>查找/etc/ld.so.cache中的共享库列表</li>
+<li>查找/lib</li>
+<li>查找/usr/lib</li>
+</ol>
+
+
+<p>另外，程序本身也可以通过hard-code的方式在执行文件中通过rpath这个字段指定依赖的啥share library的路径：</p>
+
+<pre><code>readelf -d &lt;binary_file&gt; | grep RPATH
+</code></pre>
+
+<p><strong>/etc/ld.so.conf以及LD_LIBRARY_PATH配置的路径是为runtime-linker（ld.so）用的，不是compile-time(ld)!</strong><br/>
+上述问题是一个编译期问题，所以修改更新/etc/ld.so.conf对解决问题没有帮助，而在/usr/lib下创建一个到libc.so的链接则可以让gcc找到从而正确链接。</p>
+
+<p>参考 man ldd, man ld, man 8 ld.so, man dlopen, man ldconfig</p>
+
+<p>Reference:</p>
+
+<ul>
+<li><a href="http://www.threeway.cc/sitecn/informationInfo.aspx?tid=1382&amp;pid=2445">http://www.threeway.cc/sitecn/informationInfo.aspx?tid=1382&amp;pid=2445</a></li>
+<li><a href="http://askubuntu.com/questions/40416/why-is-lib-libc-so-6-missing">http://askubuntu.com/questions/40416/why-is-lib-libc-so-6-missing</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -1321,9 +1732,8 @@ com.java.demo.OuterClass$NonStaticInner(com.java.demo.OuterClass);
     <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
-<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
-<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
+    <li class='category'><a href='/blog/categories/android/'>Android (10)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
 <li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
 <li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
 <li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
@@ -1335,7 +1745,7 @@ com.java.demo.OuterClass$NonStaticInner(com.java.demo.OuterClass);
 <li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
 <li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
 <li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
-<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
 
   </ul>
 </section>

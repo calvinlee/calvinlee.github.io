@@ -9,7 +9,12 @@
   <meta name="author" content="Calvin Lee">
 
   
-  <meta name="description" content="概要 Android基于Linux，Android的权限管理基于Linux的权限框架。此外，Android在此基础上为应用程序提供了permission机制，使得应用程序通过“申请-授予”的机制得以访问系统的敏感资源。权限的授予在应用程序安装过程中就已经确定了，在安装过程中，应用程序的gid， &hellip;">
+  <meta name="description" content="移动 0 移动到行首
+$ 移动到行末
+CTRL+ o 回到上一视图
+CTRL+ i 前进到下一视图
+ZZ 保存更改并退出 fx 在当前行向前移动光标到下一个字符x (很明显, x可以是任意你想要移动到的字符). 这是一个超级有用的命令. 你可以输入;来重复前一个f命令.
+tx 和上面的命令基本相同 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -68,969 +73,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/17/insight-into-android-permission/">Android 权限机制</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/17/insight-into-android-permission/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/17/insight-into-android-permission/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>概要</h3>
-
-<p>Android基于Linux，Android的权限管理基于Linux的权限框架。此外，Android在此基础上为应用程序提供了permission机制，使得应用程序通过“申请-授予”的机制得以访问系统的敏感资源。权限的授予在应用程序安装过程中就已经确定了，在安装过程中，应用程序的gid，uid，pid已经gids都会被分配。Android不支持在运行时动态进行权限授予。<a href="http://developer.android.com/guide/topics/security/security.html#arch">Why?</a></p>
-
-<h3>References</h3>
-
-<p><a href="http://en.wikipedia.org/wiki/Group_identifier#Primary_vs._supplementary">http://en.wikipedia.org/wiki/Group_identifier#Primary_vs._supplementary</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/17/handy-toolbox/">Handy Toolbox</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/17/handy-toolbox/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/17/handy-toolbox/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>这里记录一些我常用的一些方便高效的工具。</p>
-
-<h3>Firefox</h3>
-
-<ul>
-<li><a href="http://vimperator.org/vimperator">Vimperator</a></li>
-<li><a href="http://sessionmanager.mozdev.org/">Session Manager</a></li>
-<li><a href="https://addons.mozilla.org/en-US/firefox/addon/evernote-web-clipper/">Evernote web clipper</a></li>
-<li><a href="http://www.teesoft.info/content/view/118/1/lang,en/">Autopager</a></li>
-</ul>
-
-
-<h3>Thunderbird</h3>
-
-<ul>
-<li><a href="https://addons.mozilla.org/en-US/thunderbird/addon/lightning/?src=search">Lightning</a></li>
-<li><a href="https://skydrive.live.com/redir.aspx?cid=71573c6596efd6ee&amp;resid=71573C6596EFD6EE!155&amp;parid=71573C6596EFD6EE!154">Firetray</a></li>
-</ul>
-
-
-<h3>画图</h3>
-
-<ul>
-<li><a href="https://skydrive.live.com/redir.aspx?cid=71573c6596efd6ee&amp;resid=71573C6596EFD6EE!146&amp;parid=71573C6596EFD6EE!145">JUDE</a> -UML工具</li>
-<li><a href="https://skydrive.live.com/redir.aspx?cid=71573c6596efd6ee&amp;resid=71573C6596EFD6EE!196&amp;parid=71573C6596EFD6EE!145">Edraw</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/17/different-reference-types-in-java/">Java的四种引用类型</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/17/different-reference-types-in-java/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/17/different-reference-types-in-java/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Java中有四种引用类型，按其引用强度由强到弱依次为：</p>
-
-<pre><code>Strong reference &gt; Soft reference &gt; Weak reference &gt; Phantom reference
-</code></pre>
-
-<h3>Strong reference</h3>
-
-<p>最常用的为strong reference，就是说只要某个对象还被一个强引用引用着，那么GC就不会回收它。使用强引用的一个弊端就是有可能引起内存泄漏。比如有一个hashmap集合，用来存储对象引用，如果你忘了在某个时机把这些元素remove掉，那么这些对象就会在这个hashmap的生命周期内被一直引用而不能被GC回收，更糟糕的是，如果这个对象体积很大，而又如果这个hashmap被声明为static的，那么随着程序的运行，内存总有被撑爆的那一刻。</p>
-
-<h3>Soft reference</h3>
-
-<p>而soft reference 就不同了，在内存资源极度紧张的情况下，GC会将被Soft reference 引用的对象回收以释放内存空间。这个特性非常适合用来做cache：在内存资源充裕的情况下，它和强引用一样，GC不会回收它，而在内存紧张的情况下，GC实在找不到更多可用的空间的情况下，Soft reference的对象会被回收掉。<br/>
-以下代码展示了基于Soft reference的缓存类的使用：</p>
-
-<pre><code>/*
- * Copyright (C) 2009 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License
- */
-
-package com.android.providers.contacts;
-
-import com.android.providers.contacts.ContactsDatabaseHelper.NicknameLookupColumns;
-import com.android.providers.contacts.ContactsDatabaseHelper.Tables;
-import com.google.android.collect.Maps;
-
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-
-import java.lang.ref.SoftReference;
-import java.util.BitSet;
-import java.util.HashMap;
-
-
-/**
- * Cache for common nicknames.
- */
-public class CommonNicknameCache  {
-
-    // We will use this much memory (in bits) to optimize the nickname cluster lookup
-    private static final int NICKNAME_BLOOM_FILTER_SIZE = 0x1FFF;   // =long[128]
-    private BitSet mNicknameBloomFilter;
-
-    private HashMap&lt;String, SoftReference&lt;String[]&gt;&gt; mNicknameClusterCache = Maps.newHashMap();
-
-    private final SQLiteDatabase mDb;
-
-    public CommonNicknameCache(SQLiteDatabase db) {
-        mDb = db;
-    }
-
-    private final static class NicknameLookupPreloadQuery {
-        public final static String TABLE = Tables.NICKNAME_LOOKUP;
-
-        public final static String[] COLUMNS = new String[] {
-            NicknameLookupColumns.NAME
-        };
-
-        public final static int NAME = 0;
-    }
-
-    /**
-     * Read all known common nicknames from the database and populate a Bloom
-     * filter using the corresponding hash codes. The idea is to eliminate most
-     * of unnecessary database lookups for nicknames. Given a name, we will take
-     * its hash code and see if it is set in the Bloom filter. If not, we will know
-     * that the name is not in the database. If it is, we still need to run a
-     * query.
-     * &lt;p&gt;
-     * Given the size of the filter and the expected size of the nickname table,
-     * we should expect the combination of the Bloom filter and cache will
-     * prevent around 98-99% of unnecessary queries from running.
-     */
-    private void preloadNicknameBloomFilter() {
-        // 这个filter被设计成一个简化的hash表（没有处理hash冲突的情况，实际上也没有必要）
-        mNicknameBloomFilter = new BitSet(NICKNAME_BLOOM_FILTER_SIZE + 1);
-        Cursor cursor = mDb.query(NicknameLookupPreloadQuery.TABLE,
-                NicknameLookupPreloadQuery.COLUMNS,
-                null, null, null, null, null);
-        try {
-            int count = cursor.getCount();
-            for (int i = 0; i &lt; count; i++) {
-                cursor.moveToNext();
-                String normalizedName = cursor.getString(NicknameLookupPreloadQuery.NAME);
-                int hashCode = normalizedName.hashCode();
-                // 将元素put进hash表（有可能冲突），参见HashMap的put实现
-                // 和hashcode做与运算的这个值必须是“hash表长度-1”
-                mNicknameBloomFilter.set(hashCode &amp; NICKNAME_BLOOM_FILTER_SIZE);
-            }
-        } finally {
-            cursor.close();
-        }
-    }
-
-    /**
-     * Returns nickname cluster IDs or null. Maintains cache.
-     */
-    protected String[] getCommonNicknameClusters(String normalizedName) {
-        if (mNicknameBloomFilter == null) {
-            preloadNicknameBloomFilter();
-        }
-
-        int hashCode = normalizedName.hashCode();
-
-        // 如果没有找到，说明cache中**一定**不存在这个key所对应的值;
-        // 如果找到了，说明cache中**可能**存在这个key对应的值，需要进一步到cache中查找
-        if (!mNicknameBloomFilter.get(hashCode &amp; NICKNAME_BLOOM_FILTER_SIZE)) {
-            return null;
-        }
-
-        SoftReference&lt;String[]&gt; ref;
-        String[] clusters = null;
-
-        // 注意：这里需要同步对cache的访问
-        synchronized (mNicknameClusterCache) {
-            if (mNicknameClusterCache.containsKey(normalizedName)) {
-                ref = mNicknameClusterCache.get(normalizedName);
-                if (ref == null) {
-                    return null;
-                }
-                clusters = ref.get();
-            }
-        }
-
-        // 没有命中，这时才需要到DB中加载，并加入cache
-        if (clusters == null) {
-            clusters = loadNicknameClusters(normalizedName);
-            ref = clusters == null ? null : new SoftReference&lt;String[]&gt;(clusters);
-            synchronized (mNicknameClusterCache) {
-                mNicknameClusterCache.put(normalizedName, ref);
-            }
-        }
-        return clusters;
-    }
-
-    private interface NicknameLookupQuery {
-        String TABLE = Tables.NICKNAME_LOOKUP;
-
-        String[] COLUMNS = new String[] {
-            NicknameLookupColumns.CLUSTER
-        };
-
-        int CLUSTER = 0;
-    }
-
-    protected String[] loadNicknameClusters(String normalizedName) {
-        String[] clusters = null;
-        Cursor cursor = mDb.query(NicknameLookupQuery.TABLE, NicknameLookupQuery.COLUMNS,
-                NicknameLookupColumns.NAME + "=?", new String[] { normalizedName },
-                null, null, null);
-        try {
-            int count = cursor.getCount();
-            if (count &gt; 0) {
-                clusters = new String[count];
-                for (int i = 0; i &lt; count; i++) {
-                    cursor.moveToNext();
-                    clusters[i] = cursor.getString(NicknameLookupQuery.CLUSTER);
-                }
-            }
-        } finally {
-            cursor.close();
-        }
-        return clusters;
-    }
-}
-</code></pre>
-
-<p>这个缓存类实现的实际上是一个二级缓存：</p>
-
-<ol>
-<li>第一级是一个BitSet，实现为一个hash表，它充当了一个过滤器的作用。第一次加载时会从db中查找所有的数据，并通过hash算法插入到表中的适当位置，这个过程和HashMap的实现是一样的，只不过没有处理hash冲突的情况，当出现hash冲突时，会覆盖表中原有的值。</li>
-<li>第二级是一个HashMap，是真正的cache。其中的元素通过SoftReference引用。</li>
-</ol>
-
-
-<h3>Weak reference</h3>
-
-<p>Weak reference和Soft reference类似，区别在于一旦GC启动，被Weak reference引用的对象就会被回收，而不管当前内存资源是否充裕，因此，被Weak reference引用的对象具有更短的生命周期。但是，由于gc是一个优先级比较低的进程，Weak reference的对象不会像你想象中那么快就被回收了。</p>
-
-<h3>Phantom reference</h3>
-
-<p>Phantom reference 和以上几种引用都不同。它的<code>get()</code>方法永远都会返回null。那么它究竟有什么作用呢？<br/>
-TODO&hellip;</p>
-
-<h3>References</h3>
-
-<ul>
-<li><a href="http://weblogs.java.net/blog/enicholas/archive/2006/05/understanding_w.html">http://weblogs.java.net/blog/enicholas/archive/2006/05/understanding_w.html</a></li>
-<li><a href="http://improving.iteye.com/blog/436311">http://improving.iteye.com/blog/436311</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/">NoClassDefFoundError 和 ClassNotFoundException 的区别</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-12T00:00:00+08:00" pubdate data-updated="true">Mar 12<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>先看API解释：<br/>
-For ClassNotFoundException:</p>
-
-<pre><code>Thrown when an application tries to load in a class through its string name using:
-
-    * The forName method in class Class.
-    * The findSystemClass method in class ClassLoader.
-    * The loadClass method in class ClassLoader.
-
-but no definition for the class with the specified name could be found.
-</code></pre>
-
-<p>For NoClassDefFoundError:</p>
-
-<pre><code>Thrown if the Java Virtual Machine or a ClassLoader instance tries to load in the definition of a class (as part of a normal method call or as part of creating a new instance using the new expression) and no definition of the class could be found.
-
-The searched-for class definition existed when the currently executing class was compiled, but the definition can no longer be found.
-</code></pre>
-
-<p>简单的说，就是如果使用new SomeClass()的方式创建对象的，而这时ClassLoader装载SomeClass失败（可能因为权限不够，JNI错误,etc），就会抛出NoClassDefFoundError。<br/>
-而如果使用反射来装载一个对象，但是SomeClass不在CLASSPATH中，这时就会抛出ClassNotFoundException。</p>
-
-<p>Reference:<br/>
-<a href="http://stackoverflow.com/questions/1457863/what-is-the-difference-between-noclassdeffounderror-and-classnotfoundexception">http://stackoverflow.com/questions/1457863/what-is-the-difference-between-noclassdeffounderror-and-classnotfoundexception</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/02/my-first-post-on-git-pages/">使用Github Pages创建个人博客</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-02T00:00:00+08:00" pubdate data-updated="true">Mar 2<span>nd</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/02/my-first-post-on-git-pages/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/02/my-first-post-on-git-pages/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Github pages 是什么？</h2>
-
-<p>Github pages借助 git 工具和Jekyll（一个静态网站生成器），使得你可以将内容push到github，然后通过Jekyll发布成个人blog站点。通过github pages创建个人博客，至少有几个好处：</p>
-
-<ul>
-<li>文章内容使用markdown标记语言书写，你可以使用任何你喜欢的文本编辑器编辑文章。</li>
-<li>由于git的存在，你可以轻松的对你的文章进行版本控制。</li>
-<li>尤其重要的一点，在天朝，你无需担心哪天你的站点被无端屏蔽，还得爬墙过去抢救数据&mdash;因为你本地就有一套完整的站点，而且都是文本格式，非常易于备份。</li>
-</ul>
-
-
-<h2>搭建步骤</h2>
-
-<h3>创建github帐号</h3>
-
-<p>首先，你需要一个github帐号。
-登录github后，创建一个USERNAME.github.com的repository，根据向导生成pages。</p>
-
-<h3>安装本地环境</h3>
-
-<p>你需要在本地搭建运行环境，这样在编写文章的时候你可以在本地进行充分的调整，满意后再push到github。
-以下基于Ubuntu 10.04LTS系统安装，需要安装的包包括Ruby，RubyGems，jekyll和rake。</p>
-
-<pre><code>$ sudo apt-get install ruby1.9.1-full rubygems1.9.1
-</code></pre>
-
-<p>然后通过gem命令安装jekyll</p>
-
-<pre><code>$ sudo gem install jekyll
-WARNING:  You don't have /home/calvin/.gem/ruby/1.9.1/bin in your PATH,
-      gem executables will not run.
-ERROR:  Error installing jekyll:
-    liquid requires RubyGems version &gt;= 1.3.7
-</code></pre>
-
-<p>安装会出错，提示RubyGems版本过低。这时候需要到<a href="http://packages.ubuntu.com/maverick/all/rubygems1.8/download">http://packages.ubuntu.com/maverick/all/rubygems1.8/download</a> 下载离线安装包安装：</p>
-
-<pre><code>$ sudo dpkg -i Downloads/rubygems1.8_1.3.7-2_all.deb
-</code></pre>
-
-<p>安装完成后查看gem版本：</p>
-
-<pre><code>$ which gem
-/usr/bin/gem
-$ gem -v
-1.3.7
-</code></pre>
-
-<p>这时候可以继续安装jekyll了：</p>
-
-<pre><code>$ sudo gem install jekyll
-</code></pre>
-
-<p>安装jekyll后还需要安装rake工具，通过rake工具可以用来创建新的文章和页面，安装主题等等，十分方便。</p>
-
-<pre><code>$ sudo apt-get install rake
-</code></pre>
-
-<p>通过rake -T命令可以查看所有可用命令：</p>
-
-<pre><code>$ rake -T
-(in /home/calvin/development/github/calvinlee.github.com)
-rake page           # Create a new page.
-rake post           # Begin a new post in ./_posts
-rake preview        # Launch preview environment
-rake theme:install  # Install theme
-rake theme:package  # Package theme
-rake theme:switch   # Switch between Jekyll-bootstrap themes.
-</code></pre>
-
-<h3>安装Jekyll Bootstrap</h3>
-
-<p>由于jekyll仅仅是一个静态html的生成器，它不包含任何页面的templates，所以如果从头开始构建你的博客站点的话，还将要有很多工作要做。幸好，<a href="http://jekyllbootstrap.com/">Jekyll Bootstrap</a>已经提供了一套基本的构架，我们只需要在它的基础上定制，使之符合你口味即可。</p>
-
-<pre><code>$ git clone https://github.com/plusjade/jekyll-bootstrap.git USERNAME.github.com
-$ cd USERNAME.github.com
-$ git remote set-url origin git@github.com:USERNAME/USERNAME.github.com.git
-$ git push origin master
-</code></pre>
-
-<h3>开始个性博客之旅</h3>
-
-<p>首先在本地启动jekyll：</p>
-
-<pre><code>$ /var/lib/gems/1.8/gems/jekyll-0.11.2/bin/jekyll --server
-</code></pre>
-
-<p>然后你可以访问<a href="http://localhost:4000%E6%9F%A5%E7%9C%8BJekyll">http://localhost:4000%E6%9F%A5%E7%9C%8BJekyll</a> Bootstrap给你提供了什么，之后你就可以开始写你的文章了。</p>
-
-<pre><code>$ rake post title="my-first-post-on-git-pages" date="2012-03-02"
-</code></pre>
-
-<p>rake工具会为你生成posts/2012-03-02-my-first-post-on-git-pages.md
-你可以开始使用markdown标记语言编辑文章了！</p>
-
-<h3>发布</h3>
-
-<p>发布很简单，直接将文章内容推送到github即可，如果你修改了页面主题或者布局，也一并推送：</p>
-
-<pre><code>$ git add .
-$ git commit -m "Add new post"
-$ git push origin master
-</code></pre>
-
-<p>现在你就可以通过<a href="http://USERNAME.github.com%E8%AE%BF%E9%97%AE%E4%BD%A0%E7%9A%84%E9%A1%B5%E9%9D%A2%E4%BA%86%E3%80%82">http://USERNAME.github.com%E8%AE%BF%E9%97%AE%E4%BD%A0%E7%9A%84%E9%A1%B5%E9%9D%A2%E4%BA%86%E3%80%82</a></p>
-
-<h3>Reference</h3>
-
-<ul>
-<li><a href="http://daringfireball.net/projects/markdown/syntax">详尽的Markdown语法</a></li>
-<li><a href="http://www.pushiming.com/blog/2010/11/tips-on-markdown/">另外一篇Markdown简介</a></li>
-<li><a href="https://github.com/mojombo/jekyll/wiki/">Jekyll wiki</a></li>
-<li><a href="https://github.com/mojombo/jekyll/wiki/Sites">这里</a>是一些站点，有些是开放源代码的，你可以参照学习</li>
-<li><a href="https://github.com/mojombo/jekyll/wiki/Pagination">怎样对文章进行分页？</a></li>
-<li><a href="http://www.pizn.net/24-09-2011/use-github-pages-to-build-a-blog/">http://www.pizn.net/24-09-2011/use-github-pages-to-build-a-blog/</a></li>
-<li><a href="http://www.yangzhiping.com/tech/writing-space.html">http://www.yangzhiping.com/tech/writing-space.html</a></li>
-<li><a href="http://fastr.github.com/articles/Documenting-with-Jekyll.html">http://fastr.github.com/articles/Documenting-with-Jekyll.html</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/02/android-vold/">Android Vold 分析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-02T00:00:00+08:00" pubdate data-updated="true">Mar 2<span>nd</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/02/android-vold/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/02/android-vold/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Vold(Volume Daemon) 主要负责管理和控制外部存储设备，这些控制包括SD卡设备插拔，挂载，格式化等等.
-Vold在Android 平台上的作用相当于udev在Linux平台上的功能。</p>
-
-<h3>Vold的架构</h3>
-
-<p>Vold的架构大致如图：</p>
-
-<p><a href="/images/vold-architecture.png"><img src="/images/vold-architecture.png" alt="/images/vold-architecture.png" /></a></p>
-
-<ul>
-<li>Kernel：detect device hot-plug, load drivers</li>
-<li>Sysfs: generate events and send it to user space</li>
-<li>NetlinkManager: establish connection to sysfs, listen to uevents and process it</li>
-<li>VolumeManager: disk volume operation</li>
-<li>CommandListener:  wait for commands from MountService</li>
-<li>NativeDaemonConnector:establish connection between MountService and vold daemon</li>
-</ul>
-
-
-<p>其中，一张SD卡对应一个DirectVolume对象。</p>
-
-<p>Vold模块的类图如下：</p>
-
-<p><a href="/images/vold-class-diagram.png"><img src="/images/vold-class-diagram.png" alt="/images/vold-class-diagram.png" /></a></p>
-
-<h3>Vold startup</h3>
-
-<p>vold的启动分为两个过程，一是vold daemon的启动，二是Java层MountService的启动。</p>
-
-<h4>启动Vold daemon</h4>
-
-<p>Vold daemon由init进程启动，参见init.rc片段：</p>
-
-<p><a href="/images/vold-initrc.png"><img src="/images/vold-initrc.png" alt="/images/vold-initrc.png" /></a></p>
-
-<p>vold入口函数位于/system/vold/mail.cpp，启动后处理流程如下：</p>
-
-<p><a href="/images/vold-startup-sequence.png"><img src="/images/vold-startup-sequence.png" alt="/images/vold-startup-sequence.png" /></a></p>
-
-<p>1.Create directory /dev/block/vold
-1.Create singleton instance of VolumeManager , NetlinkManager  andCommandListener
-1.Process configuration file /system/etc/vold.fstab
-1.NetlinkManager creates connection between kernel and vold
-1.Manually trigger uevents by writing “add\n” to file in /sys/block
-1.CommandListener  starts listening commands from framework</p>
-
-<h4>启动MountService</h4>
-
-<p>1.MountService initialized by SystemServer on device starts up
-1.Create connection to vold</p>
-
-<p>After MountService is up, the vold system is ready.</p>
-
-<h3>Send commands from framework</h3>
-
-<p>以App层通过MountService 挂载一个volume为例，说明从上层向下层的调用流程。</p>
-
-<p><a href="/images/vold-send-commands-from-framework.png"><img src="/images/vold-send-commands-from-framework.png" alt="/images/vold-send-commands-from-framework.png" /></a></p>
-
-<ol>
-<li>NativeDaemonConnector::sendCommand()</li>
-<li>SocketListener::runListener() <code>&lt;</code>&mdash;vold accepting connections here</li>
-<li>FrameworkListener::onDataAvailable()</li>
-<li>FrameworkListener::dispatchCommand()</li>
-<li>FrameworkCommand::runCommand()&mdash;-CommandListener::VolumeCmd::runCommand()</li>
-<li>VolumeManager::mountVolume()</li>
-<li>Volume::mountVol()</li>
-</ol>
-
-
-<h3>Process events from kernel</h3>
-
-<p>处理kernel发出的挂载事件：</p>
-
-<p><a href="/images/vold-process-events-from-kernel.png"><img src="/images/vold-process-events-from-kernel.png" alt="/images/vold-process-events-from-kernel.png" /></a></p>
-
-<ol>
-<li>SocketListener::runListener <code>&lt;</code>&mdash;listening events from kernel</li>
-<li>NetlinkListener::onDataAvailable()</li>
-<li>NetlinkHandler::onEvent()</li>
-<li>VolumeManager::handleBlockEvent , VolumeManager::handleSwitchEvent , VolumeManager::handleUsbCompositeEvent</li>
-<li>DirectVolume::handleBlockEvent()</li>
-<li>DirectVolume::handleDiskAdded, DirectVolume::handlePartitionAdded, DirectVolume::handleDiskRemoved, DirectVolume::handlePartitionRemoved,DirectVolume::handleDiskChanged, DirectVolume::handlePartitionChanged,or ignore non add/remove/change event</li>
-</ol>
-
-
-<h3>Reference</h3>
-
-<ul>
-<li><a href="http://blog.csdn.net/qianjin0703/article/details/6362389">http://blog.csdn.net/qianjin0703/article/details/6362389</a></li>
-<li><a href="http://www.cnblogs.com/iceocean/articles/1594195.html">http://www.cnblogs.com/iceocean/articles/1594195.html</a></li>
-<li><a href="http://www.chinaunix.net/jh/4/822500.html">http://www.chinaunix.net/jh/4/822500.html</a></li>
-<li><a href="http://blog.csdn.net/fudan_abc/article/details/1768277">http://blog.csdn.net/fudan_abc/article/details/1768277</a></li>
-<li><a href="http://dongyulong.blog.51cto.com/1451604/389159">http://dongyulong.blog.51cto.com/1451604/389159</a></li>
-<li><a href="http://blog.csdn.net/datangsoc/article/details/5928132">http://blog.csdn.net/datangsoc/article/details/5928132</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/">Ubuntu10.04安装无线网卡ath9k_htc驱动</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-10-18T00:00:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2011</time>
-        
-           | <a href="/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>我的USB无线网卡型号为TL_WN721N，插在Ubuntu10.04上没有反应。据说10.10以后插上就可以用了，没有测试。</p>
-
-<p>第一步 确定ath9k_htc驱动支持你的网卡型号<br/>
-<a href="http://linuxwireless.org/en/users/Drivers/ath9k_htc/devices">这里</a> 列出了支持的型号列表，你可以通过lsusb查看自己的网卡型号是否在列表当中。</p>
-
-<p>第二步 安装firmwire<br/>
-从<a href="http://wireless.kernel.org/download/htc_fw/">这里</a>下载htc_9271.fw，拷贝到/lib/firmwire下</p>
-
-<p>第三步 安装compact wireless<br/>
-安装compact wireless有打包好的deb包，从这里下载GUI Program to install ath9k_htc，安装完后直接运行，等待安装完成重启机器就可以了。
-爱折腾的也可以到<a href="http://wireless.kernel.org/download/">这里</a>下载
-最新的compact wireless驱动，然后编译安装：</p>
-
-<pre><code>sudo make
-sudo make install
-sudo make unload
-sudo make load ath9k_htc
-</code></pre>
-
-<p>重启机器即可。</p>
-
-<p>Reference
-* <a href="http://forum.ubuntu.com.cn/viewtopic.php?f=116&amp;t=326568&amp;p=2388841">http://forum.ubuntu.com.cn/viewtopic.php?f=116&amp;t=326568&amp;p=2388841</a>
-* <a href="http://blog.chinaunix.net/space.php?uid=20620288&amp;do=blog&amp;id=2691282">http://blog.chinaunix.net/space.php?uid=20620288&amp;do=blog&amp;id=2691282</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/09/06/compile-cyanogenmod-for-htc-desire/">Compile CyanogenMod (Linux) for HTC Desire</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-09-06T00:00:00+08:00" pubdate data-updated="true">Sep 6<span>th</span>, 2011</time>
-        
-           | <a href="/blog/2011/09/06/compile-cyanogenmod-for-htc-desire/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2011/09/06/compile-cyanogenmod-for-htc-desire/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>出现如下问题：<br/>
-1.repo init时报错：</p>
-
-<pre><code>......
-object 30d452905f166b316152f236422f85c8aa75a2d0
-type commit
-tag v1.7.5
-tagger Shawn O. Pearce &lt;sop@google.com&gt; 1307663540 -0700
-
-repo 1.7.5
-
-gpg: Signature made Fri 10 Jun 2011 07:52:20 AM CST using DSA key ID 920F5C65
-gpg: Can't check signature: public key not found
-error: could not verify the tag 'v1.7.5'
-</code></pre>
-
-<p>出错原因是曾使用repo sync从其它库sync过代码，删掉~/.repoconfig即可：</p>
-
-<pre><code>$ rm -rf ~/.repoconfig
-$ ./repo init -u git://github.com/CyanogenMod/android.git -b gingerbread
-gpg: keyring `/home/calvin/.repoconfig/gnupg/secring.gpg' created
-gpg: keyring `/home/calvin/.repoconfig/gnupg/pubring.gpg' created
-gpg: /home/calvin/.repoconfig/gnupg/trustdb.gpg: trustdb created
-gpg: key 920F5C65: public key "Repo Maintainer &lt;repo@android.kernel.org&gt;" imported
-gpg: Total number processed: 1
-gpg:               imported: 1
-
-Getting repo ...
-   from http://android.git.kernel.org/tools/repo.git
-。。。。
-</code></pre>
-
-<p>2.repo sync时报错：</p>
-
-<pre><code>......
-Fetching projects:   1% (3/285) 
-Initializing project platform/bootable/bootloader/legacy ...
-android.git.kernel.org[0: 130.239.17.13]: errno=Connection refused
-android.git.kernel.org[0: 149.20.4.77]: errno=Connection timed out
-android.git.kernel.org[0: 199.6.1.173]: errno=Connection refused
-android.git.kernel.org[0: 2001:4f8:8:10:1972:112:1:0]: errno=Network is unreachable
-android.git.kernel.org[0: 2001:500:60:10:1972:112:1:0]: errno=Network is unreachable
-android.git.kernel.org[0: 2001:6b0:e:4017:1972:112:1:0]: errno=Network is unreachable
-android.git.kernel.org[0: 2001:4f8:1:10:1972:112:1:0]: errno=Network is unreachable
-fatal: unable to connect a socket (Network is unreachable)
-error: Cannot fetch platform/bootable/bootloader/legacy
-</code></pre>
-
-<p>连接服务器时的问题，解决：<br/>
-修改.repo/manifest.xml中</p>
-
-<pre><code>  &lt;remote  name="korg"
-           fetch="git://android.git.kernel.org/"
-           review="review.source.android.com" /&gt;
-</code></pre>
-
-<p>为</p>
-
-<pre><code>  &lt;remote  name="korg"
-           fetch="http://android.git.kernel.org/"
-           review="review.source.android.com" /&gt;
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/05/07/android-monkey-jni-issues/">Android Monkey & Jni相关</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-05-07T00:00:00+08:00" pubdate data-updated="true">May 7<span>th</span>, 2011</time>
-        
-           | <a href="/blog/2011/05/07/android-monkey-jni-issues/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2011/05/07/android-monkey-jni-issues/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>首先，android平台应用程序可能产生以下四种crash：
-* App层： Force close crash 和 ANR crash
-* Native层： Tombstone crash
-* Kernel层： Kernel panic 比较难定位，可以查看/proc/last_kmsg来辅助定位。</p>
-
-<p>最近需要通过monkey工具测试Tombstone类型的crash，抓取log并分析。通过monkey测试，如果要抓取native类型的crash，需要加上&mdash;monitor-native-crash参数：</p>
-
-<pre><code>seed=$(date +%Y%m%d%H%m%S)
-monkey -s $seed --pkg-whitelist-file ${your-package-list} --monitor-native-crashes --kill-process-after-error -v -v -v 2000000000
-</code></pre>
-
-<p>这样，monkey在跑出crash后，在/data/system/dropbox 和 /data/tombstones目录下会生成相关日志，moneky会停止发送事件流并退出测试.值得注意的是，/data/tombstones文件夹下只会保存10个日志，超过10个后，最早创建的会被替换。而monkey是通过监视这个文件夹下的文件数量变化来判断是否有tombtone类型的crash产生的。因此，当/data/tombstones文件夹下超过10个文件后，如果再有tombstone crash产生的话，monkey是不能检测到的，它会继续发送事件流。为了避免这个问题，可以在每次运行monkey之前先清空一下这个文件夹。</p>
-
-<p>另外，在settings.db中的secure表中有三个字段：dropbox:data_app_wtf,dropbox:data_app_anr,dropbox:data_app_crash。如果设置为enabled，每当有app crash之后，在/data/system/dropbox这个文件夹下都会产生相关的日志信息，这对于分析调试问题都是第一手的信息。</p>
-
-<h3>如何制造tombstone类型的crash？</h3>
-
-<p>这需要通过jni调用一个native的so文件，在本地代码中抛出异常即可。
-可以编写如下代码tombstone_gen.cpp:</p>
-
-<pre><code>int main(int argc, char **argv) {
-  int *p=0;
-  *p=1;    //will seg fault
-  return 0;
-}
-</code></pre>
-
-<p>参照development/samples/SimpleJNI的示例，运行build出的apk即可。</p>
-
-<p>关于jni调用，也有几个问题：</p>
-
-<p>1.FindClass,RegisterNatives等找不到：</p>
-
-<pre><code>    target thumb C: libtombstonec &lt;= development/samples/AndroidDemos/jni/tombstone_gen.c
-    development/samples/AndroidDemos/jni/tombstone_gen.c: In function 'registerNativeMethods':
-    development/samples/AndroidDemos/jni/tombstone_gen.c:48: error: request for member 'FindClass' in something not a structure or union
-    development/samples/AndroidDemos/jni/tombstone_gen.c:53: error: request for member 'RegisterNatives' in something not a structure or union
-    development/samples/AndroidDemos/jni/tombstone_gen.c: In function 'JNI_OnLoad':
-    development/samples/AndroidDemos/jni/tombstone_gen.c:97: error: request for member 'GetEnv' in something not a structure or union
-    make: *** [out/target/product/generic/obj/SHARED_LIBRARIES/libtombstonec_intermediates/tombstone_gen.o] Error 1
-
-问题原因在于：  
-如果是C程序，要用`(*env)-&gt;`  
-如果是C++要用 `env-&gt;`  
-因此有两种解决方法：  
-* 将 (*env)-&gt; 改为 env-&gt;  
-* 将c文件改为cpp文件，改为c++的方式编译。  
-</code></pre>
-
-<p>2.运行时异常java.lang.UnsatisfiedLinkError</p>
-
-<pre><code>tombstone_gen.cpp中
-
-    static const char *classPathName = "com/android/demo/AndroidDemos";
-
-类名有误，导致类链接错误。
-</code></pre>
-
-<p>最后，关于jni中JNINativeMethod相关解释：<br/>
-<a href="http://hi.baidu.com/zhlg_hzh/blog/item/f0d782081f2f45d963d986f5.html">http://hi.baidu.com/zhlg_hzh/blog/item/f0d782081f2f45d963d986f5.html</a></p>
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -1367,9 +409,607 @@ BobBobBobBob | 25  | male
 
     </article>
   
-  <div class="pagination">
+  
+    <article>
+      
+  <header>
     
-      <a class="prev" href="/blog/page/7/">&larr; Older</a>
+      <h1 class="entry-title"><a href="/blog/2010/11/22/the-use-of-onuserleavehint/">利用onUserLeaveHint发送后台运行通知</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-11-22T00:00:00+08:00" pubdate data-updated="true">Nov 22<span>nd</span>, 2010</time>
+        
+           | <a href="/blog/2010/11/22/the-use-of-onuserleavehint/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/11/22/the-use-of-onuserleavehint/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>背景</h3>
+
+<p>用户按下Home键将程序置于后台运行或者应用启动其他activity，比如系统浏览器，短信等，需要向系统发送通知，用户做完别的操作后，点击通知栏，回到应用。</p>
+
+<h3>问题</h3>
+
+<p>在什么时机发送通知？
+用户按下Home的事件在应用层时捕捉不到的，因此只能从activity生命周期方法着手。</p>
+
+<h3>方法一</h3>
+
+<p>系统所有activity继承一个BaseActivity，在BaseActivity中维护一个当前可见的activity数组：</p>
+
+<pre><code>protected static ArrayList sVisibleActivities = new ArrayList();
+</code></pre>
+
+<p>在onResume中，将当前activity保存，同时清除所有通知：</p>
+
+<pre><code>protected void onResume()
+{
+if (!sVisibleActivities.contains(this))
+{
+sVisibleActivities.add(this);
+}
+
+// 清除系统消息
+mNotificationManager.cancel(R.id.notify);
+}
+
+在onStop中，清除保存的当前activity：
+protected void onStop()
+{
+if (sVisibleActivities.contains(this))
+{
+sVisibleActivities.remove(this);
+}
+
+// 如果当前没有可见的activity，则发送系统通知
+if (sVisibleActivities.isEmpty())
+{
+sendBackgroundNotify();
+}
+
+super.onStop();
+}
+</code></pre>
+
+<p>这种方式在大多数情况下工作良好，可以达到需求，但是问题时，当前台的activity被至于后台时，onStop()方法<strong>不一定</strong>会被调用，因此通知有可能不会被发出！</p>
+
+<h3>方法二</h3>
+
+<p>几经周折，发现activity有一个生命周期方法可以达到目的：</p>
+
+<pre><code>protected void onUserLeaveHint ()
+
+Since: API Level 3
+Called as part of the activity lifecycle when an activity is about to go into the background as the result of user choice.
+For example, when the user presses the Home key, onUserLeaveHint() will be called, but when an incoming phone call causes the in-call Activity to be automatically brought to the foreground,
+ onUserLeaveHint() will not be called on the activity being interrupted. In cases when it is invoked, this method is called right before the activity's onPause() callback.
+This callback and onUserInteraction() are intended to help activities manage status bar notifications intelligently; specifically, for helping activities determine the proper time to cancel a notfication.
+</code></pre>
+
+<p>从文档来看，这个方法似乎就是为了按下Home键时这样的场景设计的。<br/>
+这样，在onUserLeaveHint里发出系统通知即可。<br/>
+但是问题又来了，如果启动应用，从一个activity依次调用startActivity，finish关闭自己，启动一个新的activity时，onUserLeaveHint也会被调用&hellip;.</p>
+
+<p>再次翻阅文档，发现Intent中的一个Flag：</p>
+
+<pre><code>    public static final int FLAG_ACTIVITY_NO_USER_ACTION
+
+    Since: API Level 3
+    If set, this flag will prevent the normal onUserLeaveHint() callback from occurring on the current frontmost activity before it is paused as the newly-started activity is brought to the front.
+
+    Typically, an activity can rely on that callback to indicate that an explicit user action has caused their activity to be moved out of the foreground.
+    The callback marks an appropriate point in the activity's lifecycle for it to dismiss any notifications that it intends to display "until the user has seen them," such as a blinking LED.
+    If an activity is ever started via any non-user-driven events such as phone-call receipt or an alarm handler, this flag should be passed to Context.startActivity, ensuring that the pausing activity does not think the user has acknowledged its notification.
+</code></pre>
+
+<p>这正是我想要的，这样，在启动activity时，往intent中加上这个flag，onUserLeaveHint就不会再被调用了，hoory&hellip;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/10/25/debugging-android-source-from-eclipse/">在eclipse中调试Android源代码</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-25T00:00:00+08:00" pubdate data-updated="true">Oct 25<span>th</span>, 2010</time>
+        
+           | <a href="/blog/2010/10/25/debugging-android-source-from-eclipse/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/10/25/debugging-android-source-from-eclipse/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>1.编译android 代码树，编译sdk</p>
+
+<pre><code>编译注意：  
+1.gcc的版本过高，由于android源码编译要求为4.3，如果gcc版本为4.4，那么编译可能会失败，我的系统是ubuntu 10.04,默认的gcc版本为4.4，gcc-4.4太严格，那么怎样从gcc-4.4降到gcc- 4.3呢？  
+    1.安装gcc-4.3  
+          `$ sudo apt-get install gcc-4.3 g++-4.3`  
+    2.修复gcc相关链接  
+
+        $ cd /usr/bin
+        $sudo ln -snf gcc-4.3 gcc
+        $sudo ln -snf g++-4.3 g++
+        $sudo ln -snf cpp-4.3 cpp
+
+    将gcc,g++链接至4.3版本即可。  
+
+2.JDK 5.0, update 12 or higher.Java 6 is not supported, because of incompatibilities with @Override.  
+3.安装编译必须的软件包  
+
+    $ sudo apt-get install git-core gnupg flex bison gperf build-essential zip curl sun-java5-jdk zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev ia32-libs x11proto-core-dev libx11-dev lib32readline5-dev lib32z-dev
+参见http://source.android.com/source/download.html
+</code></pre>
+
+<p>2、拷贝development/ide/eclipse/.classpath到.classpath.</p>
+
+<p>3、启动 eclipse ，按照这个步骤 File->New->Java Project (不是 Android Project) &ndash;>Create project from existing source 选到代码树根目录 .</p>
+
+<p>4、在经过长时间等待之后， source code将被导入project，正常情况下应该没有error。</p>
+
+<p>5启动模拟器</p>
+
+<pre><code>[calvin@calvin-desktop ~/android/source-code/android_1.5_Sourcecode 10:28:03 ] $ . build/envsetup.sh
+[calvin@calvin-desktop ~/android/source-code/android_1.5_Sourcecode 10:28:18 ] $ lunch 1
+[calvin@calvin-desktop ~/android/source-code/android_1.5_Sourcecode 10:30:31 ] $ ./out/host/linux-x86/bin/emulator
+</code></pre>
+
+<p>6、在ddms中选中要调试的进程</p>
+
+<p>7、在source code中设置断点</p>
+
+<p>8、在eclipse里, Run->Debug Configuration->Remote Java Application->New, 设置 Connection port to 8700 (DDMS’s 默认端口),即可正常调试了</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/10/23/data-connection-during-apn-switches/">APN切换后数据连接过程</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-23T00:00:00+08:00" pubdate data-updated="true">Oct 23<span>rd</span>, 2010</time>
+        
+           | <a href="/blog/2010/10/23/data-connection-during-apn-switches/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/10/23/data-connection-during-apn-switches/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>注册观察者回调</h3>
+
+<p>GsmDataConnectionTracker在实例化时，会注册一个观察者，监视apn数据库的变化。</p>
+
+<pre><code>p.getContext().getContentResolver().registerContentObserver(
+            Telephony.Carriers.CONTENT_URI, true, apnObserver);
+</code></pre>
+
+<p>当用户通过UI改变apn并保存后，Settings app将更新后的数据写入apn数据库。</p>
+
+<h3>GsmDataConnectionTracker切换APN</h3>
+
+<p>Settings app更新apn数据库后，GsmDataConnectionTracker注册的ApnChangeObserver的onChange被调用，发送<code>EVENT_APN_CHANGED</code>消息：</p>
+
+<pre><code>sendMessage(obtainMessage(EVENT_APN_CHANGED));
+</code></pre>
+
+<p>接着onApnChanged()@GsmDataConnectionTracker.java被调用</p>
+
+<pre><code>  -trySetupData(Phone.REASON_APN_CHANGED)@GsmDataConnectionTracker.java
+    --setupData(String reason)@GsmDataConnectionTracker.java
+
+    private boolean setupData(String reason) {
+    ApnSetting apn;
+    GsmDataConnection pdp;
+
+    apn = getNextApn();
+    if (apn == null) return false;
+
+    //获取一个状态为inactive的pdp连接对象
+    pdp = findFreePdp();
+    if (pdp == null) {
+        if (DBG) log("setupData: No free GsmDataConnection found!");
+        return false;
+    }
+    mActiveApn = apn;
+    mActivePdp = pdp;
+
+    Message msg = obtainMessage();
+    msg.what = EVENT_DATA_SETUP_COMPLETE;
+    msg.obj = reason;
+
+    //开始激活这个pdp
+    //在android2.0.1版本时，有一个PdpConnection.java来进行连接，2.2时这个类被删掉了，connect的功能合并到GsmDataConnection里面
+    pdp.connect(msg, apn);
+
+    //设置这个pdp连接状态为INITING
+    setState(State.INITING);
+    if (DBG) log("setupData for reason: "+reason);
+
+    //通知上层应用数据连接状态改变
+    phone.notifyDataConnection(reason);
+    return true;
+}
+</code></pre>
+
+<p>其中，在这一层，数据连接共七个状态：</p>
+
+<pre><code>    IDLE,
+    INITING,
+    CONNECTING,
+    SCANNING,
+    CONNECTED,
+    DISCONNECTING,
+    FAILED
+</code></pre>
+
+<p>对上层应用来说，这七个状态划分为四种状态（getDataConnectionState()@GSMPhone.java）：</p>
+
+<pre><code>CONNECTED, CONNECTING, DISCONNECTED, SUSPENDED;
+</code></pre>
+
+<p>分别对应TelephonyManager的四种连接状态。</p>
+
+<h3>激活PDP连接</h3>
+
+<p>开始激活PDP连接时，设置状态为State.INITING，调用phone.notifyDataConnection(reason)发出通知，后续调用过程为：</p>
+
+<pre><code>    notifyDataConnection(String reason)@PhoneBase.java
+      --notifyDataConnection(Phone sender, String reason)@DefaultPhoneNotifier.java
+        .
+        .   这里需要经过IPC调用
+        .
+        notifyDataConnection()@TelephonyRegistry.java
+          --onDataConnectionStateChanged()
+</code></pre>
+
+<p>当连接成功后，onDataSetupComplete（）@GsmDataConnectionTracker.java被调用
+通过phone.notifyDataConnection(reason);回调应用层的onDataConnectionStateChanged()方法。</p>
+
+<p>ps:可以通过adb logcat -b radio查看激活数据连接时，radio层的log输出。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/10/02/code-snippets-for-global-actions-dialog/">Android关机界面代码</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-02T00:00:00+08:00" pubdate data-updated="true">Oct 2<span>nd</span>, 2010</time>
+        
+           | <a href="/blog/2010/10/02/code-snippets-for-global-actions-dialog/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/10/02/code-snippets-for-global-actions-dialog/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Android中长按Power键默认会弹出对话框让用户选择“飞行模式”，“静音”，“关机”等功能,弹出对话框的代码位于：
+<code>frameworks\policies\base\phone\com\android\internal\policy\impl\PhoneWindowManager.java</code></p>
+
+<pre><code>private final Runnable mPowerLongPress = new Runnable() {
+    public void run() {
+        // The context isn't read
+        if (mLongPressOnPowerBehavior &lt; 0) {
+            mLongPressOnPowerBehavior = mContext.getResources().getInteger(
+                    com.android.internal.R.integer.config_longPressOnPowerBehavior);
+        }
+        switch (mLongPressOnPowerBehavior) {
+        case LONG_PRESS_POWER_NOTHING:
+            break;
+        case LONG_PRESS_POWER_GLOBAL_ACTIONS:
+            mPowerKeyHandled = true;
+            performHapticFeedbackLw(null, HapticFeedbackConstants.LONG_PRESS, false);
+            sendCloseSystemWindows(SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
+            showGlobalActionsDialog();
+            break;
+        case LONG_PRESS_POWER_SHUT_OFF:
+            mPowerKeyHandled = true;
+            performHapticFeedbackLw(null, HapticFeedbackConstants.LONG_PRESS, false);
+            sendCloseSystemWindows(SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
+            ShutdownThread.shutdown(mContext, true);
+            break;
+        }
+    }
+};
+
+void showGlobalActionsDialog() {
+    if (mGlobalActions == null) {
+        mGlobalActions = new GlobalActions(mContext);
+    }
+    final boolean keyguardShowing = mKeyguardMediator.isShowingAndNotHidden();
+    mGlobalActions.showDialog(keyguardShowing, isDeviceProvisioned());
+    if (keyguardShowing) {
+        // since it took two seconds of long press to bring this up,
+        // poke the wake lock so they have some time to see the dialog.
+        mKeyguardMediator.pokeWakelock();
+    }
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/09/09/understanding-on-http-11-cache-control/">HTTP/1.1 Cache-Control的理解</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-09-09T00:00:00+08:00" pubdate data-updated="true">Sep 9<span>th</span>, 2010</time>
+        
+           | <a href="/blog/2010/09/09/understanding-on-http-11-cache-control/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/09/09/understanding-on-http-11-cache-control/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>网页的缓存是由HTTP消息头中的“Cache-control”来控制的，常见的取值有
+* private
+* no-cache
+* max-age
+* must-revalidate</p>
+
+<p>等，默认为private。其作用根据不同的重新浏览方式分为以下几种情况：</p>
+
+<p>（1） 打开新窗口<br/>
+如果指定cache-control的值为private、no-cache、must-revalidate，那么打开新窗口访问时都会重新访问服务器。而如果指定了max-age值，那么在此值内的时间里就不会重新访问服务器，例如：</p>
+
+<pre><code>Cache-control: max-age=5
+</code></pre>
+
+<p>表示当访问此网页后的5秒内再次访问不会向服务器发起请求</p>
+
+<p>（2） 在地址栏输入地址回车<br/>
+如果值为private或must-revalidate，则只有第一次访问时会访问服务器，以后就不再访问。如果值为no-cache，那么每次都会访问。如果值为max-age，则在过期之前不会重复访问。</p>
+
+<p>（3） 按后退按扭<br/>
+如果值为private、must-revalidate、max-age，则不会重访问，而如果为no-cache，则每次都重复访问</p>
+
+<p>（4） 按刷新按扭<br/>
+无论为何值，都会重复访问</p>
+
+<p>cache-control字段取值含义：
+<a href="/images/http_cache_control.jpg"><img src="/images/http_cache_control.jpg" alt="/images/http_cache_control.jpg" /></a></p>
+
+<p>Reference:<br/>
+<a href="http://www.blogjava.net/dashi99/archive/2008/12/30/249207.html">http://www.blogjava.net/dashi99/archive/2008/12/30/249207.html</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/06/09/usage-of-drawable-level-list/">利用level-list显示图片</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-06-09T00:00:00+08:00" pubdate data-updated="true">Jun 9<span>th</span>, 2010</time>
+        
+           | <a href="/blog/2010/06/09/usage-of-drawable-level-list/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/06/09/usage-of-drawable-level-list/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>有时候，我们为了在一个ImageView中显示不同的图片，往往会使用：</p>
+
+<pre><code>if (条件1) {
+    image.setBackground(R.id.xxx1);
+} else if (条件2) {
+    image.setBackground(R.id.xxx2);
+} ...
+</code></pre>
+
+<p>可以用另一个简便的方法实现相同的功能。</p>
+
+<p>首先，在res/drawable下建立一个xml文件，内容如下</p>
+
+<pre><code>&lt;level-list xmlns:android="http://schemas.android.com/apk/res/android"&gt;
+    &lt;item android:maxLevel="4" android:drawable="@drawable/stat_sys_battery_0" /&gt;
+    &lt;item android:maxLevel="14" android:drawable="@drawable/stat_sys_battery_10" /&gt;
+    &lt;item android:maxLevel="29" android:drawable="@drawable/stat_sys_battery_20" /&gt;
+    &lt;item android:maxLevel="49" android:drawable="@drawable/stat_sys_battery_40" /&gt;
+    &lt;item android:maxLevel="69" android:drawable="@drawable/stat_sys_battery_60" /&gt;
+    &lt;item android:maxLevel="89" android:drawable="@drawable/stat_sys_battery_80" /&gt;
+    &lt;item android:maxLevel="100" android:drawable="@drawable/stat_sys_battery_100" /&gt;
+&lt;/level-list&gt;
+</code></pre>
+
+<p>然后在layout中把ImageView的src设置成已创建好的xml文件。
+程序中需要更新图片时，只需要使用</p>
+
+<pre><code>imageview.getDrawable().setLevel(50)
+</code></pre>
+
+<p>Android会根据level的值自动选择对应的图片。显示剩余电量就是用这个方法来显示不同图片的。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/06/09/issues-on-webviewclearhistory/">WebView.clearHistory()的问题</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-06-09T00:00:00+08:00" pubdate data-updated="true">Jun 9<span>th</span>, 2010</time>
+        
+           | <a href="/blog/2010/06/09/issues-on-webviewclearhistory/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/06/09/issues-on-webviewclearhistory/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>Q:</h3>
+
+<p>I call WebView.clearHistory(), but I am still able to go back after
+doing so. I want to reuse a WebView, but I don&rsquo;t want the back button
+to allow the user to go back further than the current &ldquo;session&rdquo; of
+using the WebView. Anybody know what is the best way to handle this? I
+thought for sure that clearHistory() would do it.</p>
+
+<h3>A:</h3>
+
+<p>I recently had the same issue. What I found is that you have to clear
+history AFTER the (first) page loads. It appears that the history
+clears everything before the current page so if your browser is at
+page &ldquo;A&rdquo;, you clear history and navigate to page &ldquo;B&rdquo; your history will
+be &ldquo;A&rdquo; &ldquo;B&rdquo;, not just &ldquo;B&rdquo;, but if you clear history when &ldquo;B&rdquo; finishes
+loading you will have only &ldquo;B&rdquo;.
+In my case I end up using &ldquo;onPageFinished&rdquo; method of the
+WebViwClient, but in this case you have to know what your start page
+is and clear the history only after it otherwise you will be clearing
+the history after every page navigated after the first.
+Stefan</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -1382,9 +1022,8 @@ BobBobBobBob | 25  | male
     <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
-<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
-<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
+    <li class='category'><a href='/blog/categories/android/'>Android (10)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
 <li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
 <li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
 <li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
@@ -1396,7 +1035,7 @@ BobBobBobBob | 25  | male
 <li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
 <li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
 <li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
-<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
 
   </ul>
 </section>
