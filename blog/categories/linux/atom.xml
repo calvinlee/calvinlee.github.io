@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | 且听风吟]]></title>
   <link href="http://calvinlee.github.io/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://calvinlee.github.io/"/>
-  <updated>2013-11-07T18:14:56+08:00</updated>
+  <updated>2013-11-08T10:39:09+08:00</updated>
   <id>http://calvinlee.github.io/</id>
   <author>
     <name><![CDATA[Calvin Lee]]></name>
@@ -12,6 +12,15 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[bind mount的使用]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/11/07/awesome-bind-mount/"/>
+    <updated>2013-11-07T18:10:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/11/07/awesome-bind-mount</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[禁用内核进程地址随机]]></title>
@@ -228,21 +237,6 @@ file1:代转换的文件
 -u：显示uid
 -a：显示启动进程的命令
 -l：对长于132个字符会被截断显示，使用这个选项关闭这个功能
-</code></pre>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[.xinitrc and .xprofile]]></title>
-    <link href="http://calvinlee.github.io/blog/2012/05/24/xinitrc-and-xprofile/"/>
-    <updated>2012-05-24T00:00:00+08:00</updated>
-    <id>http://calvinlee.github.io/blog/2012/05/24/xinitrc-and-xprofile</id>
-    <content type="html"><![CDATA[<p>如果使用startx或者slim等命令启动X，会source ~/.xinitrc。<br/>
-如果使用登录管理器GDM或者KDM，会source ~/.xprofile，忽略~/.xinitrc。</p>
-
-<p>为了统一，干脆这样好了：</p>
-
-<pre><code>ln -s ~/.xinitrc ~/.xprofile
 </code></pre>
 ]]></content>
   </entry>

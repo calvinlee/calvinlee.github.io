@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: socket | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/tags/socket/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2013-11-08T10:39:09+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[android get control socket]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/04/26/android-init-socket/"/>
+    <updated>2012-04-26T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/04/26/android-init-socket</id>
+    <content type="html"><![CDATA[<p>/hardware/ril/libril/ril.cpp下有如下代码：</p>
+
+<pre><code>s_fdListen = android_get_control_socket(SOCKET_NAME_RIL);
+if (s_fdListen &lt; 0) {
+    LOGE("Failed to get socket '" SOCKET_NAME_RIL "'");
+    exit(-1);
+}
+
+if (listen(s_fdListen, 4)) {
+    exit(1);
+}
+s_fdCommand = accept(s_fdListen, (sockaddr *) &amp;peeraddr, &amp;socklen);
+</code></pre>
+
+<p>这个android_get_control_socket函数有什么作用呢？
+android_get_control_socket函数定义在/system/core/include/cutils/sockets.h:</p>
+
+<pre><code>#define ANDROID_SOCKET_ENV_PREFIX   "ANDROID_SOCKET_"
+#define ANDROID_SOCKET_DIR      "/dev/socket"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ * android_get_control_socket - simple helper function to get the file
+ * descriptor of our init-managed Unix domain socket. `name' is the name of the
+ * socket, as given in init.rc. Returns -1 on error.
+ *
+ * This is inline and not in libcutils proper because we want to use this in
+ * third-party daemons with minimal modification.
+ */
+static inline int android_get_control_socket(const char *name)
+{
+    char key[64] = ANDROID_SOCKET_ENV_PREFIX;
+    const char *val;
+    int fd;
+
+    /* build our environment variable, counting cycles like a wolf ... */
+#if HAVE_STRLCPY
+    strlcpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+        name,
+        sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+#else   /* for the host, which may lack the almightly strncpy ... */
+    strncpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+        name,
+        sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+    key[sizeof(key)-1] = '\0';
+#endif
+
+    val = getenv(key); // socket名字和对应的socket文件的文件描述符以键值对的形式存储在环境变量中， 
+    if (!val)
+        return -1;
+
+    errno = 0;
+    fd = strtol(val, NULL, 10);
+    if (errno)
+        return -1;
+
+    return fd;
+}
+</code></pre>
+
+<p>init.rc
+/system/core/init/readme.txt</p>
+
+<p>/system/core/init/util.c</p>
+
+<pre><code>/*
+ * create_socket - creates a Unix domain socket in ANDROID_SOCKET_DIR
+ * ("/dev/socket") as dictated in init.rc. This socket is inherited by the
+ * daemon. We communicate the file descriptor's value via the environment
+ * variable ANDROID_SOCKET_ENV_PREFIX&lt;name&gt; ("ANDROID_SOCKET_foo").
+ */
+int create_socket(const char *name, int type, mode_t perm, uid_t uid, gid_t gid)
+{
+    struct sockaddr_un addr;
+    int fd, ret;
+
+    fd = socket(PF_UNIX, type, 0);
+    if (fd &lt; 0) {
+        ERROR("Failed to open socket '%s': %s\n", name, strerror(errno));
+        return -1;
+    }
+
+    memset(&amp;addr, 0 , sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    snprintf(addr.sun_path, sizeof(addr.sun_path), ANDROID_SOCKET_DIR"/%s",
+             name);
+
+    ret = unlink(addr.sun_path);
+    if (ret != 0 &amp;&amp; errno != ENOENT) {
+        ERROR("Failed to unlink old socket '%s': %s\n", name, strerror(errno));
+        goto out_close;
+    }
+
+    ret = bind(fd, (struct sockaddr *) &amp;addr, sizeof (addr));
+    if (ret) {
+        ERROR("Failed to bind socket '%s': %s\n", name, strerror(errno));
+        goto out_unlink;
+    }
+
+    chown(addr.sun_path, uid, gid);
+    chmod(addr.sun_path, perm);
+
+    INFO("Created socket '%s' with mode '%o', user '%d', group '%d'\n",
+         addr.sun_path, perm, uid, gid);
+
+    return fd;
+
+out_unlink:
+    unlink(addr.sun_path);
+out_close:
+    close(fd);
+    return -1;
+}
+</code></pre>
+
+<p>init.c</p>
+
+<pre><code>static void publish_socket(const char *name, int fd)
+{
+    char key[64] = ANDROID_SOCKET_ENV_PREFIX;
+    char val[64];
+
+    strlcpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+            name,
+            sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+    snprintf(val, sizeof(val), "%d", fd);
+    add_environment(key, val); //添加到环境变量中
+
+    /* make sure we don't close-on-exec */
+    fcntl(fd, F_SETFD, 0);
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

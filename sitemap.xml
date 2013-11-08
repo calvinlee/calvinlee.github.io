@@ -79,6 +79,10 @@
         <lastmod>2013-11-06T15:20:09+08:00</lastmod>
     </url>
     <url>
+        <loc>http://calvinlee.github.io/blog/2012/03/18/bravo-flash-terms-and-issues/</loc>
+        <lastmod>2013-11-06T15:20:09+08:00</lastmod>
+    </url>
+    <url>
         <loc>
             http://calvinlee.github.io/blog/2012/03/22/git-change-author-and-email-of-commits/
         </loc>
@@ -109,6 +113,20 @@
         <lastmod>2013-11-06T15:20:09+08:00</lastmod>
     </url>
     <url>
+        <loc>http://calvinlee.github.io/blog/2012/04/10/is-char-signed-or-unsigned/</loc>
+        <lastmod>2013-11-06T15:20:09+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://calvinlee.github.io/blog/2012/04/10/x86-registers/</loc>
+        <lastmod>2013-11-06T15:20:09+08:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://calvinlee.github.io/blog/2012/04/13/csapp-machine-level-representation-of-c-programs/
+        </loc>
+        <lastmod>2013-11-06T15:20:09+08:00</lastmod>
+    </url>
+    <url>
         <loc>
             http://calvinlee.github.io/blog/2012/04/13/csapp-representing-and-manipulating-information/
         </loc>
@@ -128,6 +146,10 @@
     </url>
     <url>
         <loc>http://calvinlee.github.io/blog/2012/04/15/ubuntu-gcc-cannot-find-lc/</loc>
+        <lastmod>2013-11-06T15:20:09+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://calvinlee.github.io/blog/2012/04/19/android-graphics-system/</loc>
         <lastmod>2013-11-06T15:20:09+08:00</lastmod>
     </url>
     <url>
@@ -154,6 +176,10 @@
     </url>
     <url>
         <loc>http://calvinlee.github.io/blog/2012/05/06/initial-boot-up-sequence-of-pc/</loc>
+        <lastmod>2013-11-06T15:20:09+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://calvinlee.github.io/blog/2012/05/11/cpp-learning-tips/</loc>
         <lastmod>2013-11-06T15:20:09+08:00</lastmod>
     </url>
     <url>
@@ -233,8 +259,20 @@
         <lastmod>2013-11-06T15:20:09+08:00</lastmod>
     </url>
     <url>
+        <loc>http://calvinlee.github.io/blog/2012/12/12/twiki-setup-and-configuraion/</loc>
+        <lastmod>2013-11-06T15:20:09+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://calvinlee.github.io/blog/2013/01/18/update-grub-from-livecd/</loc>
+        <lastmod>2013-11-06T15:20:09+08:00</lastmod>
+    </url>
+    <url>
         <loc>http://calvinlee.github.io/blog/2013/01/20/android-handler-looper-message/</loc>
         <lastmod>2013-11-06T16:28:14+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://calvinlee.github.io/blog/2013/01/21/android-MMS-cache-implementation/</loc>
+        <lastmod>2013-11-06T15:20:09+08:00</lastmod>
     </url>
     <url>
         <loc>http://calvinlee.github.io/blog/2013/01/28/eclipse-content-assist/</loc>
@@ -258,7 +296,7 @@
     </url>
     <url>
         <loc>http://calvinlee.github.io/blog/2013/11/07/awesome-bind-mount/</loc>
-        <lastmod>2013-11-07T18:12:49+08:00</lastmod>
+        <lastmod>2013-11-08T10:36:29+08:00</lastmod>
     </url>
     <url>
         <loc>http://calvinlee.github.io/music.html</loc>
@@ -270,7 +308,7 @@
     </url>
     <url>
         <loc>http://calvinlee.github.io/blog/archives/</loc>
-        <lastmod>2013-11-07T18:12:49+08:00</lastmod>
+        <lastmod>2013-11-08T10:36:29+08:00</lastmod>
     </url>
     <url>
         <loc>http://calvinlee.github.io/about.html</loc>
@@ -278,50 +316,7 @@
     </url>
     <url>
         <loc>http://calvinlee.github.io/</loc>
-        <lastmod>2013-11-07T18:12:49+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://calvinlee.github.io/robots.txt</loc>
-        <lastmod>2013-11-06T10:04:02+08:00</lastmod>
-    </url>
-</urlset>loc>
-        <lastmod>2013-11-06T15:20:09+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://calvinlee.github.io/blog/2013/02/25/strcpy-memcpy/</loc>
-        <lastmod>2013-11-06T15:20:09+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://calvinlee.github.io/blog/2013/09/26/Chrominum-base-code-introduction/</loc>
-        <lastmod>2013-11-06T16:17:33+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://calvinlee.github.io/blog/2013/11/04/disable-kernel-random-address/</loc>
-        <lastmod>2013-11-06T15:20:09+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://calvinlee.github.io/blog/2013/11/07/awesome-bind-mount/</loc>
-        <lastmod>2013-11-07T18:12:49+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://calvinlee.github.io/music.html</loc>
-        <lastmod>2013-11-06T14:13:26+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://calvinlee.github.io/links.html</loc>
-        <lastmod>2013-11-06T13:58:30+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://calvinlee.github.io/blog/archives/</loc>
-        <lastmod>2013-11-07T18:12:49+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://calvinlee.github.io/about.html</loc>
-        <lastmod>2013-11-06T13:53:19+08:00</lastmod>
-    </url>
-    <url>
-        <loc>http://calvinlee.github.io/</loc>
-        <lastmod>2013-11-07T18:12:49+08:00</lastmod>
+        <lastmod>2013-11-08T10:36:29+08:00</lastmod>
     </url>
     <url>
         <loc>http://calvinlee.github.io/robots.txt</loc>

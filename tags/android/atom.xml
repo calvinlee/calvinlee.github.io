@@ -1,0 +1,688 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: android | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/tags/android/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2013-11-08T10:39:09+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Android Mms 缓存机制分析]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/01/21/android-MMS-cache-implementation/"/>
+    <updated>2013-01-21T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/01/21/android-MMS-cache-implementation</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Android消息处理机制理解]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/01/20/android-handler-looper-message/"/>
+    <updated>2013-01-20T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/01/20/android-handler-looper-message</id>
+    <content type="html"><![CDATA[<p>Android的消息处理机制是很多功能实现的基础，如UI绘制，键盘事件传递等等。在实现上，涉及到的类有Handler, Message, Looper等等，本篇研究Android消息处理机制的内部实现细节。</p>
+
+<h3>UI线程消息循环的启动</h3>
+
+<p>Android所谓UI线程的启动位于ActivityThread.java，在其main方法中会启动这个消息循环：</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;...</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Looper</span><span class="o">.</span><span class="na">prepareMainLooper</span><span class="o">();</span>
+</span><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">sMainThreadHandler</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">sMainThreadHandler</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Handler</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">ActivityThread</span> <span class="n">thread</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ActivityThread</span><span class="o">();</span>
+</span><span class='line'><span class="n">thread</span><span class="o">.</span><span class="na">attach</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Looper</span><span class="o">.</span><span class="na">loop</span><span class="o">();</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>首先调用<code>Looper.prepareMainLooper()</code>方法：</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="cm">/**</span>
+</span><span class='line'><span class="cm"> * Initialize the current thread as a looper, marking it as an</span>
+</span><span class='line'><span class="cm"> * application&#39;s main looper. The main looper for your application</span>
+</span><span class='line'><span class="cm"> * is created by the Android environment, so you should never need</span>
+</span><span class='line'><span class="cm"> * to call this function yourself.  See also: {@link #prepare()}</span>
+</span><span class='line'><span class="cm"> */</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">prepareMainLooper</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">prepare</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">setMainLooper</span><span class="o">(</span><span class="n">myLooper</span><span class="o">());</span>
+</span><span class='line'>    <span class="c1">// main looper是不允许退出的，否则应用程序就没得玩了</span>
+</span><span class='line'>    <span class="n">myLooper</span><span class="o">().</span><span class="na">mQueue</span><span class="o">.</span><span class="na">mQuitAllowed</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'> <span class="cm">/** Initialize the current thread as a looper.</span>
+</span><span class='line'><span class="cm">  * This gives you a chance to create handlers that then reference</span>
+</span><span class='line'><span class="cm">  * this looper, before actually starting the loop. Be sure to call</span>
+</span><span class='line'><span class="cm">  * {@link #loop()} after calling this method, and end it by calling</span>
+</span><span class='line'><span class="cm">  * {@link #quit()}.</span>
+</span><span class='line'><span class="cm">  * </span>
+</span><span class='line'><span class="cm">  * prepare方法将实例化一个Looper对象，并保存到一个ThreadLocal变量里, 这个</span>
+</span><span class='line'><span class="cm">  * looper稍后可以通过myLooper()方法取出</span>
+</span><span class='line'><span class="cm">  */</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">prepare</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">sThreadLocal</span><span class="o">.</span><span class="na">get</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">&quot;Only one Looper may be created per thread&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="n">sThreadLocal</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="k">new</span> <span class="n">Looper</span><span class="o">());</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">private</span> <span class="nf">Looper</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">// 初始化一个消息队列，其实现稍后解释</span>
+</span><span class='line'>    <span class="n">mQueue</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MessageQueue</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">mRun</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">mThread</span> <span class="o">=</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>接下来调用Looper.loop()启动消息循环：</p>
+
+<pre><code>/**
+ * Run the message queue in this thread. Be sure to call
+ * {@link #quit()} to end the loop.
+ */
+public static void loop() {
+    // 取得当前线程关联的looper对象
+    Looper me = myLooper();
+    if (me == null) {
+        throw new RuntimeException("No Looper; Looper.prepare() wasn't called on this thread.");
+    }
+    MessageQueue queue = me.mQueue;
+    ...
+    while (true) {
+        // 从消息队列中取出下一个需要处理的消息，这里可能会阻塞
+        Message msg = queue.next(); // might block
+        if (msg != null) {
+            if (msg.target == null) {
+                // No target is a magic identifier for the quit message.
+                return;
+            }
+            ...
+            msg.target.dispatchMessage(msg);
+            ...
+            msg.recycle();
+        }
+    }
+}
+</code></pre>
+
+<h3>消息队列的建立</h3>
+
+<p>每一个looper对象对应一个MessageQueue对象，Looper对象在这个消息队列上loop。每个消息是一个Message对象，而对这个消息队列的引用也是一个Message对象：</p>
+
+<pre><code>Message mMessages;
+</code></pre>
+
+<p>每个Message对象内部也有一个Message对象的引用，指向队列中的下一个message对象，这些message形成了一个单向队列。<strong>这个队列是按照message.when的大小顺序排列的</strong>。队首的消息是最先发生的。</p>
+
+<p>MessageQueue另外还有一个重要的变量：</p>
+
+<pre><code>private int mPtr; // used by native code
+</code></pre>
+
+<p>每个MessageQueue在native层对应有一个C++的实现NativeMessageQueue，位于android_os_MessageQueue.cpp，Java层的MessageQueue的mPtr保存的就是这个对象的指针。</p>
+
+<p>MessageQueue的构造方法为：</p>
+
+<pre><code>MessageQueue() {
+    nativeInit();
+}
+</code></pre>
+
+<p>nativeInit()方法在android_os_MessageQueue.cpp中实现：</p>
+
+<pre><code>static void android_os_MessageQueue_nativeInit(JNIEnv* env, jobject obj) {
+    NativeMessageQueue* nativeMessageQueue = new NativeMessageQueue();
+    if (! nativeMessageQueue) {
+        jniThrowRuntimeException(env, "Unable to allocate native queue");
+        return;
+    }
+
+    // 将指针值设置给Java层MessageQueue的mPtr变量
+    android_os_MessageQueue_setNativeMessageQueue(env, obj, nativeMessageQueue);
+}
+</code></pre>
+
+<p>NativeMessageQueue没有太多逻辑实现，它作为C++层的Looper对象的包装类。</p>
+
+<p>C++层的Looper对象实现为framework/base/libs/utils/Looper.cpp:</p>
+
+<pre><code>Looper::Looper(bool allowNonCallbacks) :
+       mAllowNonCallbacks(allowNonCallbacks), mSendingMessage(false),
+       mResponseIndex(0), mNextMessageUptime(LLONG_MAX) {
+   int wakeFds[2];
+   int result = pipe(wakeFds);
+   LOG_ALWAYS_FATAL_IF(result != 0, "Could not create wake pipe.  errno=%d", errno);
+
+   mWakeReadPipeFd = wakeFds[0];
+   mWakeWritePipeFd = wakeFds[1];
+
+   result = fcntl(mWakeReadPipeFd, F_SETFL, O_NONBLOCK);
+   LOG_ALWAYS_FATAL_IF(result != 0, "Could not make wake read pipe non-blocking.  errno=%d",
+           errno);
+
+   result = fcntl(mWakeWritePipeFd, F_SETFL, O_NONBLOCK);
+   LOG_ALWAYS_FATAL_IF(result != 0, "Could not make wake write pipe non-blocking.  errno=%d",
+           errno);
+
+   // Allocate the epoll instance and register the wake pipe.
+   mEpollFd = epoll_create(EPOLL_SIZE_HINT);
+   LOG_ALWAYS_FATAL_IF(mEpollFd &lt; 0, "Could not create epoll instance.  errno=%d", errno);
+
+   struct epoll_event eventItem;
+   memset(&amp; eventItem, 0, sizeof(epoll_event)); // zero out unused members of data field union
+   eventItem.events = EPOLLIN;
+   eventItem.data.fd = mWakeReadPipeFd;
+   result = epoll_ctl(mEpollFd, EPOLL_CTL_ADD, mWakeReadPipeFd, &amp; eventItem);
+   LOG_ALWAYS_FATAL_IF(result != 0, "Could not add wake read pipe to epoll instance.  errno=%d",
+           errno);
+}
+</code></pre>
+
+<p>这里先通过pipe系统调用创建了一个管道，这个管道非常重要：<br/>
+当当前线程没有新的消息需要处理时，它会睡眠在管道的读端文件描述符上，直到有新消息到来为止；另一方面，当其他线程向这个线程的消息队列发送一个消息后，其他线程会在这个管道的写端文件描述符上写入数据，这样导致等待在读端文件描述符的looper唤醒，然后对消息队列中的消息进行处理。但是，它对其他线程写入写端文件描述符的数据是什么并不关心，因为这些数据仅仅是为了唤醒它而已。</p>
+
+<h3>开启消息循环</h3>
+
+<p>调用Looper.loop()开启消息循环，前面看到，loop()方法从next()#MessageQueue获取下一个待处理的消息：</p>
+
+<pre><code>final Message next() {
+    int pendingIdleHandlerCount = -1; // -1 only during first iteration
+    int nextPollTimeoutMillis = 0;
+
+    for (;;) {
+        if (nextPollTimeoutMillis != 0) {
+            Binder.flushPendingCommands();
+        }
+
+        // 这个方法可能会阻塞，一旦返回，说明有新的message可以处理了，第一次进来nextPollTimeoutMillis为0，表示不作等待，立即返回。
+        nativePollOnce(mPtr, nextPollTimeoutMillis);
+
+        synchronized (this) {
+            // Try to retrieve the next message.  Return if found.
+            final long now = SystemClock.uptimeMillis();
+            final Message msg = mMessages;
+            if (msg != null) {
+                final long when = msg.when;
+                // 如果队首的消息的when小于当前时间，说明这个消息已经过期了，需要马上处理。
+                if (now &gt;= when) {
+                    mBlocked = false;
+                    mMessages = msg.next;
+                    msg.next = null;
+                    if (false) Log.v("MessageQueue", "Returning message: " + msg);
+                    msg.markInUse();
+                    return msg;
+                } else {
+                    // 计算出还要睡眠多长时间以后再取出下一个消息
+                    nextPollTimeoutMillis = (int) Math.min(when - now, Integer.MAX_VALUE);
+                }
+            } else {
+                nextPollTimeoutMillis = -1;
+            }
+
+            ...
+
+        // While calling an idle handler, a new message could have been delivered
+        // so go back and look again for a pending message without waiting.
+        nextPollTimeoutMillis = 0;
+    }
+}
+</code></pre>
+
+<p><code>nativePollOnce(mPtr, nextPollTimeoutMillis);</code> 方法用来检查当前线程的消息队列是否有新的消息需要处理, nextPollTimeoutMillis表示如果没有发现新的消息，当前线程需要睡眠的时间，如果等于-1，表示它需要进入无限睡眠，直到被其他线程唤醒为止。</p>
+
+<p>nativePollOnce函数在C++层的Looper对象的实现为pollOnce()，进而调用pollInner():</p>
+
+<pre><code>int Looper::pollInner(int timeoutMillis) {
+    // Poll.
+    int result = ALOOPER_POLL_WAKE;
+    mResponses.clear();
+    mResponseIndex = 0;
+
+    int eventCount = epoll_wait(mEpollFd, eventItems, EPOLL_MAX_EVENTS, timeoutMillis);
+    ...
+    // 检查是哪个文件描述符上发生了IO事件
+    for (int i = 0; i &lt; eventCount; i++) {
+        int fd = eventItems[i].data.fd;
+        uint32_t epollEvents = eventItems[i].events;
+        if (fd == mWakeReadPipeFd) {
+            if (epollEvents &amp; EPOLLIN) {
+                awoken();
+            } else {
+                LOGW("Ignoring unexpected epoll events 0x%x on wake read pipe.", epollEvents);
+            }
+        } else {
+        ...
+        }
+    }
+    return result;
+}
+</code></pre>
+
+<p>如果是mWakeReadPipeFd上发生了IO事件，说明有其它线程在mWakeWritePipeFd上写入了数据，接下来在awoken()函数中读取这些数据，这样在后续有线程写入数据时可以被再次唤醒：</p>
+
+<pre><code>void Looper::awoken() {
+    ... 
+    char buffer[16];
+    ssize_t nRead;
+    do {
+        nRead = read(mWakeReadPipeFd, buffer, sizeof(buffer));
+    } while ((nRead == -1 &amp;&amp; errno == EINTR) || nRead == sizeof(buffer));
+}
+</code></pre>
+
+<p>这里只是将数据读出，它并不关心这些数据是什么。</p>
+
+<h3>消息发送过程</h3>
+
+<p>发送消息最常见的方法就是使用sendMessage()#Handler, 这个方法最终会调用enqueueMessage()#MessageQueue.java:</p>
+
+<pre><code>final boolean enqueueMessage(Message msg, long when) {
+
+        msg.when = when;
+        //Log.d("MessageQueue", "Enqueing: " + msg);
+        Message p = mMessages;
+        if (p == null || when == 0 || when &lt; p.when) {
+            msg.next = p;
+            mMessages = msg;
+            needWake = mBlocked; // new head, might need to wake up
+        } else {
+            Message prev = null;
+            while (p != null &amp;&amp; p.when &lt;= when) {
+                prev = p;
+                p = p.next;
+            }
+            msg.next = prev.next;
+            prev.next = msg;
+            needWake = false; // still waiting on head, no need to wake up
+        }
+    }
+    if (needWake) {
+        nativeWake(mPtr);
+    }
+    return true;
+}
+</code></pre>
+
+<p>这个方法将新的message插入到消息队列中，并根据需要唤醒native的looper线程。消息的插入分为四种情况：</p>
+
+<ul>
+<li>消息队列是一个空队列；</li>
+<li>新消息的when等于0，表示需要立即处理；</li>
+<li>新消息的when小于队首消息的when；</li>
+<li>新消息的when大于或者等于队首消息的when；</li>
+</ul>
+
+
+<p>前三种情况只需要将新消息插入到队首即可，并需要立即唤醒looper对这个新消息进行处理。第四种情况需要插入到队列中的合适位置，并且不需要唤醒looper。<br/>
+唤醒looper通过nativeWake()方法实现：
+looper.cpp:</p>
+
+<pre><code>void Looper::wake() {
+    ssize_t nWrite;
+    do {
+        nWrite = write(mWakeWritePipeFd, "W", 1);
+    } while (nWrite == -1 &amp;&amp; errno == EINTR);
+
+    if (nWrite != 1) {
+        if (errno != EAGAIN) {
+            LOGW("Could not write wake signal, errno=%d", errno);
+        }
+    }
+}
+</code></pre>
+
+<p>唤醒的过程就是望管道的写文件描述符mWakeWritePipeFd写入一些数据即可，这里写入了一个"W"字符，这样等待在管道另一端的正在睡眠的线程就会被唤醒，从而导致队首的消息被取出进行处理。</p>
+
+<h3>HanderThread</h3>
+
+<p>HandlerThread最重要的特点是它的looper是在一个子线程中loop的，从而不会阻塞UI线程。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[setComponentEnabledSetting doesn't work on widget]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/06/19/setComponentEnabledSetting-doesnt-work-on-widget/"/>
+    <updated>2012-06-19T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/06/19/setComponentEnabledSetting-doesnt-work-on-widget</id>
+    <content type="html"><![CDATA[<h3>需求</h3>
+
+<p>有一个系统属性disable_widget用来标识是否需要禁用某个widget，如果是，那么禁用某个widget.</p>
+
+<h3>实现与问题</h3>
+
+<p><code>PackageManager.setComponentEnabledSetting</code> 可以用来禁用某个组件，包括activity，receiver等等。被禁用的组件会被持久化到/data/system/packages.xml中，如：</p>
+
+<pre><code>&lt;package name="com.android.setupwizard" codePath="/system/app/SetupWizard.apk" nativeLibraryPath="/data/data/com.android.setupwizard/lib" flags="1" ft="13349457a90" it="13349457a90" ut="13349457a90" version="130" userId="10016"&gt;
+  &lt;sigs count="1"&gt;
+  &lt;cert index="0" /&gt;
+  &lt;/sigs&gt;
+  &lt;disabled-components&gt;
+  &lt;item name="com.android.setupwizard.SetupWizardActivity" /&gt;
+  &lt;/disabled-components&gt;
+&lt;/package&gt;
+</code></pre>
+
+<p>因为widget实际上就是个reveiver，它接收android.appwidget.action.APPWIDGET_UPDATE的action，所以开始的思路是：<br/>
+创建一个BroadcastReceiver，接收Intent.ACTION_BOOT_COMPLETED这个动作，从而在启动完成后调用SystemProperties.get(&ldquo;disable_widget&rdquo;)，如果需要禁用这个widget，那么调用：</p>
+
+<pre><code>PackageManager.setComponentEnabledSetting(widgetComponentName，PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP);
+</code></pre>
+
+<p>但是问题是，调用这个方法disable掉这个widget后，发现必须把设备重启之后才能生效&hellip;<br/>
+经过一番挖掘，发现问题出在com.android.server.AppWidgetService.java。</p>
+
+<p>开机后，SystemServer会调用AppWidgetService的systemReady()方法，这个方法通过PackageManager查询所有的widget receiver组件，保存到mInstalledProviders变量列表中，并持久化widget信息到/data/system/appwidgets.xml中。
+而在Launcher上长按添加widget时的那个widget列表信息也是通过AppWidgetService取得mInstalledProviders列表。</p>
+
+<p>问题在于我们通过PackageManager.setComponentEnabledSetting（）禁用掉某个widget后，packagemanager确实将这个组件disable了，但是AppWidgetService却没有去从packagemanager reload widget信息，这就导致了mInstalledProviders中保存的widget信息还是开机时load进来的那些信息，并没有与pm进行同步。直到下一次开机调用systemReady重新加载widget信息才会刷新这个列表。</p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://code.google.com/p/android/issues/detail?id=6533">Dynamically enabling or disabling a widget with PackageManager.setComponentEnabledSetting does not work</a></li>
+<li><a href="http://blog.csdn.net/yinlijun2004/article/details/6136108">http://blog.csdn.net/yinlijun2004/article/details/6136108</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[改善SD卡读取速度]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/31/improve-sd-card-read-speed/"/>
+    <updated>2012-05-31T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/31/improve-sd-card-read-speed</id>
+    <content type="html"><![CDATA[<p>一年前刷了CM的rom，发现sd卡速度下降了很多，今天看见有人发了一个kernel的patch改善这个问题，原理是修改sys文件系统下的一个read_ahead_kb参数值，这个值指定了每次从SD卡上读取数据时预读的大小。</p>
+
+<pre><code>adb shell 'echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb'
+</code></pre>
+
+<p>但这个值也不是越大越好，128是个比较平衡的值，因为在读取小文件的情况下，如果这个值太大，那么预读的数据很大几率是无用的数据，反而降低性能，<a href="http://forum.xda-developers.com/showthread.php?t=1032317">这个</a>帖子有详细的分析。</p>
+
+<p>这个值的定义在/include/linux/mm.h中：</p>
+
+<pre><code>/* readahead.c */
+#define VM_MAX_READAHEAD    128 /* kbytes */
+#define VM_MIN_READAHEAD    16  /* kbytes (includes current page) */
+</code></pre>
+
+<h3>设置开机生效</h3>
+
+<p>注意：重启后这个设置就失效了，为了避免每次开机后都要设置，可以在init.rc脚本中加上：</p>
+
+<pre><code>write /sys/devices/virtual/bdi/179:0/read_ahead_kb 128
+</code></pre>
+
+<p>或者利用init.d脚本的支持，在/system/etc/init.d目录下创建一个文件10sdcard:</p>
+
+<pre><code>#!/system/bin/sh
+echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb
+
+这样每次开机后都会执行这段脚本。
+</code></pre>
+
+<h3>CM支持init.d开机脚本的方法</h3>
+
+<ol>
+<li><p>在init.rc的class_start default上加上</p>
+
+<pre><code># Run sysinit
+exec /system/bin/sysinit
+
+class_start default
+</code></pre></li>
+<li><p>建立文件/system/bin/sysinit</p>
+
+<pre><code>#!/system/bin/sh
+
+export PATH=/sbin:/system/sbin:/system/bin:/system/xbin
+/system/bin/logwrapper /system/xbin/run-parts /system/etc/init.d
+</code></pre></li>
+</ol>
+
+
+<p>然后将启动脚本放在/system/etc/init.d目录下，这些脚本以数字命名，run-parts命令按照顺序排序依次执行这些脚本(cron命令也是利用run-parts命令执行指定目录下的脚本的，参见/etc/crontab)。</p>
+
+<p>其实也可以这样做：<br/>
+在init.rc的class_start default上加入</p>
+
+<pre><code>start sysinit
+</code></pre>
+
+<p>然后在所有service定义的后面加上：</p>
+
+<pre><code>service sysinit /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
+    disabled
+    oneshot
+</code></pre>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://forum.xda-developers.com/showthread.php?t=815557">http://forum.xda-developers.com/showthread.php?t=815557</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[android get control socket]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/04/26/android-init-socket/"/>
+    <updated>2012-04-26T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/04/26/android-init-socket</id>
+    <content type="html"><![CDATA[<p>/hardware/ril/libril/ril.cpp下有如下代码：</p>
+
+<pre><code>s_fdListen = android_get_control_socket(SOCKET_NAME_RIL);
+if (s_fdListen &lt; 0) {
+    LOGE("Failed to get socket '" SOCKET_NAME_RIL "'");
+    exit(-1);
+}
+
+if (listen(s_fdListen, 4)) {
+    exit(1);
+}
+s_fdCommand = accept(s_fdListen, (sockaddr *) &amp;peeraddr, &amp;socklen);
+</code></pre>
+
+<p>这个android_get_control_socket函数有什么作用呢？
+android_get_control_socket函数定义在/system/core/include/cutils/sockets.h:</p>
+
+<pre><code>#define ANDROID_SOCKET_ENV_PREFIX   "ANDROID_SOCKET_"
+#define ANDROID_SOCKET_DIR      "/dev/socket"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ * android_get_control_socket - simple helper function to get the file
+ * descriptor of our init-managed Unix domain socket. `name' is the name of the
+ * socket, as given in init.rc. Returns -1 on error.
+ *
+ * This is inline and not in libcutils proper because we want to use this in
+ * third-party daemons with minimal modification.
+ */
+static inline int android_get_control_socket(const char *name)
+{
+    char key[64] = ANDROID_SOCKET_ENV_PREFIX;
+    const char *val;
+    int fd;
+
+    /* build our environment variable, counting cycles like a wolf ... */
+#if HAVE_STRLCPY
+    strlcpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+        name,
+        sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+#else   /* for the host, which may lack the almightly strncpy ... */
+    strncpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+        name,
+        sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+    key[sizeof(key)-1] = '\0';
+#endif
+
+    val = getenv(key); // socket名字和对应的socket文件的文件描述符以键值对的形式存储在环境变量中， 
+    if (!val)
+        return -1;
+
+    errno = 0;
+    fd = strtol(val, NULL, 10);
+    if (errno)
+        return -1;
+
+    return fd;
+}
+</code></pre>
+
+<p>init.rc
+/system/core/init/readme.txt</p>
+
+<p>/system/core/init/util.c</p>
+
+<pre><code>/*
+ * create_socket - creates a Unix domain socket in ANDROID_SOCKET_DIR
+ * ("/dev/socket") as dictated in init.rc. This socket is inherited by the
+ * daemon. We communicate the file descriptor's value via the environment
+ * variable ANDROID_SOCKET_ENV_PREFIX&lt;name&gt; ("ANDROID_SOCKET_foo").
+ */
+int create_socket(const char *name, int type, mode_t perm, uid_t uid, gid_t gid)
+{
+    struct sockaddr_un addr;
+    int fd, ret;
+
+    fd = socket(PF_UNIX, type, 0);
+    if (fd &lt; 0) {
+        ERROR("Failed to open socket '%s': %s\n", name, strerror(errno));
+        return -1;
+    }
+
+    memset(&amp;addr, 0 , sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    snprintf(addr.sun_path, sizeof(addr.sun_path), ANDROID_SOCKET_DIR"/%s",
+             name);
+
+    ret = unlink(addr.sun_path);
+    if (ret != 0 &amp;&amp; errno != ENOENT) {
+        ERROR("Failed to unlink old socket '%s': %s\n", name, strerror(errno));
+        goto out_close;
+    }
+
+    ret = bind(fd, (struct sockaddr *) &amp;addr, sizeof (addr));
+    if (ret) {
+        ERROR("Failed to bind socket '%s': %s\n", name, strerror(errno));
+        goto out_unlink;
+    }
+
+    chown(addr.sun_path, uid, gid);
+    chmod(addr.sun_path, perm);
+
+    INFO("Created socket '%s' with mode '%o', user '%d', group '%d'\n",
+         addr.sun_path, perm, uid, gid);
+
+    return fd;
+
+out_unlink:
+    unlink(addr.sun_path);
+out_close:
+    close(fd);
+    return -1;
+}
+</code></pre>
+
+<p>init.c</p>
+
+<pre><code>static void publish_socket(const char *name, int fd)
+{
+    char key[64] = ANDROID_SOCKET_ENV_PREFIX;
+    char val[64];
+
+    strlcpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+            name,
+            sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+    snprintf(val, sizeof(val), "%d", fd);
+    add_environment(key, val); //添加到环境变量中
+
+    /* make sure we don't close-on-exec */
+    fcntl(fd, F_SETFD, 0);
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

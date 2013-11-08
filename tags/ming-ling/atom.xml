@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: 命令 | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/tags/ming-ling/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2013-11-08T10:39:09+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[bind mount的使用]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/11/07/awesome-bind-mount/"/>
+    <updated>2013-11-07T18:10:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/11/07/awesome-bind-mount</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Unix Epoch 与 时间字符串的转换]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/11/29/convertion-between-epoch-and-regular-time/"/>
+    <updated>2012-11-29T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/11/29/convertion-between-epoch-and-regular-time</id>
+    <content type="html"><![CDATA[<h3>字符串 &mdash;> Epoch</h3>
+
+<pre><code>$ date -d "2012/11/29" +%s
+1354118400
+</code></pre>
+
+<h3>Epoch &mdash;> 字符串</h3>
+
+<pre><code>$ date -d@1354118400
+Thu Nov 29 00:00:00 CST 2012
+</code></pre>
+
+<p>或者加上格式控制：</p>
+
+<pre><code>$ date -d@1354118400 '+%Y-%m-%d %H:%M:%S'
+2012-11-29 00:00:00
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[拉风的vim保存方法]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/06/02/write-file-in-vim-without-sudo/"/>
+    <updated>2012-06-02T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/06/02/write-file-in-vim-without-sudo</id>
+    <content type="html"><![CDATA[<p>用vim编辑root用户的文件时，经常忘了敲sudo，结果保存不了。一个work around是保存为一个临时文件，然后sudo cp回去，不过从现在开始，我们可以这样做，输入：</p>
+
+<pre><code>:w !sudo tee %
+</code></pre>
+
+<p>%代表当前编辑文件的文件路径，<code>tee %</code>表示把stdin的输入输入到stdout，同时保存到一个文件。<br/>
+<code>w !{cmd}</code>意思是说执行一个外部命令cmd，同时把当前缓冲区的内从通过管道连接到cmd的stdin。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[使用iconv和convmv转换文本编码]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/31/convmv-and-iconv/"/>
+    <updated>2012-05-31T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/31/convmv-and-iconv</id>
+    <content type="html"><![CDATA[<h3>文本内容编码转换</h3>
+
+<p>文本显示乱码是因为文件本身的编码格式和编辑器打开文本所使用的编码格式不一致，使用iconv命令可以转换文本编码。如：</p>
+
+<pre><code>$ iconv -f coding1 -t coding2 file1 -o file2
+-f:指定文件原始编码
+-t:指定转换的目标编码
+file1:代转换的文件
+-o:指定输出文件
+</code></pre>
+
+<h3>文件名编码转换</h3>
+
+<p>常常有这样的情况，将一个rar文件解压后中文的文件名显示乱码，显示”invalid encoding“，利用convmv命令可以进行转换：</p>
+
+<pre><code>$ convmv -f gbk -t utf-8 -r --notest path/to/your/file
+-f:指定原始编码
+-t:指定转换的目标编码
+-r:如果目标文件是一个目录，递归处理目录下的文件
+--notest:转换后将文件重命名，默认情况下这个命令不会重命名文件
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[pstree命令使用]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/28/pstree/"/>
+    <updated>2012-05-28T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/28/pstree</id>
+    <content type="html"><![CDATA[<p>pstree命令以树状形式显示运行中的进程，使用这个命令可以方便的查看进程之间的父子关系。
+一些选项：</p>
+
+<pre><code>-h：高亮当前进程
+-p：显示进程pid
+-u：显示uid
+-a：显示启动进程的命令
+-l：对长于132个字符会被截断显示，使用这个选项关闭这个功能
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

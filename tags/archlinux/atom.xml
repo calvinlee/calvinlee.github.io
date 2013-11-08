@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: archlinux | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/tags/archlinux/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2013-11-08T10:39:09+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Archlinux开机初始化基本步骤]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/06/initial-boot-up-sequence-of-pc/"/>
+    <updated>2012-05-06T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/06/initial-boot-up-sequence-of-pc</id>
+    <content type="html"><![CDATA[<p>以下是对计算机开机加电后的自举流程的一个大致理解。</p>
+
+<h3>MBR</h3>
+
+<p>计算机开机后CPU处于16位实模式下，加上4位的偏移量，CPU能寻址的范围是20位，也就是1 MB的地址空间。CPU从存储器地址为0xFFFF0的位置读取一条跳转指令，这条指令将下一条指令地址指向系统BIOS的初始地址。对后BIOS程序执行机器自检POST（power on self test）,检查系统基本的硬件设备，并检索系统中包含可启动代码的设备，所谓可启动的设备是指第一个扇区（sector）的最后两个字节包含0xAA55（boot签名），可以通过如下命令查看硬盘第一个扇区的信息：</p>
+
+<pre><code>$ sudo dd if=/dev/sda1 of=sector.bin bs=512 count=1
+1+0 records in
+1+0 records out
+512 bytes (512 B) copied, 0.0245341 s, 20.9 kB/s
+$ od -x sector.bin
+</code></pre>
+
+<p>启动设备的第一个扇区的512字节称为MBR（master boot record），MBR存放三部分内容：</p>
+
+<ol>
+<li>boot loader stage1程序     446字节 　　</li>
+<li>硬盘分区表                        64字节 　　</li>
+<li>该扇区的有效标示(OxAA55)              2字节</li>
+</ol>
+
+
+<p>BIOS检索到可启动的设备后，将这个设备的MBR区域的stage1程序加载到起始地址为0x7C00的一块内存区域，然后从这个地址执行stage1程序。接下来的启动过程分为几个阶段：</p>
+
+<h3>Bootloader</h3>
+
+<h4>stage1加载执行stage1.5</h4>
+
+<p>  stage1.5位于MBR区域后的30K范围内, 它包含文件系统相关的驱动代码, stage1.5可加载的文件系统包括：</p>
+
+<pre><code>  $ /bin/ls /boot/grub/*stage1_5
+  /boot/grub/e2fs_stage1_5  /boot/grub/ffs_stage1_5      /boot/grub/jfs_stage1_5      /boot/grub/reiserfs_stage1_5  /boot/grub/vstafs_stage1_5
+  /boot/grub/fat_stage1_5   /boot/grub/iso9660_stage1_5  /boot/grub/minix_stage1_5  /boot/grub/ufs2_stage1_5    /boot/grub/xfs_stage1_5
+  $ file /boot/grub/reiserfs_stage1_5
+  /boot/grub/reiserfs_stage1_5: GRand Unified Bootloader stage1_5 version 3.2, identifier 0x5, GRUB version 0.97, configuration file /boot/grub/stage2
+  $ file /boot/grub/stage2
+  /boot/grub/stage2: GRand Unified Bootloader stage2 version 3.2, identifier 0x0, GRUB version 0.97, configuration file /boot/grub/menu.lst
+</code></pre>
+
+<h4>stage1.5加载stage2</h4>
+
+<p>  在stage2阶段通过/boot/grub/menu.lst生成可启动的系统列表，并启动一个图形化的选择界面：</p>
+
+<pre><code>  timeout   7
+  default   0
+  color light-blue/black light-cyan/blue
+
+  # (0) Arch Linux
+  title  Arch Linux
+  root   (hd0,7)
+  kernel /boot/vmlinuz-linux root=/dev/sda8 ro
+  initrd /boot/initramfs-linux.img
+
+  # (1) Arch Linux
+  title  Arch Linux Fallback
+  root   (hd0,7)
+  kernel /boot/vmlinuz-linux root=/dev/sda8 ro
+  initrd /boot/initramfs-linux-fallback.img
+
+  # (2) Windows
+  title Microsoft Windows 7
+  rootnoverify (hd0,1)
+  makeactive
+  chainloader +1
+</code></pre>
+
+<p>menu.lst指定了kernel和initrd镜像的路径。</p>
+
+<h4>解压kernel</h4>
+
+<p>当选择进入某个系统后，对应的kernel被载入内存并解压，控制权转移到kernel，kernel接下来初始化硬件，加载必要的驱动模块</p>
+
+<h4>加载initrd镜像</h4>
+
+<p>加载initrd（init ram filesystem，初始ram文件系统），在内存中展开位一个虚拟的文件系统，并执行其中的init脚本,通过以下命令可以揭开这个image文件，查看这个init脚本做了什么：</p>
+
+<pre><code>  $ cp /boot/initramfs-linux.img /tmp/initramfs/initramfs-linux.gz
+  $ gzip -d initramfs-linux.gz 
+  $ file initramfs-linux 
+  initramfs-linux: ASCII cpio archive (SVR4 with no CRC)
+  $ cpio -i &lt;initramfs-linux 
+  16076 blocks
+  [calvin@arch-laptop /tmp/initramfs 01:11:09 ]
+  $ ls
+  total 7.9M
+  lrwxrwxrwx 1 calvin calvin    7 May  7 01:11 bin -&gt; usr/bin
+  -rw-r--r-- 1 calvin calvin   70 May  7 01:11 config
+  drwxr-xr-x 2 calvin calvin   40 May  7 01:11 dev
+  drwxr-xr-x 3 calvin calvin  100 May  7 01:11 etc
+  drwxr-xr-x 2 calvin calvin   60 May  7 01:11 hooks
+  -rwxr-xr-x 1 calvin calvin 3.2K May  7 01:11 init
+  -rw-r--r-- 1 calvin calvin 7.2K May  7 01:11 init_functions
+  -rw-r--r-- 1 calvin calvin 7.9M May  7 01:10 initramfs-linux
+  lrwxrwxrwx 1 calvin calvin    7 May  7 01:11 lib -&gt; usr/lib
+  drwxr-xr-x 2 calvin calvin   40 May  7 01:11 new_root
+  drwxr-xr-x 2 calvin calvin   40 May  7 01:11 proc
+  drwxr-xr-x 2 calvin calvin   40 May  7 01:11 run
+  lrwxrwxrwx 1 calvin calvin    7 May  7 01:11 sbin -&gt; usr/bin
+  drwxr-xr-x 2 calvin calvin   40 May  7 01:11 sys
+  drwxr-xr-x 2 calvin calvin   40 May  7 01:11 tmp
+  drwxr-xr-x 4 calvin calvin  100 May  7 01:11 usr
+  -rw-r--r-- 1 calvin calvin    5 May  7 01:11 VERSION
+</code></pre>
+
+<p>执行这个init脚本时，屏幕上会输出以下信息：</p>
+
+<pre><code>  :: Starting udevd...
+  done.
+  ... ... 
+</code></pre>
+
+<h4>启动init进程</h4>
+
+<p>挂载真正的根文件系统，执行/sbin/init程序。<br/>
+init程序首先读取/etc/inittab文件,这个过程参照<a href="https://wiki.archlinux.org/index.php/Arch_Boot_Process_%28%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87%29#init:_The_Arch_boot_scripts">here</a></p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Linux_startup_process#Overview_of_typical_process">http://en.wikipedia.org/wiki/Linux_startup_process#Overview_of_typical_process</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Booting#Boot_sequence_on_standard_PC_.28IBM-PC_compatible.29">http://en.wikipedia.org/wiki/Booting#Boot_sequence_on_standard_PC_.28IBM-PC_compatible.29</a></li>
+<li><a href="http://www.cnblogs.com/bangerlee/archive/2012/03/11/2388275.html">http://www.cnblogs.com/bangerlee/archive/2012/03/11/2388275.html</a></li>
+<li><a href="http://blog.sina.com.cn/s/blog_4c2edd700100cne2.html">http://blog.sina.com.cn/s/blog_4c2edd700100cne2.html</a></li>
+<li><a href="http://www.ibm.com/developerworks/linux/library/l-linuxboot/">http://www.ibm.com/developerworks/linux/library/l-linuxboot/</a></li>
+<li><a href="https://wiki.archlinux.org/index.php/Arch_Boot_Process_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)#init:_The_Arch_boot_scripts">https://wiki.archlinux.org/index.php/Arch_Boot_Process_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)#init:_The_Arch_boot_scripts</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Real_mode">http://en.wikipedia.org/wiki/Real_mode</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Archlinux调教小记]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/04/archlinux-adjustment-tips/"/>
+    <updated>2012-05-04T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/04/archlinux-adjustment-tips</id>
+    <content type="html"><![CDATA[<h3>开机时设置屏幕亮度为最暗</h3>
+
+<pre><code>sudo echo 'echo 0 &gt; /sys/class/backlight/acpi_video0/brightness'&gt;&gt;/etc/rc.local
+</code></pre>
+
+<h3>关机或者重启时最后屏幕变黑，但是机器一直关不掉，只有强行按电源键关闭</h3>
+
+<p>原因在于我试图在开机时关掉Navia显卡<a href="https://wiki.archlinux.org/index.php/Dell_XPS_15#System_Settings">https://wiki.archlinux.org/index.php/Dell_XPS_15#System_Settings</a>：</p>
+
+<pre><code>rc.conf中
+MODULES=(acpi_call)
+rc.local中
+echo '\_SB.PCI0.PEG0.PEGP._OFF' &gt; /proc/acpi/call
+</code></pre>
+
+<p>由此会造成这个问题，去掉开机加载acpi_call模块就行了，为什么会这样呢？不知道&hellip;</p>
+
+<h3>音量设置</h3>
+
+<pre><code>#pacman -S alsa-utils alsa-lib
+#alsactl store
+</code></pre>
+
+<h3>ibus输入中文显示乱码</h3>
+
+<p>使用ibus输入中文，在gedit下没有问题，在terminal中或者gvim中输入显示乱码
+google得知是glibc的问题，在/etc/locale.gen中去掉zh_CN.UTF-8的注释，再运行locale-gen即可</p>
+
+<h3>下载firefox后执行./firefox失败，</h3>
+
+<pre><code>$ /opt/firefox/firefox
+/opt/firefox/firefox: error while loading shared libraries: libstdc++.so.6: cannot open shared object file: No such file or directory
+$ file /opt/firefox/firefox
+/opt/firefox/firefox: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.9, stripped
+$ ldd /opt/firefox/firefox
+    linux-gate.so.1 =&gt;  (0xf7753000)
+    libpthread.so.0 =&gt; /usr/lib32/libpthread.so.0 (0xf771d000)
+    libdl.so.2 =&gt; /usr/lib32/libdl.so.2 (0xf7718000)
+    libstdc++.so.6 =&gt; not found
+    libm.so.6 =&gt; /usr/lib32/libm.so.6 (0xf76ea000)
+    libgcc_s.so.1 =&gt; not found
+    libc.so.6 =&gt; /usr/lib32/libc.so.6 (0xf7546000)
+    /lib/ld-linux.so.2 (0xf7754000)
+</code></pre>
+
+<p>原因是firefox可执行文件是为32位平台编译的，在我的64位机器上的/lib等目录下缺少相应的64位库文件，下载<a href="ftp://ftp.mozilla.org/pub/firefox/">ftp://ftp.mozilla.org/pub/firefox/</a>64位firefox即可。</p>
+
+<h3>Microsoft wireless mobile mouse 3500纵向滚动过快</h3>
+
+<p>每当从windows重启进入arch时会发现微软无线鼠标3500滚轮纵向滚动太快，每次拔下无线接收器问题就能解决，然而有一个更好的办法，见<a href="http://www.jochus.be/site/2010-08-02/linux/microsoft-wireless-laser-mouse-5000-scroll-speed-too-fast-ubuntu-lucid-1004-lts">here</a>,<a href="https://github.com/paulrichards321/resetmsmice">here</a>有一个patch可以解决这个问题。<br/>
+编译安装后在/etc/rc.local中添加<code>resetmsmice</code>即可。</p>
+
+<h3>Disable PC Speaker Beep</h3>
+
+<p><a href="https://wiki.archlinux.org/index.php/Disable_PC_Speaker_Beep">https://wiki.archlinux.org/index.php/Disable_PC_Speaker_Beep</a></p>
+
+<h3>禁用IPv6</h3>
+
+<p>添加ipv6.disable=1你的启动加载器的内核行中。<br/>
+另外可以通过sysctl禁用IPv6，添加下面的内容到 /etc/sysctl.conf:</p>
+
+<pre><code># Disable IPv6
+net.ipv6.conf.all.disable_ipv6 = 1
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

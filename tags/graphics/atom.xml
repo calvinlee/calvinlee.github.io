@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: graphics | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/tags/graphics/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2013-11-08T10:39:09+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Android Graphics总结]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/04/19/android-graphics-system/"/>
+    <updated>2012-04-19T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/04/19/android-graphics-system</id>
+    <content type="html"><![CDATA[<h2>#</h2>
+
+<p><a href="/images/android_graphics.png"><img src="/images/android_graphics.png" alt="/images/android_graphics.png" /></a></p>
+]]></content>
+  </entry>
+  
+</feed>

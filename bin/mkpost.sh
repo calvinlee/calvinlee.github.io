@@ -4,7 +4,7 @@
 # Helper script that creates new template posts.
 
 POST_DIR=./_posts
-MARKDOWN_EXT=.md
+MARKDOWN_EXT=.markdown
 
 usage() {
     echo "usage: $0 -t title [-d date]"
@@ -51,14 +51,17 @@ if [ -e $POST_PATH ]; then
     exit 1
 fi
 
+now=`date +"%Y-%m-%d %H:%M"`
 cat > $POST_PATH <<EOF
 ---
 layout: post
 title: "UpdateMe"
-category: 
+date: $now
+comments: true
+categories: []
 tags: []
 ---
-{% include JB/setup %}
+
 
 EOF
 
