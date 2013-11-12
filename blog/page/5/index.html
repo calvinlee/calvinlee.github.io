@@ -9,7 +9,8 @@
   <meta name="author" content="Calvin Lee">
 
   
-  <meta name="description" content="Originally posted by Even Charlton. A common problem for new Android developers is how to handle screen rotations on the Android platform. Screen &hellip;">
+  <meta name="description" content="寻址和字节顺序 字长决定整数和指针的大小，因为虚拟地址是以这样的一个字来编码的，所以字长决定的最重要的系统参数就是虚拟地址的空间的最大大小。
+在存储器中存储数据的顺序分为小端存储和大端存储： 小端存储：低字节存储在低地址，高字节存储在高地址。Intel兼容机大多采用这种规则。 大端存储： &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -68,6 +69,988 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/13/csapp-representing-and-manipulating-information/">CSAPP读书笔记-信息的表示和处理</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-13T00:00:00+08:00" pubdate data-updated="true">Apr 13<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/13/csapp-representing-and-manipulating-information/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/13/csapp-representing-and-manipulating-information/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>寻址和字节顺序</h3>
+
+<ul>
+<li><p>字长决定整数和指针的大小，因为虚拟地址是以这样的一个字来编码的，所以字长决定的最重要的系统参数就是虚拟地址的空间的最大大小。</p></li>
+<li><p>在存储器中存储数据的顺序分为小端存储和大端存储：<br/>
+  <strong>小端存储</strong>：低字节存储在低地址，高字节存储在高地址。Intel兼容机大多采用这种规则。<br/>
+  <strong>大端存储</strong>：高字节存储在低地址，高字节存储在低地址。IBM和Sun的大型机多采用这种规则。<br/>
+  大多数时候，字节顺序对程序员是透明的。但是字节存储顺序在以下场合会产生问题：<br/>
+  在不同类型的机器间通过网络传送二进制数据，发送方应该把数据转换成网络标准再发送，接收方应该先把数据从网络标准格式转化成内部格式。<br/>
+  阅读表示整数数据的字节序列时</p></li>
+</ul>
+
+
+<h3>表示字符串</h3>
+
+<ul>
+<li><p>使用ASCII码作为字符码在任何系统上的表示方法都相同，与字节顺序和字大小规则无关，因此文本数据比二进制数据有更强的平台独立性。由于不同的机器使用不同且不兼容的指令和编码方式，因此编译后的二进制代码在不同的机器上时不兼容的，如果要在不同的机器上运行程序，必须重新编译生成新的二进制码才能运行。</p></li>
+<li><p>char类型是有符号的还是无符号的？</p></li>
+</ul>
+
+
+<h3>C语言的位运算</h3>
+
+<ul>
+<li><p>表达式~0生成一个全1的掩码，不管机器的字大小是多少，这是一个可移植的写法。</p></li>
+<li><p>C语言中的右移位运算包括逻辑右移和算术右移。逻辑右移在左端补0，算术右移在左端补最高有效位的值。C语言标准并没有规定应该使用哪种类型的右移方式。实际上，对于无符号数据，右移必须是逻辑的。而对于有符号数据，几乎所有的机器都使用算术右移。在Java中对右移有明确定义：运算符<code>&gt;&gt;</code>表示算术右移，运算符<code>&gt;&gt;&gt;</code>表示逻辑右移。</p></li>
+<li><p>一种交换指针所指向的存储位置的方法：</p>
+
+<pre><code>void swap(int *x, int *y) {
+    *y = *x ^ *y;
+    *x = *x ^ *y;
+    *y = *x ^ *y;
+}
+</code></pre></li>
+</ul>
+
+
+<h3>数据类型及转换</h3>
+
+<ul>
+<li><p>整数数据类型的取值范围</p></li>
+<li><p>确定大小的整数类型</p>
+
+<p>由于每种数据类型在不同的机器上可能有不同的取值范围，而c语言标准只是规定了每种数据类型的最小范围，而不是确定的范围，ISO C99在stdint.h中定义了形如intN_t和uintN_t，指定了N位有符号和无符号整数。N一般取值8，16，32，64，如int32_t，可以在所有机器上无歧义的定义一个32位的整型变量。
+Java中没有long long数据类型，单字节数据类型位byte，而不是char。</p></li>
+<li><p>类型转换以及有符号数和无符号数之间的转换</p>
+
+<p>当执行一个运算时，如果一个运算数是有符号的而另一个是无符号的，那么C语言会隐式的将有符号的运算数强制转换为无符号数，并假设这两个数都是非负的。<br/>
+比如在一个32位机器上计算<code>-1&lt;0U</code>，-1的二进制位模式表示为FFFFFFFF，那么有符号数-1会被隐式转换为无符号数——以无符号数来解释位模式FFFFFFFF，那么就变成了计算<code>4294967295U &lt; 0U</code>，而得出来的答案显然是错的。<br/>
+无符号数和有符号数之间的这种隐式转换很容易导致隐藏的bug，使用无符号数一定要谨慎。</p>
+
+<p>类型转换的时机：</p>
+
+<ol>
+<li> 显示的强制转换</li>
+<li> 当一种类型的表达式被赋值给另外一种类型的变量时，发生隐式转换。</li>
+</ol>
+
+
+<p>C语言允许不同数据类型之间的强制转换。这种转换的一般规则是：<strong>转换的数底层的存储位模式不会改变，只是改变了解释这些位的方式。</strong><br/>
+当转换既涉及到大小变化（如int&mdash;>short）又涉及到符号改变时，会先进行大小的转换，再以有符号或者无符号的方式去解释转换后的位模式。如：</p>
+
+<pre><code>  short  sx = 0xcfc7;
+  unsigned uy = sx;
+  printf("uy = %u\n", uy);
+</code></pre>
+
+<p>输出：uy = 4294954951</p>
+
+<p>转换的过程是：<br/>
+先转换大小：short&mdash;>int，进行位扩展，0xcfc7&mdash;>0xffffcfc7<br/>
+再完成有符号到无符号的转换：以无符号的方式解释0xffffcfc7，得到4294954951。</p></li>
+</ul>
+
+
+<h3>Reference</h3>
+
+<p><a href="http://www.ruanyifeng.com/blog/2009/08/twos_complement.html">关于补码</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/13/csapp-machine-level-representation-of-c-programs/">CSAPP读书笔记-程序的机器级表示</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-13T00:00:00+08:00" pubdate data-updated="true">Apr 13<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/13/csapp-machine-level-representation-of-c-programs/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/13/csapp-machine-level-representation-of-c-programs/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/10/x86-registers/">X86 平台寄存器概述</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-10T00:00:00+08:00" pubdate data-updated="true">Apr 10<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/10/x86-registers/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/10/x86-registers/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>32位机器</h3>
+
+<h3>64位机器</h3>
+
+<h3>为什么寄存器的数量不是多多益善？</h3>
+
+<p><a href="http://bbs.pediy.com/archive/index.php?t-78354.html">http://bbs.pediy.com/archive/index.php?t-78354.html</a>
+<a href="http://www.cppblog.com/lingjingqiu/archive/2009/12/10/102874.html">http://www.cppblog.com/lingjingqiu/archive/2009/12/10/102874.html</a>
+<a href="http://www.cs.virginia.edu/~evans/cs216/guides/x86.html">http://www.cs.virginia.edu/~evans/cs216/guides/x86.html</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/10/is-char-signed-or-unsigned/">Char类型是有符号的还是无符号的？</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-10T00:00:00+08:00" pubdate data-updated="true">Apr 10<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/10/is-char-signed-or-unsigned/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/10/is-char-signed-or-unsigned/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://ihacklog.com/programming/c/char-is-signed-or-unsigned-by-default.html">http://ihacklog.com/programming/c/char-is-signed-or-unsigned-by-default.html</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/05/interesting-c-code-snippets/">一些有趣的C程序</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-05T00:00:00+08:00" pubdate data-updated="true">Apr 5<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/05/interesting-c-code-snippets/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/05/interesting-c-code-snippets/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><pre><code>#include &lt;stdio.h&gt;
+
+int n[]={0x48,0x65,0x6C,0x6C, 
+0x6F,0x2C,0x20, 
+0x77,0x6F,0x72, 
+0x6C,0x64,0x21, 
+0x0A,0x00},\*m=n;
+
+main(n){ 
+    if(putchar (\*m)!='\0') main(m++);
+}
+</code></pre>
+
+<p>输出<code>Hello, world!</code></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/04/kindle-related-resources/">Kindle Keyboard 资源索引</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-04T00:00:00+08:00" pubdate data-updated="true">Apr 4<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/04/kindle-related-resources/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/04/kindle-related-resources/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="/images/amazon_kindle_wifi_3rd_generation.jpg"><img src="/images/amazon_kindle_wifi_3rd_generation.jpg" alt="/images/amazon_kindle_wifi_3rd_generation.jpg" /></a></p>
+
+<h3>越狱</h3>
+
+<p>下载 <a href="http://www.mobileread.com/forums/showthread.php?t=88004">update-jailbreak-*.zip</a>，并解压出对应你的机器的版本的 update_jailbreak_*_install.bin 文件，放到 Kindle 的根目录中，然后在 Kindle 的 Settings 页面中，按 Menu，选择 Update your Kindle，等待两分钟左右，即可完成越狱，并且由于已经重启了，这时 Kindle 的根目录中应该已经多出了 linkjail 这个目录了。在 Kindle 的内部文件系统中，相应的目录已经被换成了符号链接，目标就是这个 linkjail，我们可以通过修改 linkjail 中的文件来达到修改 Kindle 内部文件系统文件的目的。</p>
+
+<h3>中文字体优化</h3>
+
+<ul>
+<li><a href="http://wzyboy.im/post/736.html">Kindle 中文阅读终极优化指南</a></li>
+<li><a href="http://www.kdolphin.com/1204">Kindle 3的字体、行距、边距</a></li>
+<li><a href="http://irising.me/2011/06/4986/">Kindle 3 安装中文输入法</a></li>
+</ul>
+
+
+<h3>电子书资源</h3>
+
+<ul>
+<li><a href="http://www.douban.com/group/topic/22560203/">http://www.douban.com/group/topic/22560203/</a></li>
+<li><a href="http://book.zi5.me/">子乌书简</a></li>
+<li><a href="http://ikindle.mobi/book/">ikindle万卷书</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/31/connect-2-android-emulator-instance/">Android模拟器与host主机以及模拟器之间进行TCP通信</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-31T00:00:00+08:00" pubdate data-updated="true">Mar 31<span>st</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/31/connect-2-android-emulator-instance/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/31/connect-2-android-emulator-instance/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>QEMU Networking</h3>
+
+<p>Android 模拟器基于QEMU虚拟机构建，虚拟机（guest）与所在的PC主机（host）之间的网络通信有几种方式：</p>
+
+<ol>
+<li><p>NAT方式<br/>
+  Android模拟器的网络连接使用NAT方式。<br/>
+ 这种方式通过host机器的网络接口访问网络，优点是方便设置，不用创建额外的网络接口。缺点是guest可以访问外部网络，但是反过来host不能访问到guest。Android通过端口转发解决这一问题。<br/>
+ NAT网络结构如下所示(图片来自<a href="http://wiki.qemu.org/Documentation/Networking">qumu wiki</a>)：</p>
+
+<p> <a href="/images/qemu_Slirp_concept.png"><img src="/images/qemu_Slirp_concept.png" alt="/images/qemu_Slirp_concept.png" /></a></p>
+
+<p> 由此可见，guest与host不在同一个网段，guest通过10.0.2.2访问host机器.</p></li>
+<li>Bridge方式</li>
+</ol>
+
+
+<h3>模拟器与host通信</h3>
+
+<p>启动模拟器，adb server会在5554端口上监听来自adb client的连接，我们可以通过这个端口与模拟器通信。<br/>
+在模拟器上运行如下服务器程序，在<strong>模拟器</strong>的8000端口上监听客户端连接，接收到客户端连接后，发送一段echo字符串，然后关闭连接：</p>
+
+<pre><code>public class EmulatorServerActivity extends Activity {
+    private ServerSocket serverSocket = null;
+
+    public static final int SERVERPORT = 8000;
+
+    private boolean keepRunning = false;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        keepRunning = true;
+        new Thread(new ServerThread()).start();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        try {
+            keepRunning = false;
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    class ServerThread implements Runnable {
+        public void run() {
+            try {
+                serverSocket = new ServerSocket(SERVERPORT);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            while (keepRunning) {
+                try {
+                    Log.d("Server", "Wating for connection...");
+                    Socket s = serverSocket.accept();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(
+                            s.getInputStream()));
+                    String msg = reader.readLine();
+                    Log.d("Server", "Received message from client:" + msg);
+                    String echo = "You are telling me: " + msg + ", bye\n";
+                    s.getOutputStream().write(echo.getBytes());
+                    s.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+</code></pre>
+
+<p>在host机器上通过telnet连接到模拟器：</p>
+
+<pre><code>telnet localhost 5554
+</code></pre>
+
+<p>然后设置端口转发：</p>
+
+<pre><code>redir add tcp:7777:8000
+redir list // 显示已添加的端口转发
+exit
+</code></pre>
+
+<p>添加端口转发命令格式为：</p>
+
+<pre><code>redir add &lt;protocol&gt;:&lt;host-port&gt;:&lt;guest-port&gt;
+</code></pre>
+
+<p>其中，protocol必须是tcp或udp，host-port是主机上开启的端口号，guest-port 是模拟器的监听端口号。</p>
+
+<p>这条端口转发命令表示将发送到host机器的7777端口的所有tcp数据转发到guest机器的8000端口，也就是我们的server程序监听的端口，这个过程对client来说是完全透明的，它只知道它把数据发送到host的7777端口，它对数据如何转发一无所知。这时在host机器上可以看到7777端口已经处于监听状态：</p>
+
+<pre><code>$ netstat -tln
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State      
+tcp        0      0 127.0.0.1:7777          0.0.0.0:*               LISTEN 
+</code></pre>
+
+<p>通过设置端口转发，host机器就可以通过这个7777端口连接guest机器上的服务程序了：</p>
+
+<pre><code>$ telnet localhost 7777
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+hello
+You are telling me: hello, bye
+Connection closed by foreign host.
+</code></pre>
+
+<h3>模拟器之间通信</h3>
+
+<p>启动另一个模拟器，运行客户端程序：</p>
+
+<pre><code>public class EmulatorClientActivity extends Activity {
+    private String serverIpAddress = "10.0.2.2";
+
+    // 注意：我们需要连接host机器的7777端口
+    private static final int REDIRECTED_SERVERPORT = 7777;
+
+    private Socket socket;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        new Thread(new CommsThread()).start();
+    }
+
+    class CommsThread implements Runnable {
+        public void run() {
+            try {
+                InetAddress serverAddr = InetAddress.getByName(serverIpAddress);
+                socket = new Socket(serverAddr, REDIRECTED_SERVERPORT);
+                socket.getOutputStream().write(new String("Hello\n").getBytes());
+                Log.d("Client", "Message sent to server");
+                socket.close();
+            } catch (UnknownHostException e1) {
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
+    }
+}
+</code></pre>
+
+<p>注意：在这个客户端程序里，我们需要连接的socket为10.0.2.2:7777,其中，10.0.2.2是host机器的ip地址，发送到host机器的7777端口的数据会被透明的转发到另一个模拟器的8000端口上，这样，连接就建立起来了。</p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://wiki.qemu.org/Documentation/Networking">http://wiki.qemu.org/Documentation/Networking</a></li>
+<li><a href="http://www.virtualbox.org/manual/ch06.html#nat-limitations">http://www.virtualbox.org/manual/ch06.html#nat-limitations</a></li>
+<li><a href="http://felipec.wordpress.com/2009/12/27/setting-up-qemu-with-a-nat/">http://felipec.wordpress.com/2009/12/27/setting-up-qemu-with-a-nat/</a></li>
+<li><a href="http://www.cnblogs.com/yangnas/archive/2010/05/28/1745917.html">http://www.cnblogs.com/yangnas/archive/2010/05/28/1745917.html</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/26/git-tips/">Git Tips</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-26T00:00:00+08:00" pubdate data-updated="true">Mar 26<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/26/git-tips/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/26/git-tips/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>配置</h3>
+
+<ul>
+<li><p>git alias</p>
+
+<p>  git config &mdash;global alias.co checkout<br/>
+  git config &mdash;global alias.br branch<br/>
+  git config &mdash;global alias.ci commit<br/>
+  git config &mdash;global alias.st status<br/>
+  &hellip; &hellip;</p></li>
+</ul>
+
+
+<h3>查看历史</h3>
+
+<ul>
+<li><p>git log</p>
+
+<p>-N                 只显示最近N次提交<br/>
+-p                 按补丁格式显示每个更新之间的差异。<br/>
+&mdash;stat             显示每次更新的文件修改统计信息。<br/>
+&mdash;shortstat        只显示&mdash;stat中最后的行数修改添加移除统计。<br/>
+&mdash;name-only        仅在提交信息后显示已修改的文件清单。<br/>
+&mdash;name-status      显示新增、修改、删除的文件清单。<br/>
+&mdash;relative-date    使用较短的相对时间显示（比如，“2 weeks ago”）。<br/>
+&mdash;graph            显示 ASCII 图形表示的分支合并历史。<br/>
+&mdash;pretty           使用其他格式显示历史提交信息。可用的选项包括oneline，short，full，fuller和format（后跟指定格式）。<br/>
+&mdash;since,&mdash;after    仅显示指定时间之后的提交。<br/>
+&mdash;until,&mdash;before   仅显示指定时间之前的提交。<br/>
+&mdash;author           仅显示指定作者相关的提交。<br/>
+&mdash;committer        仅显示指定提交者相关的提交。</p>
+
+<p><code>git log --stat</code><br/>
+查看每次提交修改的代码行数</p>
+
+<p><code>git log --name-status  --author=bob --pretty=format:</code> // 注意format为空
+统计bob改动的文件列表，可以将结果保存为文本文件，用vim打开，使用<code>:sort u</code>删去重复的行</p>
+
+<p><code>git instaweb</code> 以web的方式查看仓库<br/>
+<code>git instaweb --stop</code> 停止服务器</p></li>
+</ul>
+
+
+<h3>撤销回滚</h3>
+
+<ul>
+<li><p>git reset</p>
+
+<ol>
+<li> git reset &mdash;soft 只撤销 commit,保留 working tree 和 index file。</li>
+<li> git reset &mdash;hard 撤销 commit、index file 和 working tree,即彻底销毁最近一次的 commit</li>
+<li> git reset &mdash;mixed 撤销 commit 和 index file,保留 working tree</li>
+<li> git reset 和 git reset &mdash;mixed 完全一样</li>
+<li> git reset &mdash;用于删除登记在 index file 里的某个文件。</li>
+</ol>
+
+
+<p>  git reset的第二种用法: <br/>
+  <code>git reset [-q] [&lt;commit&gt;] [--] &lt;paths&gt;...</code>
+  将指定路径的文件在commit的内容拷贝到暂存区。git reset path和git add path效果相反。</p></li>
+<li><p>回退版本(参考<a href="http://hi.baidu.com/talltwintowers/blog/item/36c931bf7685360119d81fc6.html">这里</a>)</p>
+
+<p>回退版本很简单，<code>git checkout sha1</code> 即可。<br/>
+现在你不在任何一个branch（no branch），执行git status显示：</p>
+
+<pre><code>  $ git status
+  # Not currently on any branch.
+  nothing to commit (working directory clean)
+</code></pre>
+
+<p>  这个操作会将HEAD指向指定commit,并重置index和working tree到此commit的状态. 但由于此commit不是任何branch的头(&ldquo;head&rdquo; or &ldquo;tip&rdquo;),所以git会给出警告.这种情况称为&#8221;HEAD is detached&#8221;.参考<a href="http://www.kernel.org/pub/software/scm/git/docs/user-manual.html#detached-head">这里</a><br/>
+  虽然警告,但并没有什么危险,只要别做commit,最后checkout回(某个branch)来就行了.<br/>
+  如果此时做commit呢?&mdash;那也没有什么,只是这个新的commit以后只能通过SHA1来引用了(当然,还可以用git reflog看到),好比一个野指针;或者你赋个tag给它.不过这没有意义,如果你真的想从这儿发展下去,那么应该新建一个branch,比如<code>git checkout -b &lt;new_branch&gt; &lt;start_point&gt;</code><br/>
+  但是注意,做此操作时working tree和index应该是&#8221;干净的&#8221;,就是和HEAD(所指的commit)完全一致,没有任何改动,否则git会报错不执行;你可能会看到类似这样的error:</p>
+
+<pre><code>  error: You have local changes to 'somefile'; cannot switch branches.或
+  error: Entry 'somefile' would be overwritten by merge. Cannot merge.
+</code></pre>
+
+<p>  (不过,你可以用&mdash;merge选项强制执行,此时git会做一个three-way merge)</p>
+
+<p>  要切换回HEAD commit,执行<code>git checkout branch-name</code></p></li>
+</ul>
+
+
+<h3>Diff &amp; Patch</h3>
+
+<ul>
+<li><p>git diff</p>
+
+<pre><code>git diff 查看 working tree 与 index file 的差别。  
+git diff --cached/--staged 查看 index file 与最后一次提交的commit之间的差别的。  
+git diff HEAD 是查看 working tree 和最后一次提交的commit之间的差别的。  
+</code></pre></li>
+<li><pre><code>git format-patch -1    生成最后一个提交对应的patch文件
+git am &lt; diff.patch    把一个patch文件应用到当前分支
+</code></pre></li>
+</ul>
+
+
+<h3>Branch</h3>
+
+<ul>
+<li>所谓Branch，本质上是一个指针（一串SHA号），指向某个commit。特别的，HEAD是当前分支的最后一个commit的别名。</li>
+<li><p>git merge
+  多个分支进行merge时可能存在两种方式：</p>
+
+<ol>
+<li> Fast-forward</li>
+<li> 两个分支（A，B）的末端和这两个分支的共同祖先（C）进行三方合并（可能出现冲突），合并后将产生一个新的commit，这个commit有两个祖先（A和B）。</li>
+</ol>
+
+
+<p>  <code>git branch --merged</code> 查看有哪些分支已经合并进当前分支了，这些分支可以删掉了，因为这些分支的更改已经包含再当前分支里面了<br/>
+  <code>git branch --no-merged</code> 查看尚未合并的分支</p></li>
+<li><p>git rebase
+                   A&mdash;-B&mdash;-C topic
+                  /
+             D&mdash;-E&mdash;-F&mdash;-G master
+当前分支为topic，<code>git rebase master</code>，rebase的过程是：</p>
+
+<ol>
+<li>把从topic和master共同的祖先E开始在当前分支上的提交生成一个patch文件</li>
+<li>将A、B、C砍掉，相当与执行<code>git reset --hard master</code></li>
+<li>将生成的patch文件一个一个应用到G上</li>
+</ol>
+
+
+<p>结果变成这样：
+                           A&#8217;&mdash;B&#8217;&mdash;C&#8217; topic
+                          /
+             D&mdash;-E&mdash;-F&mdash;-G master
+topic的提交历史被改写了，成了master分支的直接下游，这时在master分支上做一次fast-forward的merge就好了。</p>
+
+<p>可见，相比于merge，rebase不会产生一个新的commit，合并后的主线更加干净。如果希望在执行git pull时自动使用git rebase取代默认的git merge操作，可以执行</p>
+
+<pre><code>git pull --rebase
+</code></pre>
+
+<p>参见<a href="http://www.worldhello.net/gotgithub/04-work-with-others/020-shared-repo.html#rebase-and-push">这里</a></p></li>
+<li><p>git pull</p>
+
+<p>  git pull = git fetch + git merge<br/>
+  git pull origin next = git fetch origin/next + git merge origin/next  // 将远程分支next合并到当前分支上</p>
+
+<p><code>git pull</code>会把所有正在跟踪远端仓库的分支的本地分支进行数据拉取。
+执行git pull, git merge, git reset之前的HEAD会被保存到ORIG_HEAD,所以如果要回滚刚才的pull动作，那么执行<code>git reset --hard ORIG_HEAD</code>。查看pull下来的内容，执行<code>git diff ORIG_HEAD</code></p></li>
+<li><p>git push</p>
+
+<p><code>git push origin featureA</code> 将本地的featureA分支推送到远程仓库<br/>
+<code>git push origin local_branch:remote_branch</code> 将本地的local_branch的内容推送到origin远程仓库的remote_branch分支上去，所以执行 <code>git push origin :remote_branch</code> 将删除远程版本库的 remote_branch 分支。</p></li>
+<li><p>git fetch</p>
+
+<pre><code>$ git remote add rc git@github.com:calvinlee/git-sandbox.git
+$ git remote -v
+origin    git@github.com:calvinlee/git-sandbox.git (fetch)
+origin    git@github.com:calvinlee/git-sandbox.git (push)
+rc    git@github.com:calvinlee/git-sandbox.git (fetch)
+rc    git@github.com:calvinlee/git-sandbox.git (push)
+$ git fetch rc
+ * [new branch]      experimental -&gt; rc/experimental
+ * [new branch]      master     -&gt; rc/master
+</code></pre>
+
+<p>运行git fetch后，本地多了从rc这个库fetch下来的分支：</p>
+
+<pre><code>$ git branch -r
+origin/HEAD -&gt; origin/master
+origin/experimental
+origin/master
+rc/experimental
+rc/master
+</code></pre>
+
+<p>现在可以切换到这个分支查看，或者选择merge到本地分支。（远程分支以这样的形式命名：远程仓库名/分支名）</p></li>
+</ul>
+
+
+<h3>git reset与git checkout</h3>
+
+<p><code>git reset</code>用来修改refs的指向:修改的是.git/refs/heads/master的值，HEAD本身一直指向refs/heads/master, 并没有在reset过程中改变。
+<code>git checkout</code>用来修改HEAD的指向: 修改的是.git/HEAD的文件内容, checkout不影响.git/refs/heads/下文件的内容。</p>
+
+<p>什么叫detached HEAD？<br/>
+这个状态下.git/HEAD指向了一个具体的commit ID，而不是一个分支的名称。</p>
+
+<h3>符号</h3>
+
+<ul>
+<li><p>branchA..branchB</p>
+
+<p>用来获取在branchB上但是不在branchA上的提交。如：<br/>
+<code>git log --pretty=format:"%h %s" HEAD~3..HEAD</code> 显示最近三次提交的log<br/>
+<code>git log origin/master..HEAD</code> 显示所有在当前分支上但不在远程分支上的提交。如果当前分支正在track远程分支，那么下次运行<code>git push</code>将推送这些提交到远程分支上。</p>
+
+<p>这种表示法与下列语法等价：</p>
+
+<pre><code> ^branchA branchB
+ branchB --not branchA
+</code></pre></li>
+<li><p>branchA&hellip;branchB</p>
+
+<p>获取被两个分支之一包含但不被这两个分支同时包含的提交。</p></li>
+<li><p>^[N] 和 ~[N]</p>
+
+<p>两个分支合并后，你合并时所在分支称为first parent，你所合并的分支称为second parent<br/>
+HEAD^[N]表示HEAD的第N个second parent<br/>
+HEAD~[N]表示HEAD的第N个first parent</p></li>
+<li><p>获取某一次特定提交对应的文件内容
+e43fef:path/to/file<br/>
+获取暂存区中的文件对象：<br/>
+:path/to/file</p></li>
+</ul>
+
+
+<h3>其它</h3>
+
+<ul>
+<li><p>将多个commit合成一个commit后提交</p>
+
+<p>场景：<br/>
+packages/apps/Email 已经提交了多个commit在branchA上，现在要把这些commit压成一个commit合并到merge_fix分支上。</p>
+
+<pre><code> $ cd packages/apps/Email
+ $ repo sync .
+ $ git log --pretty=oneline // 假如需要squash commit1 和 commit2
+   e8949d30bcb568b32a12338a28fb9d7a13e8b086 commit1
+   6d7eef22cd2634bd0da8de8e38635dd92b3e5a48 commit2
+   0130c5a03756b01ec4a39422ab08474625153a81 commit3
+ $ git rebase -i 0130c5a03756b01ec4a39422ab08474625153a81 //注意这里是想要squash的commit的前一个commit(commit3), 更改commit message后继续
+ $ git log -2 //找到squash后的commit，假如squash后的commit号为bed1b4fa7ae3f9a4a546f2aa367a8f2e7ba4b7b1
+ $ git checkout merge_fix
+ $ git cherry-pick bed1b4fa7ae3f9a4a546f2aa367a8f2e7ba4b7b1
+</code></pre>
+
+<p>  完毕</p></li>
+<li><p>一个图片文件 index.jpeg 冲突了，如何取出他人的版本?</p>
+
+<pre><code>git show :3:./index.jpeg &gt; index.jpeg-theirs
+</code></pre>
+
+<p>可以先使用git ls-files查看：</p>
+
+<pre><code>$ git ls-files -s
+100644 a97de6ee1b2352f4e33d09196fa478ffaae0b024 0 README
+100644 04c14c2023f69123e719fae7c4242537c943b726 0 file1
+100644 2f08be9a02925b5c016904e19fbd5e8d057ae756 0 hello.c
+100644 eb651d4b863843d3ad12c446b541075f2839d7d2 2 index.jpeg
+100644 099df17855c924472b1809d99389d8eee7582d9f 3 index.jpeg
+</code></pre>
+
+<p>第三栏称为stage number，stage number为2的存储着合并前的版本，stage number为3的存储着合并过来的版本。参见<a href="http://book.git-scm.com/7_the_git_index.html">这里</a></p></li>
+<li><p>漂亮的git前端工具 &ndash; <a href="http://jonas.nitro.dk/tig/">tig</a></p></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/24/notes-on-the-c-programming-language/">C程序设计语言读书笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-24T00:00:00+08:00" pubdate data-updated="true">Mar 24<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/24/notes-on-the-c-programming-language/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/24/notes-on-the-c-programming-language/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>函数与程序结构</h3>
+
+<p>为什么要使用函数?</p>
+
+<ul>
+<li>隐藏实现细节</li>
+<li>对同一段逻辑，尽可能实现代码复用</li>
+</ul>
+
+
+<p>函数之间的通信可以通过传递参数，函数返回值和外部变量进行。<br/>
+关于函数返回值：<br/>
+默认函数返回值为int类型
+如果返回值为一个表达式，那么表达式的值在返回之前将被转换为函数的类型，这个操作可能会丢失信息，所以某些编译器会给出警告信息。</p>
+
+<p>函数声明<br/>
+如果函数声明中不包含参数，如</p>
+
+<pre><code>double atof();
+</code></pre>
+
+<p>那么编译器为了兼容老版本的C语言策划你工序，将不会对atof的参数做任何假设，并且会关闭所有的参数检查。所以，如果函数带有参数，则要声明它们；如果没有参数，则使用<strong>void</strong>进行声明。</p>
+
+<p>变量类型</p>
+
+<ul>
+<li><p>外部变量</p>
+
+<p>  C语言可以看成是一系列的外部对象构成，这些外部对象包括函数和变量。外部变量可以在全局范围内访问，与内部变量相比，它有更大的作用域和生命周期。任何函数都可以访问一个外部变量，但前提是，<strong>这个变量需要通过某种方式声明</strong>。</p></li>
+<li><p>自动变量</p>
+
+<p>  在函数内部声明的变量，包括函数参数称为自动变量，它们在函数每次调用时初始化，函数调用完成后自动销毁。</p></li>
+<li><p>静态变量</p>
+
+<p> 用static声明外部变量和函数，可以将其声明的对象的作用域限定为被编译原文件的剩余部分，通过static声明外部对象，可以达到隐藏外部对象的目的。被static声明的函数的函数名除了对该函数声明的所在的文件可见外，其他文件无法访问。</p>
+
+<p> static也可用于声明内部变量，它同自动变量一样是局部变量，与自动变量不同的是，不管其所在的函数是否被调用，它一直存在，一直占据存储空间。</p></li>
+<li><p>寄存器变量
+  register声明告诉编译器，它所声明的变量在程序中使用的频率较高，暗示将这个变量放在寄存器中，从而执行速度更快，但是，编译器可以选择忽略这个声明。</p>
+
+<p>  register声明只适用于自动变量以及函数的形式参数。</p></li>
+</ul>
+
+
+<p>作用域<br/>
+外部变量和函数的作用域从声明它的地方开始，到其所在的文件末尾结束。</p>
+
+<p>变量的声明与定义<br/>
+&mdash;> 变量的声明只是说明变量的属性和性质，并不分配存储单元;<br/>
+&mdash;> 变量的定义表示要分配存储单元。<br/>
+变量的声明有两种：</p>
+
+<ol>
+<li><p>定义声明（defining declaration）</p>
+
+<p> 在声明一个变量的时候就为这个变量分配存储空间，这构成了对这个变量的定义。</p></li>
+<li><p>引用声明（referencing declaration)</p>
+
+<p> 不会分配存储空间，只是告诉编译器要使用这个变量。<br/>
+ 变量只能定义一次，但是可以被声明多次。举例如下：</p>
+
+<pre><code> int tern = 1; // 定义声明，声明tern的同时定义tern，导致内存空间的分配
+ main() {
+  extern int tern; // 引用声明，不会分配内存空间
+  int tern = 2; // 错误，重复定义
+
+  extern int var;
+ }
+
+ int var = 5;
+</code></pre>
+
+<p> 关键字extern表明这是一个引用声明，只做引用，不做定义。extern主要用在：</p>
+
+<ol>
+<li>每个需要访问外部变量的函数中，都必须用extern关键字声明相应的外部变量（如上例的tern）;</li>
+<li>要在外部变量的定义之前使用该变量(如上例的var变量);</li>
+<li>外部变量的定义在一个文件中，而在其他文件中需要通过extern声明来访问它。</li>
+</ol>
+</li>
+</ol>
+
+
+<p>函数的声明与定义<br/>
+函数的声明（函数原型）与定义是分开的。函数在使用前必须要先声明，如果没有函数原型，那么在函数第一次使用的时候会被隐式声明：该函数的返回值被假定为int型，而对函数参数不做任何假设。</p>
+
+<p>初始化<br/>
+外部变量和静态变量默认初始化为0，自动变量和寄存器变量的初值没有定义。<br/>
+外部变量和静态变量的初始化表达式必须是常量表达式，且只初始化一次。自动变量和寄存器变量的初始化表达式可以不是常量表达式，且在每次进入函数或者程序块时都要被初始化一次。</p>
+
+<p>Reference：</p>
+
+<ul>
+<li><a href="http://www.cppblog.com/mymsdn/archive/2008/08/19/59377.aspx">http://www.cppblog.com/mymsdn/archive/2008/08/19/59377.aspx</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -162,961 +1145,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/22/git-change-author-and-email-of-commits/">更改git提交历史信息</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-22T00:00:00+08:00" pubdate data-updated="true">Mar 22<span>nd</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/22/git-change-author-and-email-of-commits/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/22/git-change-author-and-email-of-commits/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>如果你使用git进行版本控制，不知道你有没有遇到这种情况，提交了几个commit后发现你本地git库的author和email信息配置不是你预想的，这时你想要更新已经提交的commit的author和email信息，怎么办？<br/>
-这是stackoverflow上给出的<a href="http://stackoverflow.com/questions/750172/how-do-i-change-the-author-of-a-commit-in-git">做法</a>：</p>
-
-<pre><code>#!/bin/sh
-
-git filter-branch --env-filter '
-
-an="$GIT_AUTHOR_NAME"
-am="$GIT_AUTHOR_EMAIL"
-cn="$GIT_COMMITTER_NAME"
-cm="$GIT_COMMITTER_EMAIL"
-
-if [ "$GIT_COMMITTER_EMAIL" = "your@email.to.match" ]
-then
-    cn="Your New Committer Name"
-    cm="Your New Committer Email"
-fi
-if [ "$GIT_AUTHOR_EMAIL" = "your@email.to.match" ]
-then
-    an="Your New Author Name"
-    am="Your New Author Email"
-fi
-
-export GIT_AUTHOR_NAME="$an"
-export GIT_AUTHOR_EMAIL="$am"
-export GIT_COMMITTER_NAME="$cn"
-export GIT_COMMITTER_EMAIL="$cm"
-'
-</code></pre>
-
-<p>原文在<a href="http://help.github.com/change-author-info/">这里</a>。</p>
-
-<p>但是问题是，更新本地的提交历史信息后，想要把更新push到远程分支上去，出现non-fast-forward错误，意思是要推送的提交并非继远程版本库最新提交之后的提交，推送会造成覆盖远程仓库的提交。</p>
-
-<pre><code>$ git push origin master
- ! [rejected]        master -&gt; master (non-fast-forward)
-error: failed to push some refs to 'example.git'
-To prevent you from losing history, non-fast-forward updates were rejected
-Merge the remote changes (e.g. 'git pull') before pushing again.  See the
-'Note about fast-forwards' section of 'git push --help' for details.
-</code></pre>
-
-<p>使用&mdash;force选项进行强制push即可： <code>git push --force origin master</code>，但是这样会覆盖远程分支上的commit:</p>
-
-<pre><code>-f, --force
-    Usually, the command refuses to update a remote ref that is not an ancestor of the local ref used to overwrite it. This flag disables the
-    check. This can cause the remote repository to lose commits; use it with care.
-</code></pre>
-
-<h3>另一种方法</h3>
-
-<p>使用<code>git rebase -i</code> 到你想更改的commit的前一个commit，选择reword选项，然后依次重新提交，这时提交的author和email将会是你本地配置的author和email，rebase完成后commit的author和email信息就更新了。</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/17/insight-into-android-permission/">Android 权限机制</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/17/insight-into-android-permission/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/17/insight-into-android-permission/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>概要</h3>
-
-<p>Android基于Linux，Android的权限管理基于Linux的权限框架。此外，Android在此基础上为应用程序提供了permission机制，使得应用程序通过“申请-授予”的机制得以访问系统的敏感资源。权限的授予在应用程序安装过程中就已经确定了，在安装过程中，应用程序的gid，uid，pid已经gids都会被分配。Android不支持在运行时动态进行权限授予。<a href="http://developer.android.com/guide/topics/security/security.html#arch">Why?</a></p>
-
-<h3>References</h3>
-
-<p><a href="http://en.wikipedia.org/wiki/Group_identifier#Primary_vs._supplementary">http://en.wikipedia.org/wiki/Group_identifier#Primary_vs._supplementary</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/17/handy-toolbox/">Handy Toolbox</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/17/handy-toolbox/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/17/handy-toolbox/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>这里记录一些我常用的一些方便高效的工具。</p>
-
-<h3>Firefox</h3>
-
-<ul>
-<li><a href="http://vimperator.org/vimperator">Vimperator</a></li>
-<li><a href="http://sessionmanager.mozdev.org/">Session Manager</a></li>
-<li><a href="https://addons.mozilla.org/en-US/firefox/addon/evernote-web-clipper/">Evernote web clipper</a></li>
-<li><a href="http://www.teesoft.info/content/view/118/1/lang,en/">Autopager</a></li>
-</ul>
-
-
-<h3>Thunderbird</h3>
-
-<ul>
-<li><a href="https://addons.mozilla.org/en-US/thunderbird/addon/lightning/?src=search">Lightning</a></li>
-<li><a href="https://skydrive.live.com/redir.aspx?cid=71573c6596efd6ee&amp;resid=71573C6596EFD6EE!155&amp;parid=71573C6596EFD6EE!154">Firetray</a></li>
-</ul>
-
-
-<h3>画图</h3>
-
-<ul>
-<li><a href="https://skydrive.live.com/redir.aspx?cid=71573c6596efd6ee&amp;resid=71573C6596EFD6EE!146&amp;parid=71573C6596EFD6EE!145">JUDE</a> -UML工具</li>
-<li><a href="https://skydrive.live.com/redir.aspx?cid=71573c6596efd6ee&amp;resid=71573C6596EFD6EE!196&amp;parid=71573C6596EFD6EE!145">Edraw</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/17/different-reference-types-in-java/">Java的四种引用类型</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/17/different-reference-types-in-java/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/17/different-reference-types-in-java/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Java中有四种引用类型，按其引用强度由强到弱依次为：</p>
-
-<pre><code>Strong reference &gt; Soft reference &gt; Weak reference &gt; Phantom reference
-</code></pre>
-
-<h3>Strong reference</h3>
-
-<p>最常用的为strong reference，就是说只要某个对象还被一个强引用引用着，那么GC就不会回收它。使用强引用的一个弊端就是有可能引起内存泄漏。比如有一个hashmap集合，用来存储对象引用，如果你忘了在某个时机把这些元素remove掉，那么这些对象就会在这个hashmap的生命周期内被一直引用而不能被GC回收，更糟糕的是，如果这个对象体积很大，而又如果这个hashmap被声明为static的，那么随着程序的运行，内存总有被撑爆的那一刻。</p>
-
-<h3>Soft reference</h3>
-
-<p>而soft reference 就不同了，在内存资源极度紧张的情况下，GC会将被Soft reference 引用的对象回收以释放内存空间。这个特性非常适合用来做cache：在内存资源充裕的情况下，它和强引用一样，GC不会回收它，而在内存紧张的情况下，GC实在找不到更多可用的空间的情况下，Soft reference的对象会被回收掉。<br/>
-以下代码展示了基于Soft reference的缓存类的使用：</p>
-
-<pre><code>/*
- * Copyright (C) 2009 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License
- */
-
-package com.android.providers.contacts;
-
-import com.android.providers.contacts.ContactsDatabaseHelper.NicknameLookupColumns;
-import com.android.providers.contacts.ContactsDatabaseHelper.Tables;
-import com.google.android.collect.Maps;
-
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-
-import java.lang.ref.SoftReference;
-import java.util.BitSet;
-import java.util.HashMap;
-
-
-/**
- * Cache for common nicknames.
- */
-public class CommonNicknameCache  {
-
-    // We will use this much memory (in bits) to optimize the nickname cluster lookup
-    private static final int NICKNAME_BLOOM_FILTER_SIZE = 0x1FFF;   // =long[128]
-    private BitSet mNicknameBloomFilter;
-
-    private HashMap&lt;String, SoftReference&lt;String[]&gt;&gt; mNicknameClusterCache = Maps.newHashMap();
-
-    private final SQLiteDatabase mDb;
-
-    public CommonNicknameCache(SQLiteDatabase db) {
-        mDb = db;
-    }
-
-    private final static class NicknameLookupPreloadQuery {
-        public final static String TABLE = Tables.NICKNAME_LOOKUP;
-
-        public final static String[] COLUMNS = new String[] {
-            NicknameLookupColumns.NAME
-        };
-
-        public final static int NAME = 0;
-    }
-
-    /**
-     * Read all known common nicknames from the database and populate a Bloom
-     * filter using the corresponding hash codes. The idea is to eliminate most
-     * of unnecessary database lookups for nicknames. Given a name, we will take
-     * its hash code and see if it is set in the Bloom filter. If not, we will know
-     * that the name is not in the database. If it is, we still need to run a
-     * query.
-     * &lt;p&gt;
-     * Given the size of the filter and the expected size of the nickname table,
-     * we should expect the combination of the Bloom filter and cache will
-     * prevent around 98-99% of unnecessary queries from running.
-     */
-    private void preloadNicknameBloomFilter() {
-        // 这个filter被设计成一个简化的hash表（没有处理hash冲突的情况，实际上也没有必要）
-        mNicknameBloomFilter = new BitSet(NICKNAME_BLOOM_FILTER_SIZE + 1);
-        Cursor cursor = mDb.query(NicknameLookupPreloadQuery.TABLE,
-                NicknameLookupPreloadQuery.COLUMNS,
-                null, null, null, null, null);
-        try {
-            int count = cursor.getCount();
-            for (int i = 0; i &lt; count; i++) {
-                cursor.moveToNext();
-                String normalizedName = cursor.getString(NicknameLookupPreloadQuery.NAME);
-                int hashCode = normalizedName.hashCode();
-                // 将元素put进hash表（有可能冲突），参见HashMap的put实现
-                // 和hashcode做与运算的这个值必须是“hash表长度-1”
-                mNicknameBloomFilter.set(hashCode &amp; NICKNAME_BLOOM_FILTER_SIZE);
-            }
-        } finally {
-            cursor.close();
-        }
-    }
-
-    /**
-     * Returns nickname cluster IDs or null. Maintains cache.
-     */
-    protected String[] getCommonNicknameClusters(String normalizedName) {
-        if (mNicknameBloomFilter == null) {
-            preloadNicknameBloomFilter();
-        }
-
-        int hashCode = normalizedName.hashCode();
-
-        // 如果没有找到，说明cache中**一定**不存在这个key所对应的值;
-        // 如果找到了，说明cache中**可能**存在这个key对应的值，需要进一步到cache中查找
-        if (!mNicknameBloomFilter.get(hashCode &amp; NICKNAME_BLOOM_FILTER_SIZE)) {
-            return null;
-        }
-
-        SoftReference&lt;String[]&gt; ref;
-        String[] clusters = null;
-
-        // 注意：这里需要同步对cache的访问
-        synchronized (mNicknameClusterCache) {
-            if (mNicknameClusterCache.containsKey(normalizedName)) {
-                ref = mNicknameClusterCache.get(normalizedName);
-                if (ref == null) {
-                    return null;
-                }
-                clusters = ref.get();
-            }
-        }
-
-        // 没有命中，这时才需要到DB中加载，并加入cache
-        if (clusters == null) {
-            clusters = loadNicknameClusters(normalizedName);
-            ref = clusters == null ? null : new SoftReference&lt;String[]&gt;(clusters);
-            synchronized (mNicknameClusterCache) {
-                mNicknameClusterCache.put(normalizedName, ref);
-            }
-        }
-        return clusters;
-    }
-
-    private interface NicknameLookupQuery {
-        String TABLE = Tables.NICKNAME_LOOKUP;
-
-        String[] COLUMNS = new String[] {
-            NicknameLookupColumns.CLUSTER
-        };
-
-        int CLUSTER = 0;
-    }
-
-    protected String[] loadNicknameClusters(String normalizedName) {
-        String[] clusters = null;
-        Cursor cursor = mDb.query(NicknameLookupQuery.TABLE, NicknameLookupQuery.COLUMNS,
-                NicknameLookupColumns.NAME + "=?", new String[] { normalizedName },
-                null, null, null);
-        try {
-            int count = cursor.getCount();
-            if (count &gt; 0) {
-                clusters = new String[count];
-                for (int i = 0; i &lt; count; i++) {
-                    cursor.moveToNext();
-                    clusters[i] = cursor.getString(NicknameLookupQuery.CLUSTER);
-                }
-            }
-        } finally {
-            cursor.close();
-        }
-        return clusters;
-    }
-}
-</code></pre>
-
-<p>这个缓存类实现的实际上是一个二级缓存：</p>
-
-<ol>
-<li>第一级是一个BitSet，实现为一个hash表，它充当了一个过滤器的作用。第一次加载时会从db中查找所有的数据，并通过hash算法插入到表中的适当位置，这个过程和HashMap的实现是一样的，只不过没有处理hash冲突的情况，当出现hash冲突时，会覆盖表中原有的值。</li>
-<li>第二级是一个HashMap，是真正的cache。其中的元素通过SoftReference引用。</li>
-</ol>
-
-
-<h3>Weak reference</h3>
-
-<p>Weak reference和Soft reference类似，区别在于一旦GC启动，被Weak reference引用的对象就会被回收，而不管当前内存资源是否充裕，因此，被Weak reference引用的对象具有更短的生命周期。但是，由于gc是一个优先级比较低的进程，Weak reference的对象不会像你想象中那么快就被回收了。</p>
-
-<h3>Phantom reference</h3>
-
-<p>Phantom reference 和以上几种引用都不同。它的<code>get()</code>方法永远都会返回null。那么它究竟有什么作用呢？<br/>
-TODO&hellip;</p>
-
-<h3>References</h3>
-
-<ul>
-<li><a href="http://weblogs.java.net/blog/enicholas/archive/2006/05/understanding_w.html">http://weblogs.java.net/blog/enicholas/archive/2006/05/understanding_w.html</a></li>
-<li><a href="http://improving.iteye.com/blog/436311">http://improving.iteye.com/blog/436311</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/">NoClassDefFoundError 和 ClassNotFoundException 的区别</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-12T00:00:00+08:00" pubdate data-updated="true">Mar 12<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>先看API解释：<br/>
-For ClassNotFoundException:</p>
-
-<pre><code>Thrown when an application tries to load in a class through its string name using:
-
-    * The forName method in class Class.
-    * The findSystemClass method in class ClassLoader.
-    * The loadClass method in class ClassLoader.
-
-but no definition for the class with the specified name could be found.
-</code></pre>
-
-<p>For NoClassDefFoundError:</p>
-
-<pre><code>Thrown if the Java Virtual Machine or a ClassLoader instance tries to load in the definition of a class (as part of a normal method call or as part of creating a new instance using the new expression) and no definition of the class could be found.
-
-The searched-for class definition existed when the currently executing class was compiled, but the definition can no longer be found.
-</code></pre>
-
-<p>简单的说，就是如果使用new SomeClass()的方式创建对象的，而这时ClassLoader装载SomeClass失败（可能因为权限不够，JNI错误,etc），就会抛出NoClassDefFoundError。<br/>
-而如果使用反射来装载一个对象，但是SomeClass不在CLASSPATH中，这时就会抛出ClassNotFoundException。</p>
-
-<p>Reference:<br/>
-<a href="http://stackoverflow.com/questions/1457863/what-is-the-difference-between-noclassdeffounderror-and-classnotfoundexception">http://stackoverflow.com/questions/1457863/what-is-the-difference-between-noclassdeffounderror-and-classnotfoundexception</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/02/my-first-post-on-git-pages/">使用Github Pages创建个人博客</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-02T00:00:00+08:00" pubdate data-updated="true">Mar 2<span>nd</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/02/my-first-post-on-git-pages/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/02/my-first-post-on-git-pages/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Github pages 是什么？</h2>
-
-<p>Github pages借助 git 工具和Jekyll（一个静态网站生成器），使得你可以将内容push到github，然后通过Jekyll发布成个人blog站点。通过github pages创建个人博客，至少有几个好处：</p>
-
-<ul>
-<li>文章内容使用markdown标记语言书写，你可以使用任何你喜欢的文本编辑器编辑文章。</li>
-<li>由于git的存在，你可以轻松的对你的文章进行版本控制。</li>
-<li>尤其重要的一点，在天朝，你无需担心哪天你的站点被无端屏蔽，还得爬墙过去抢救数据&mdash;因为你本地就有一套完整的站点，而且都是文本格式，非常易于备份。</li>
-</ul>
-
-
-<h2>搭建步骤</h2>
-
-<h3>创建github帐号</h3>
-
-<p>首先，你需要一个github帐号。
-登录github后，创建一个USERNAME.github.com的repository，根据向导生成pages。</p>
-
-<h3>安装本地环境</h3>
-
-<p>你需要在本地搭建运行环境，这样在编写文章的时候你可以在本地进行充分的调整，满意后再push到github。
-以下基于Ubuntu 10.04LTS系统安装，需要安装的包包括Ruby，RubyGems，jekyll和rake。</p>
-
-<pre><code>$ sudo apt-get install ruby1.9.1-full rubygems1.9.1
-</code></pre>
-
-<p>然后通过gem命令安装jekyll</p>
-
-<pre><code>$ sudo gem install jekyll
-WARNING:  You don't have /home/calvin/.gem/ruby/1.9.1/bin in your PATH,
-      gem executables will not run.
-ERROR:  Error installing jekyll:
-    liquid requires RubyGems version &gt;= 1.3.7
-</code></pre>
-
-<p>安装会出错，提示RubyGems版本过低。这时候需要到<a href="http://packages.ubuntu.com/maverick/all/rubygems1.8/download">http://packages.ubuntu.com/maverick/all/rubygems1.8/download</a> 下载离线安装包安装：</p>
-
-<pre><code>$ sudo dpkg -i Downloads/rubygems1.8_1.3.7-2_all.deb
-</code></pre>
-
-<p>安装完成后查看gem版本：</p>
-
-<pre><code>$ which gem
-/usr/bin/gem
-$ gem -v
-1.3.7
-</code></pre>
-
-<p>这时候可以继续安装jekyll了：</p>
-
-<pre><code>$ sudo gem install jekyll
-</code></pre>
-
-<p>安装jekyll后还需要安装rake工具，通过rake工具可以用来创建新的文章和页面，安装主题等等，十分方便。</p>
-
-<pre><code>$ sudo apt-get install rake
-</code></pre>
-
-<p>通过rake -T命令可以查看所有可用命令：</p>
-
-<pre><code>$ rake -T
-(in /home/calvin/development/github/calvinlee.github.com)
-rake page           # Create a new page.
-rake post           # Begin a new post in ./_posts
-rake preview        # Launch preview environment
-rake theme:install  # Install theme
-rake theme:package  # Package theme
-rake theme:switch   # Switch between Jekyll-bootstrap themes.
-</code></pre>
-
-<h3>安装Jekyll Bootstrap</h3>
-
-<p>由于jekyll仅仅是一个静态html的生成器，它不包含任何页面的templates，所以如果从头开始构建你的博客站点的话，还将要有很多工作要做。幸好，<a href="http://jekyllbootstrap.com/">Jekyll Bootstrap</a>已经提供了一套基本的构架，我们只需要在它的基础上定制，使之符合你口味即可。</p>
-
-<pre><code>$ git clone https://github.com/plusjade/jekyll-bootstrap.git USERNAME.github.com
-$ cd USERNAME.github.com
-$ git remote set-url origin git@github.com:USERNAME/USERNAME.github.com.git
-$ git push origin master
-</code></pre>
-
-<h3>开始个性博客之旅</h3>
-
-<p>首先在本地启动jekyll：</p>
-
-<pre><code>$ /var/lib/gems/1.8/gems/jekyll-0.11.2/bin/jekyll --server
-</code></pre>
-
-<p>然后你可以访问<a href="http://localhost:4000%E6%9F%A5%E7%9C%8BJekyll">http://localhost:4000%E6%9F%A5%E7%9C%8BJekyll</a> Bootstrap给你提供了什么，之后你就可以开始写你的文章了。</p>
-
-<pre><code>$ rake post title="my-first-post-on-git-pages" date="2012-03-02"
-</code></pre>
-
-<p>rake工具会为你生成posts/2012-03-02-my-first-post-on-git-pages.md
-你可以开始使用markdown标记语言编辑文章了！</p>
-
-<h3>发布</h3>
-
-<p>发布很简单，直接将文章内容推送到github即可，如果你修改了页面主题或者布局，也一并推送：</p>
-
-<pre><code>$ git add .
-$ git commit -m "Add new post"
-$ git push origin master
-</code></pre>
-
-<p>现在你就可以通过<a href="http://USERNAME.github.com%E8%AE%BF%E9%97%AE%E4%BD%A0%E7%9A%84%E9%A1%B5%E9%9D%A2%E4%BA%86%E3%80%82">http://USERNAME.github.com%E8%AE%BF%E9%97%AE%E4%BD%A0%E7%9A%84%E9%A1%B5%E9%9D%A2%E4%BA%86%E3%80%82</a></p>
-
-<h3>Reference</h3>
-
-<ul>
-<li><a href="http://daringfireball.net/projects/markdown/syntax">详尽的Markdown语法</a></li>
-<li><a href="http://www.pushiming.com/blog/2010/11/tips-on-markdown/">另外一篇Markdown简介</a></li>
-<li><a href="https://github.com/mojombo/jekyll/wiki/">Jekyll wiki</a></li>
-<li><a href="https://github.com/mojombo/jekyll/wiki/Sites">这里</a>是一些站点，有些是开放源代码的，你可以参照学习</li>
-<li><a href="https://github.com/mojombo/jekyll/wiki/Pagination">怎样对文章进行分页？</a></li>
-<li><a href="http://www.pizn.net/24-09-2011/use-github-pages-to-build-a-blog/">http://www.pizn.net/24-09-2011/use-github-pages-to-build-a-blog/</a></li>
-<li><a href="http://www.yangzhiping.com/tech/writing-space.html">http://www.yangzhiping.com/tech/writing-space.html</a></li>
-<li><a href="http://fastr.github.com/articles/Documenting-with-Jekyll.html">http://fastr.github.com/articles/Documenting-with-Jekyll.html</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/02/android-vold/">Android Vold 分析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-02T00:00:00+08:00" pubdate data-updated="true">Mar 2<span>nd</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/02/android-vold/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/02/android-vold/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Vold(Volume Daemon) 主要负责管理和控制外部存储设备，这些控制包括SD卡设备插拔，挂载，格式化等等.
-Vold在Android 平台上的作用相当于udev在Linux平台上的功能。</p>
-
-<h3>Vold的架构</h3>
-
-<p>Vold的架构大致如图：</p>
-
-<p><a href="/images/vold-architecture.png"><img src="/images/vold-architecture.png" alt="/images/vold-architecture.png" /></a></p>
-
-<ul>
-<li>Kernel：detect device hot-plug, load drivers</li>
-<li>Sysfs: generate events and send it to user space</li>
-<li>NetlinkManager: establish connection to sysfs, listen to uevents and process it</li>
-<li>VolumeManager: disk volume operation</li>
-<li>CommandListener:  wait for commands from MountService</li>
-<li>NativeDaemonConnector:establish connection between MountService and vold daemon</li>
-</ul>
-
-
-<p>其中，一张SD卡对应一个DirectVolume对象。</p>
-
-<p>Vold模块的类图如下：</p>
-
-<p><a href="/images/vold-class-diagram.png"><img src="/images/vold-class-diagram.png" alt="/images/vold-class-diagram.png" /></a></p>
-
-<h3>Vold startup</h3>
-
-<p>vold的启动分为两个过程，一是vold daemon的启动，二是Java层MountService的启动。</p>
-
-<h4>启动Vold daemon</h4>
-
-<p>Vold daemon由init进程启动，参见init.rc片段：</p>
-
-<p><a href="/images/vold-initrc.png"><img src="/images/vold-initrc.png" alt="/images/vold-initrc.png" /></a></p>
-
-<p>vold入口函数位于/system/vold/mail.cpp，启动后处理流程如下：</p>
-
-<p><a href="/images/vold-startup-sequence.png"><img src="/images/vold-startup-sequence.png" alt="/images/vold-startup-sequence.png" /></a></p>
-
-<p>1.Create directory /dev/block/vold
-1.Create singleton instance of VolumeManager , NetlinkManager  andCommandListener
-1.Process configuration file /system/etc/vold.fstab
-1.NetlinkManager creates connection between kernel and vold
-1.Manually trigger uevents by writing “add\n” to file in /sys/block
-1.CommandListener  starts listening commands from framework</p>
-
-<h4>启动MountService</h4>
-
-<p>1.MountService initialized by SystemServer on device starts up
-1.Create connection to vold</p>
-
-<p>After MountService is up, the vold system is ready.</p>
-
-<h3>Send commands from framework</h3>
-
-<p>以App层通过MountService 挂载一个volume为例，说明从上层向下层的调用流程。</p>
-
-<p><a href="/images/vold-send-commands-from-framework.png"><img src="/images/vold-send-commands-from-framework.png" alt="/images/vold-send-commands-from-framework.png" /></a></p>
-
-<ol>
-<li>NativeDaemonConnector::sendCommand()</li>
-<li>SocketListener::runListener() <code>&lt;</code>&mdash;vold accepting connections here</li>
-<li>FrameworkListener::onDataAvailable()</li>
-<li>FrameworkListener::dispatchCommand()</li>
-<li>FrameworkCommand::runCommand()&mdash;-CommandListener::VolumeCmd::runCommand()</li>
-<li>VolumeManager::mountVolume()</li>
-<li>Volume::mountVol()</li>
-</ol>
-
-
-<h3>Process events from kernel</h3>
-
-<p>处理kernel发出的挂载事件：</p>
-
-<p><a href="/images/vold-process-events-from-kernel.png"><img src="/images/vold-process-events-from-kernel.png" alt="/images/vold-process-events-from-kernel.png" /></a></p>
-
-<ol>
-<li>SocketListener::runListener <code>&lt;</code>&mdash;listening events from kernel</li>
-<li>NetlinkListener::onDataAvailable()</li>
-<li>NetlinkHandler::onEvent()</li>
-<li>VolumeManager::handleBlockEvent , VolumeManager::handleSwitchEvent , VolumeManager::handleUsbCompositeEvent</li>
-<li>DirectVolume::handleBlockEvent()</li>
-<li>DirectVolume::handleDiskAdded, DirectVolume::handlePartitionAdded, DirectVolume::handleDiskRemoved, DirectVolume::handlePartitionRemoved,DirectVolume::handleDiskChanged, DirectVolume::handlePartitionChanged,or ignore non add/remove/change event</li>
-</ol>
-
-
-<h3>Reference</h3>
-
-<ul>
-<li><a href="http://blog.csdn.net/qianjin0703/article/details/6362389">http://blog.csdn.net/qianjin0703/article/details/6362389</a></li>
-<li><a href="http://www.cnblogs.com/iceocean/articles/1594195.html">http://www.cnblogs.com/iceocean/articles/1594195.html</a></li>
-<li><a href="http://www.chinaunix.net/jh/4/822500.html">http://www.chinaunix.net/jh/4/822500.html</a></li>
-<li><a href="http://blog.csdn.net/fudan_abc/article/details/1768277">http://blog.csdn.net/fudan_abc/article/details/1768277</a></li>
-<li><a href="http://dongyulong.blog.51cto.com/1451604/389159">http://dongyulong.blog.51cto.com/1451604/389159</a></li>
-<li><a href="http://blog.csdn.net/datangsoc/article/details/5928132">http://blog.csdn.net/datangsoc/article/details/5928132</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/">Ubuntu10.04安装无线网卡ath9k_htc驱动</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-10-18T00:00:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2011</time>
-        
-           | <a href="/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>我的USB无线网卡型号为TL_WN721N，插在Ubuntu10.04上没有反应。据说10.10以后插上就可以用了，没有测试。</p>
-
-<p>第一步 确定ath9k_htc驱动支持你的网卡型号<br/>
-<a href="http://linuxwireless.org/en/users/Drivers/ath9k_htc/devices">这里</a> 列出了支持的型号列表，你可以通过lsusb查看自己的网卡型号是否在列表当中。</p>
-
-<p>第二步 安装firmwire<br/>
-从<a href="http://wireless.kernel.org/download/htc_fw/">这里</a>下载htc_9271.fw，拷贝到/lib/firmwire下</p>
-
-<p>第三步 安装compact wireless<br/>
-安装compact wireless有打包好的deb包，从这里下载GUI Program to install ath9k_htc，安装完后直接运行，等待安装完成重启机器就可以了。
-爱折腾的也可以到<a href="http://wireless.kernel.org/download/">这里</a>下载
-最新的compact wireless驱动，然后编译安装：</p>
-
-<pre><code>sudo make
-sudo make install
-sudo make unload
-sudo make load ath9k_htc
-</code></pre>
-
-<p>重启机器即可。</p>
-
-<p>Reference
-* <a href="http://forum.ubuntu.com.cn/viewtopic.php?f=116&amp;t=326568&amp;p=2388841">http://forum.ubuntu.com.cn/viewtopic.php?f=116&amp;t=326568&amp;p=2388841</a>
-* <a href="http://blog.chinaunix.net/space.php?uid=20620288&amp;do=blog&amp;id=2691282">http://blog.chinaunix.net/space.php?uid=20620288&amp;do=blog&amp;id=2691282</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/09/06/compile-cyanogenmod-for-htc-desire/">Compile CyanogenMod (Linux) for HTC Desire</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-09-06T00:00:00+08:00" pubdate data-updated="true">Sep 6<span>th</span>, 2011</time>
-        
-           | <a href="/blog/2011/09/06/compile-cyanogenmod-for-htc-desire/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2011/09/06/compile-cyanogenmod-for-htc-desire/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>出现如下问题：<br/>
-1.repo init时报错：</p>
-
-<pre><code>......
-object 30d452905f166b316152f236422f85c8aa75a2d0
-type commit
-tag v1.7.5
-tagger Shawn O. Pearce &lt;sop@google.com&gt; 1307663540 -0700
-
-repo 1.7.5
-
-gpg: Signature made Fri 10 Jun 2011 07:52:20 AM CST using DSA key ID 920F5C65
-gpg: Can't check signature: public key not found
-error: could not verify the tag 'v1.7.5'
-</code></pre>
-
-<p>出错原因是曾使用repo sync从其它库sync过代码，删掉~/.repoconfig即可：</p>
-
-<pre><code>$ rm -rf ~/.repoconfig
-$ ./repo init -u git://github.com/CyanogenMod/android.git -b gingerbread
-gpg: keyring `/home/calvin/.repoconfig/gnupg/secring.gpg' created
-gpg: keyring `/home/calvin/.repoconfig/gnupg/pubring.gpg' created
-gpg: /home/calvin/.repoconfig/gnupg/trustdb.gpg: trustdb created
-gpg: key 920F5C65: public key "Repo Maintainer &lt;repo@android.kernel.org&gt;" imported
-gpg: Total number processed: 1
-gpg:               imported: 1
-
-Getting repo ...
-   from http://android.git.kernel.org/tools/repo.git
-。。。。
-</code></pre>
-
-<p>2.repo sync时报错：</p>
-
-<pre><code>......
-Fetching projects:   1% (3/285) 
-Initializing project platform/bootable/bootloader/legacy ...
-android.git.kernel.org[0: 130.239.17.13]: errno=Connection refused
-android.git.kernel.org[0: 149.20.4.77]: errno=Connection timed out
-android.git.kernel.org[0: 199.6.1.173]: errno=Connection refused
-android.git.kernel.org[0: 2001:4f8:8:10:1972:112:1:0]: errno=Network is unreachable
-android.git.kernel.org[0: 2001:500:60:10:1972:112:1:0]: errno=Network is unreachable
-android.git.kernel.org[0: 2001:6b0:e:4017:1972:112:1:0]: errno=Network is unreachable
-android.git.kernel.org[0: 2001:4f8:1:10:1972:112:1:0]: errno=Network is unreachable
-fatal: unable to connect a socket (Network is unreachable)
-error: Cannot fetch platform/bootable/bootloader/legacy
-</code></pre>
-
-<p>连接服务器时的问题，解决：<br/>
-修改.repo/manifest.xml中</p>
-
-<pre><code>  &lt;remote  name="korg"
-           fetch="git://android.git.kernel.org/"
-           review="review.source.android.com" /&gt;
-</code></pre>
-
-<p>为</p>
-
-<pre><code>  &lt;remote  name="korg"
-           fetch="http://android.git.kernel.org/"
-           review="review.source.android.com" /&gt;
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/6/">&larr; Older</a>
@@ -1132,20 +1160,21 @@ error: Cannot fetch platform/bootable/bootloader/legacy
     <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/android/'>Android (10)</a></li>
-<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
 <li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
 <li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
 <li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
 <li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
 <li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
 <li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
-<li class='category'><a href='/blog/categories/linux/'>Linux (10)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
 <li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
 <li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
 <li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
 <li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
-<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
 
   </ul>
 </section>
@@ -1153,39 +1182,46 @@ error: Cannot fetch platform/bootable/bootloader/legacy
 <section>
   <h1>Tags</h1>
   <ul class="tag-cloud">
-    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+    <a style="font-size: 90%" href="/tags/c-plus-plus/">C++</a>
+<a style="font-size: 156%" href="/tags/cyu-yan/">C语言</a>
 <a style="font-size: 210%" href="/tags/android/">android</a>
-<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 118%" href="/tags/archlinux/">archlinux</a>
 <a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c/">c</a>
 <a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
-<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 118%" href="/tags/csapp/">csapp</a>
 <a style="font-size: 90%" href="/tags/debug/">debug</a>
-<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 118%" href="/tags/eclipse/">eclipse</a>
 <a style="font-size: 90%" href="/tags/gcc/">gcc</a>
-<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 135%" href="/tags/git/">git</a>
 <a style="font-size: 90%" href="/tags/github/">github</a>
-<a style="font-size: 119%" href="/tags/http/">http</a>
-<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/graphics/">graphics</a>
+<a style="font-size: 118%" href="/tags/http/">http</a>
+<a style="font-size: 156%" href="/tags/java/">java</a>
 <a style="font-size: 90%" href="/tags/kernel/">kernel</a>
 <a style="font-size: 90%" href="/tags/kindle/">kindle</a>
-<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 175%" href="/tags/linux/">linux</a>
 <a style="font-size: 90%" href="/tags/permission/">permission</a>
 <a style="font-size: 90%" href="/tags/php/">php</a>
 <a style="font-size: 90%" href="/tags/proxy/">proxy</a>
 <a style="font-size: 90%" href="/tags/shell/">shell</a>
 <a style="font-size: 90%" href="/tags/socket/">socket</a>
-<a style="font-size: 149%" href="/tags/todo/">todo</a>
-<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 163%" href="/tags/todo/">todo</a>
+<a style="font-size: 135%" href="/tags/vim/">vim</a>
 <a style="font-size: 90%" href="/tags/window/">window</a>
-<a style="font-size: 172%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 175%" href="/tags/ming-ling/">命令</a>
 <a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
-<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+<a style="font-size: 118%" href="/tags/zhuan-zai/">转载</a>
 
   </ul>
 </section>
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
@@ -1201,10 +1237,6 @@ error: Cannot fetch platform/bootable/bootloader/legacy
     
       <li class="post">
         <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/01/28/eclipse-debug-break-points/">Eclipse 调试中的五种断点</a>
       </li>
     
   </ul>

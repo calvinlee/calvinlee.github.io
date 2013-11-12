@@ -1,0 +1,423 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>pmap介绍 - 且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="pmap用来打印进程地址空间占用。通常也可以通过如下命令来查看： cat /proc/self/maps 但用pmap包含更多的信息，显示结果也更直观: 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/2013/11/11/introducing-pmap">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Pmap介绍</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-11T18:36:00+08:00" pubdate data-updated="true">Nov 11<span>th</span>, 2013</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>pmap用来打印进程地址空间占用。通常也可以通过如下命令来查看：</p>
+
+<pre><code>cat /proc/self/maps 
+</code></pre>
+
+<p>但用pmap包含更多的信息，显示结果也更直观:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ pmap -d 4827
+</span><span class='line'>    4827:   bash
+</span><span class='line'>    Address           Kbytes Mode  Offset           Device    Mapping
+</span><span class='line'>    0000000000400000     896 r-x-- 0000000000000000 008:00005 bash
+</span><span class='line'>    00000000006e0000       4 r---- 00000000000e0000 008:00005 bash
+</span><span class='line'>    00000000006e1000      36 rw--- 00000000000e1000 008:00005 bash
+</span><span class='line'>    00000000006ea000      24 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    0000000001a8d000    5388 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    00007f1c6c5cd000      48 r-x-- 0000000000000000 008:00005 libnss_files-2.15.so
+</span><span class='line'>    00007f1c6c5d9000    2044 ----- 000000000000c000 008:00005 libnss_files-2.15.so
+</span><span class='line'>    00007f1c6c7d8000       4 r---- 000000000000b000 008:00005 libnss_files-2.15.so
+</span><span class='line'>    00007f1c6c7d9000       4 rw--- 000000000000c000 008:00005 libnss_files-2.15.so
+</span><span class='line'>    00007f1c6c7da000      40 r-x-- 0000000000000000 008:00005 libnss_nis-2.15.so
+</span><span class='line'>    00007f1c6c7e4000    2048 ----- 000000000000a000 008:00005 libnss_nis-2.15.so
+</span><span class='line'>    00007f1c6c9e4000       4 r---- 000000000000a000 008:00005 libnss_nis-2.15.so
+</span><span class='line'>    00007f1c6c9e5000       4 rw--- 000000000000b000 008:00005 libnss_nis-2.15.so
+</span><span class='line'>    00007f1c6c9e6000      92 r-x-- 0000000000000000 008:00005 libnsl-2.15.so
+</span><span class='line'>    00007f1c6c9fd000    2044 ----- 0000000000017000 008:00005 libnsl-2.15.so
+</span><span class='line'>    00007f1c6cbfc000       4 r---- 0000000000016000 008:00005 libnsl-2.15.so
+</span><span class='line'>    00007f1c6cbfd000       4 rw--- 0000000000017000 008:00005 libnsl-2.15.so
+</span><span class='line'>    00007f1c6cbfe000       8 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    00007f1c6cc00000      32 r-x-- 0000000000000000 008:00005 libnss_compat-2.15.so
+</span><span class='line'>    00007f1c6cc08000    2044 ----- 0000000000008000 008:00005 libnss_compat-2.15.so
+</span><span class='line'>    00007f1c6ce07000       4 r---- 0000000000007000 008:00005 libnss_compat-2.15.so
+</span><span class='line'>    00007f1c6ce08000       4 rw--- 0000000000008000 008:00005 libnss_compat-2.15.so
+</span><span class='line'>    00007f1c6ce09000    7052 r---- 0000000000000000 008:00005 locale-archive
+</span><span class='line'>    00007f1c6d4ec000    1748 r-x-- 0000000000000000 008:00005 libc-2.15.so
+</span><span class='line'>    00007f1c6d6a1000    2048 ----- 00000000001b5000 008:00005 libc-2.15.so
+</span><span class='line'>    00007f1c6d8a1000      16 r---- 00000000001b5000 008:00005 libc-2.15.so
+</span><span class='line'>    00007f1c6d8a5000       8 rw--- 00000000001b9000 008:00005 libc-2.15.so
+</span><span class='line'>    00007f1c6d8a7000      20 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    00007f1c6d8ac000       8 r-x-- 0000000000000000 008:00005 libdl-2.15.so
+</span><span class='line'>    00007f1c6d8ae000    2048 ----- 0000000000002000 008:00005 libdl-2.15.so
+</span><span class='line'>    00007f1c6daae000       4 r---- 0000000000002000 008:00005 libdl-2.15.so
+</span><span class='line'>    00007f1c6daaf000       4 rw--- 0000000000003000 008:00005 libdl-2.15.so
+</span><span class='line'>    00007f1c6dab0000     136 r-x-- 0000000000000000 008:00005 libtinfo.so.5.9
+</span><span class='line'>    00007f1c6dad2000    2048 ----- 0000000000022000 008:00005 libtinfo.so.5.9
+</span><span class='line'>    00007f1c6dcd2000      16 r---- 0000000000022000 008:00005 libtinfo.so.5.9
+</span><span class='line'>    00007f1c6dcd6000       4 rw--- 0000000000026000 008:00005 libtinfo.so.5.9
+</span><span class='line'>    00007f1c6dcd7000     136 r-x-- 0000000000000000 008:00005 ld-2.15.so
+</span><span class='line'>    00007f1c6ded7000      12 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    00007f1c6def0000      28 r--s- 0000000000000000 008:00005 gconv-modules.cache
+</span><span class='line'>    00007f1c6def7000       8 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    00007f1c6def9000       4 r---- 0000000000022000 008:00005 ld-2.15.so
+</span><span class='line'>    00007f1c6defa000       8 rw--- 0000000000023000 008:00005 ld-2.15.so
+</span><span class='line'>    00007fffe147d000     132 rw--- 0000000000000000 000:00000   [ stack ]
+</span><span class='line'>    00007fffe15ff000       4 r-x-- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    ffffffffff600000       4 r-x-- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    mapped: 30276K    writeable/private: 5668K    shared: 28K</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看出，这个进程的虚拟地址空间大小微30276k，实际占用的物理内存微5668k。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Calvin Lee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-11T18:36:00+08:00" pubdate data-updated="true">Nov 11<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/linux/'>Linux</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/11/07/awesome-bind-mount/" title="Previous Post: bind mount的使用">&laquo; bind mount的使用</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 90%" href="/tags/c-plus-plus/">C++</a>
+<a style="font-size: 156%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 118%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c/">c</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 118%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 118%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 135%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 90%" href="/tags/graphics/">graphics</a>
+<a style="font-size: 118%" href="/tags/http/">http</a>
+<a style="font-size: 156%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 175%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 163%" href="/tags/todo/">todo</a>
+<a style="font-size: 135%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 175%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 118%" href="/tags/zhuan-zai/">转载</a>
+
+  </ul>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/09/26/Chrominum-base-code-introduction/">Chromium Base库介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://calvinlee.github.io/blog/2013/11/11/introducing-pmap/';
+        var disqus_url = 'http://calvinlee.github.io/blog/2013/11/11/introducing-pmap/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

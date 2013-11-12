@@ -4,7 +4,7 @@
   <title><![CDATA[Category: C语言 | 且听风吟]]></title>
   <link href="http://calvinlee.github.io/blog/categories/c%E8%AF%AD%E8%A8%80/atom.xml" rel="self"/>
   <link href="http://calvinlee.github.io/"/>
-  <updated>2013-11-08T10:50:09+08:00</updated>
+  <updated>2013-11-12T10:12:04+08:00</updated>
   <id>http://calvinlee.github.io/</id>
   <author>
     <name><![CDATA[Calvin Lee]]></name>
@@ -197,6 +197,15 @@ int bar(int a, char *s) {
 <h3>Reference</h3>
 
 <p><a href="http://blog.csdn.net/porscheyin/article/details/3461632/">http://blog.csdn.net/porscheyin/article/details/3461632/</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[char类型是有符号的还是无符号的？]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/04/10/is-char-signed-or-unsigned/"/>
+    <updated>2012-04-10T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/04/10/is-char-signed-or-unsigned</id>
+    <content type="html"><![CDATA[<p><a href="http://ihacklog.com/programming/c/char-is-signed-or-unsigned-by-default.html">http://ihacklog.com/programming/c/char-is-signed-or-unsigned-by-default.html</a></p>
 ]]></content>
   </entry>
   
