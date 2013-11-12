@@ -4,7 +4,7 @@
   <title><![CDATA[Tag: csapp | 且听风吟]]></title>
   <link href="http://calvinlee.github.io/tags/csapp/atom.xml" rel="self"/>
   <link href="http://calvinlee.github.io/"/>
-  <updated>2013-11-12T11:24:09+08:00</updated>
+  <updated>2013-11-12T11:27:03+08:00</updated>
   <id>http://calvinlee.github.io/</id>
   <author>
     <name><![CDATA[Calvin Lee]]></name>
@@ -96,15 +96,6 @@ Java中没有long long数据类型，单字节数据类型位byte，而不是cha
 <h3>Reference</h3>
 
 <p><a href="http://www.ruanyifeng.com/blog/2009/08/twos_complement.html">关于补码</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[CSAPP读书笔记-程序的机器级表示]]></title>
-    <link href="http://calvinlee.github.io/blog/2012/04/13/csapp-machine-level-representation-of-c-programs/"/>
-    <updated>2012-04-13T00:00:00+08:00</updated>
-    <id>http://calvinlee.github.io/blog/2012/04/13/csapp-machine-level-representation-of-c-programs</id>
-    <content type="html"><![CDATA[
 ]]></content>
   </entry>
   

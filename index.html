@@ -769,45 +769,6 @@ Window &ndash;> Preference &ndash;> Keys &ndash;> Word Completion &ndash;> Unbin
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2013/01/21/android-MMS-cache-implementation/">Android Mms 缓存机制分析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-21T00:00:00+08:00" pubdate data-updated="true">Jan 21<span>st</span>, 2013</time>
-        
-           | <a href="/blog/2013/01/21/android-MMS-cache-implementation/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2013/01/21/android-MMS-cache-implementation/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
       <h1 class="entry-title"><a href="/blog/2013/01/20/android-handler-looper-message/">Android消息处理机制理解</a></h1>
     
     
@@ -1218,7 +1179,7 @@ looper.cpp:</p>
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2013/01/18/update-grub-from-livecd/">通过LiveCD更新grub</a></h1>
+      <h1 class="entry-title"><a href="/blog/2012/11/29/convertion-between-epoch-and-regular-time/">Unix Epoch 与 时间字符串的转换</a></h1>
     
     
       <p class="meta">
@@ -1234,18 +1195,132 @@ looper.cpp:</p>
   
 
 
-<time datetime="2013-01-18T00:00:00+08:00" pubdate data-updated="true">Jan 18<span>th</span>, 2013</time>
+<time datetime="2012-11-29T00:00:00+08:00" pubdate data-updated="true">Nov 29<span>th</span>, 2012</time>
         
-           | <a href="/blog/2013/01/18/update-grub-from-livecd/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2013/01/18/update-grub-from-livecd/">Comments</a>
+           | <a href="/blog/2012/11/29/convertion-between-epoch-and-regular-time/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/11/29/convertion-between-epoch-and-regular-time/">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p><a href="http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd">http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd</a>
-<a href="http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd">http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd</a></p>
+  <div class="entry-content"><h3>字符串 &mdash;> Epoch</h3>
+
+<pre><code>$ date -d "2012/11/29" +%s
+1354118400
+</code></pre>
+
+<h3>Epoch &mdash;> 字符串</h3>
+
+<pre><code>$ date -d@1354118400
+Thu Nov 29 00:00:00 CST 2012
+</code></pre>
+
+<p>或者加上格式控制：</p>
+
+<pre><code>$ date -d@1354118400 '+%Y-%m-%d %H:%M:%S'
+2012-11-29 00:00:00
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/10/18/git-tricks/">Git Tips and Tricks</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-10-18T00:00:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/10/18/git-tricks/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/10/18/git-tricks/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>在提交历史中查找指定文本</h3>
+
+<pre><code>git log -G'password' --all
+</code></pre>
+
+<p>or</p>
+
+<pre><code>git rev-list --all | (
+while read revision; do
+    git grep -F 'password' $revision
+done
+)
+</code></pre>
+
+<p>or</p>
+
+<pre><code>for revision in `git rev-list --all`; 
+do
+    git grep -F 'password' $revision;
+done
+</code></pre>
+
+<p>or
+<code>git log -S'bad\_code' path/to/file</code> 查看指定代码片段在哪个版本出现过。
+<code>git blame path/to/file</code>: 查看指定文件的每一行的最后修改时间是在哪个版本，但不能查看删除的行或者被替换的行
+参见man git-blame.</p>
+
+<h3>git commit</h3>
+
+<p><code>git commit -c &lt;commit&gt;</code>  reedit commit message of <commit>
+<code>git commit -C &lt;commit&gt;</code>  reuse commit message of <commit></p>
+
+<h3>git底层命令</h3>
+
+<p>git ls-tree<br/>
+git write-tree<br/>
+git ls-files<br/>
+git cat-file<br/>
+git rev-parse</p>
+
+<p>.git/refs 保存所有引用的命名空间
+.git/refs/heads 所有的本地分支</p>
+
+<p>git commit &mdash;allow-empty &mdash;amend</p>
+
+<p>[TODO] strace命令</p>
+
+<p>.git/index 包含文件索引的目录树，记录了文件名和文件的状态信息，文件的内容存储在.git/objects中，文件索引建立了文件和对象库中的文件对象之间的对应关系。</p>
+
+<p>git checkout . / git checkout &mdash; <file><br/>
+丢弃workspace中的内容，保留暂存区的内容</p>
+
+<p>git checkout HEAD . / git checkout HEAD <file><br/>
+用HEAD指向的commit中的内容替代workspace和暂存区的内容，这将导致当前workspace和暂存区的内容被丢弃。</p>
+
+<h3>使用git reflog挽回错误的reset</h3>
+
+<p>git reflog<br/>
+git reflog show master</p>
+
+<p>分支的变更记录都会被记录在.git/logs/refs下，通过 git reflog命令可以获得分支的历史变更记录，然后可以通过git reset 命令将HEAD任意重置到任意一个提交。</p>
 </div>
   
   
@@ -1264,64 +1339,6 @@ looper.cpp:</p>
 <aside class="sidebar">
   
     <section>
-  <h1>Categories</h1>
-  <ul id="categories">
-    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
-<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
-<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
-<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
-<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
-<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
-<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
-<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
-<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
-<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
-<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
-<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
-<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
-<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
-<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
-
-  </ul>
-</section>
-
-<section>
-  <h1>Tags</h1>
-  <ul class="tag-cloud">
-    <a style="font-size: 90%" href="/tags/c-plus-plus/">C++</a>
-<a style="font-size: 156%" href="/tags/cyu-yan/">C语言</a>
-<a style="font-size: 210%" href="/tags/android/">android</a>
-<a style="font-size: 118%" href="/tags/archlinux/">archlinux</a>
-<a style="font-size: 90%" href="/tags/awk/">awk</a>
-<a style="font-size: 90%" href="/tags/c/">c</a>
-<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
-<a style="font-size: 118%" href="/tags/csapp/">csapp</a>
-<a style="font-size: 90%" href="/tags/debug/">debug</a>
-<a style="font-size: 118%" href="/tags/eclipse/">eclipse</a>
-<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
-<a style="font-size: 135%" href="/tags/git/">git</a>
-<a style="font-size: 90%" href="/tags/github/">github</a>
-<a style="font-size: 90%" href="/tags/graphics/">graphics</a>
-<a style="font-size: 118%" href="/tags/http/">http</a>
-<a style="font-size: 156%" href="/tags/java/">java</a>
-<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
-<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
-<a style="font-size: 175%" href="/tags/linux/">linux</a>
-<a style="font-size: 90%" href="/tags/permission/">permission</a>
-<a style="font-size: 90%" href="/tags/php/">php</a>
-<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
-<a style="font-size: 90%" href="/tags/shell/">shell</a>
-<a style="font-size: 90%" href="/tags/socket/">socket</a>
-<a style="font-size: 163%" href="/tags/todo/">todo</a>
-<a style="font-size: 135%" href="/tags/vim/">vim</a>
-<a style="font-size: 90%" href="/tags/window/">window</a>
-<a style="font-size: 175%" href="/tags/ming-ling/">命令</a>
-<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
-<a style="font-size: 118%" href="/tags/zhuan-zai/">转载</a>
-
-  </ul>
-</section>
-<section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
     
@@ -1345,6 +1362,60 @@ looper.cpp:</p>
         <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
       </li>
     
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (10)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+
   </ul>
 </section>
 

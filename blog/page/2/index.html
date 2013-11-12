@@ -9,8 +9,9 @@
   <meta name="author" content="Calvin Lee">
 
   
-  <meta name="description" content="Ldap configure:
-ObjectClass=* Create new web http://www.john-am.com/2011/01/configuring-ldap-with-twiki/ Here is my cron.daily script to update the &hellip;">
+  <meta name="description" content="实例 问题起源于这段代码： if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) { Log.d(TAG, "mounted");
+} else { Log.d(TAG, "umounted");
+} &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -69,213 +70,6 @@ ObjectClass=* Create new web http://www.john-am.com/2011/01/configuring-ldap-wit
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/12/12/twiki-setup-and-configuraion/">UpdateMe</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-12-12T00:00:00+08:00" pubdate data-updated="true">Dec 12<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/12/12/twiki-setup-and-configuraion/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/12/12/twiki-setup-and-configuraion/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Ldap configure:
-ObjectClass=*</p>
-
-<p>Create new web</p>
-
-<p><a href="http://www.john-am.com/2011/01/configuring-ldap-with-twiki/">http://www.john-am.com/2011/01/configuring-ldap-with-twiki/</a></p>
-
-<p>Here is my cron.daily script to update the Ldap entries:</p>
-
-<pre><code>#!/bin/sh # # cd /var/www/twiki/bin &amp;&amp; ./view refreshldap=on Main/WebHome &gt;/dev/null chown www-data:www-data /var/www/twiki/working/work_areas/* -R &gt;/dev/null 
-</code></pre>
-
-<p>多语言支持：
-<a href="http://twiki.org/cgi-bin/view/TWiki/InstallationWithI18N">http://twiki.org/cgi-bin/view/TWiki/InstallationWithI18N</a>
-<a href="http://twiki.org/cgi-bin/view/Codev/UnderstandingEncodings">http://twiki.org/cgi-bin/view/Codev/UnderstandingEncodings</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/11/29/convertion-between-epoch-and-regular-time/">Unix Epoch 与 时间字符串的转换</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-11-29T00:00:00+08:00" pubdate data-updated="true">Nov 29<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/11/29/convertion-between-epoch-and-regular-time/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/11/29/convertion-between-epoch-and-regular-time/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>字符串 &mdash;> Epoch</h3>
-
-<pre><code>$ date -d "2012/11/29" +%s
-1354118400
-</code></pre>
-
-<h3>Epoch &mdash;> 字符串</h3>
-
-<pre><code>$ date -d@1354118400
-Thu Nov 29 00:00:00 CST 2012
-</code></pre>
-
-<p>或者加上格式控制：</p>
-
-<pre><code>$ date -d@1354118400 '+%Y-%m-%d %H:%M:%S'
-2012-11-29 00:00:00
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/10/18/git-tricks/">Git Tips and Tricks</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-10-18T00:00:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/10/18/git-tricks/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/10/18/git-tricks/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>在提交历史中查找指定文本</h3>
-
-<pre><code>git log -G'password' --all
-</code></pre>
-
-<p>or</p>
-
-<pre><code>git rev-list --all | (
-while read revision; do
-    git grep -F 'password' $revision
-done
-)
-</code></pre>
-
-<p>or</p>
-
-<pre><code>for revision in `git rev-list --all`; 
-do
-    git grep -F 'password' $revision;
-done
-</code></pre>
-
-<p>or
-<code>git log -S'bad\_code' path/to/file</code> 查看指定代码片段在哪个版本出现过。
-<code>git blame path/to/file</code>: 查看指定文件的每一行的最后修改时间是在哪个版本，但不能查看删除的行或者被替换的行
-参见man git-blame.</p>
-
-<h3>git commit</h3>
-
-<p><code>git commit -c &lt;commit&gt;</code>  reedit commit message of <commit>
-<code>git commit -C &lt;commit&gt;</code>  reuse commit message of <commit></p>
-
-<h3>git底层命令</h3>
-
-<p>git ls-tree<br/>
-git write-tree<br/>
-git ls-files<br/>
-git cat-file<br/>
-git rev-parse</p>
-
-<p>.git/refs 保存所有引用的命名空间
-.git/refs/heads 所有的本地分支</p>
-
-<p>git commit &mdash;allow-empty &mdash;amend</p>
-
-<p>[TODO] strace命令</p>
-
-<p>.git/index 包含文件索引的目录树，记录了文件名和文件的状态信息，文件的内容存储在.git/objects中，文件索引建立了文件和对象库中的文件对象之间的对应关系。</p>
-
-<p>git checkout . / git checkout &mdash; <file><br/>
-丢弃workspace中的内容，保留暂存区的内容</p>
-
-<p>git checkout HEAD . / git checkout HEAD <file><br/>
-用HEAD指向的commit中的内容替代workspace和暂存区的内容，这将导致当前workspace和暂存区的内容被丢弃。</p>
-
-<h3>使用git reflog挽回错误的reset</h3>
-
-<p>git reflog<br/>
-git reflog show master</p>
-
-<p>分支的变更记录都会被记录在.git/logs/refs下，通过 git reflog命令可以获得分支的历史变更记录，然后可以通过git reset 命令将HEAD任意重置到任意一个提交。</p>
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -884,6 +678,457 @@ Date: Wed, 06 Jun 2012 06:47:49 GMT
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/05/31/improve-sd-card-read-speed/">改善SD卡读取速度</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-31T00:00:00+08:00" pubdate data-updated="true">May 31<span>st</span>, 2012</time>
+        
+           | <a href="/blog/2012/05/31/improve-sd-card-read-speed/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/31/improve-sd-card-read-speed/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>一年前刷了CM的rom，发现sd卡速度下降了很多，今天看见有人发了一个kernel的patch改善这个问题，原理是修改sys文件系统下的一个read_ahead_kb参数值，这个值指定了每次从SD卡上读取数据时预读的大小。</p>
+
+<pre><code>adb shell 'echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb'
+</code></pre>
+
+<p>但这个值也不是越大越好，128是个比较平衡的值，因为在读取小文件的情况下，如果这个值太大，那么预读的数据很大几率是无用的数据，反而降低性能，<a href="http://forum.xda-developers.com/showthread.php?t=1032317">这个</a>帖子有详细的分析。</p>
+
+<p>这个值的定义在/include/linux/mm.h中：</p>
+
+<pre><code>/* readahead.c */
+#define VM_MAX_READAHEAD    128 /* kbytes */
+#define VM_MIN_READAHEAD    16  /* kbytes (includes current page) */
+</code></pre>
+
+<h3>设置开机生效</h3>
+
+<p>注意：重启后这个设置就失效了，为了避免每次开机后都要设置，可以在init.rc脚本中加上：</p>
+
+<pre><code>write /sys/devices/virtual/bdi/179:0/read_ahead_kb 128
+</code></pre>
+
+<p>或者利用init.d脚本的支持，在/system/etc/init.d目录下创建一个文件10sdcard:</p>
+
+<pre><code>#!/system/bin/sh
+echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb
+
+这样每次开机后都会执行这段脚本。
+</code></pre>
+
+<h3>CM支持init.d开机脚本的方法</h3>
+
+<ol>
+<li><p>在init.rc的class_start default上加上</p>
+
+<pre><code># Run sysinit
+exec /system/bin/sysinit
+
+class_start default
+</code></pre></li>
+<li><p>建立文件/system/bin/sysinit</p>
+
+<pre><code>#!/system/bin/sh
+
+export PATH=/sbin:/system/sbin:/system/bin:/system/xbin
+/system/bin/logwrapper /system/xbin/run-parts /system/etc/init.d
+</code></pre></li>
+</ol>
+
+
+<p>然后将启动脚本放在/system/etc/init.d目录下，这些脚本以数字命名，run-parts命令按照顺序排序依次执行这些脚本(cron命令也是利用run-parts命令执行指定目录下的脚本的，参见/etc/crontab)。</p>
+
+<p>其实也可以这样做：<br/>
+在init.rc的class_start default上加入</p>
+
+<pre><code>start sysinit
+</code></pre>
+
+<p>然后在所有service定义的后面加上：</p>
+
+<pre><code>service sysinit /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
+    disabled
+    oneshot
+</code></pre>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://forum.xda-developers.com/showthread.php?t=815557">http://forum.xda-developers.com/showthread.php?t=815557</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/05/31/convmv-and-iconv/">使用iconv和convmv转换文本编码</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-31T00:00:00+08:00" pubdate data-updated="true">May 31<span>st</span>, 2012</time>
+        
+           | <a href="/blog/2012/05/31/convmv-and-iconv/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/31/convmv-and-iconv/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>文本内容编码转换</h3>
+
+<p>文本显示乱码是因为文件本身的编码格式和编辑器打开文本所使用的编码格式不一致，使用iconv命令可以转换文本编码。如：</p>
+
+<pre><code>$ iconv -f coding1 -t coding2 file1 -o file2
+-f:指定文件原始编码
+-t:指定转换的目标编码
+file1:代转换的文件
+-o:指定输出文件
+</code></pre>
+
+<h3>文件名编码转换</h3>
+
+<p>常常有这样的情况，将一个rar文件解压后中文的文件名显示乱码，显示”invalid encoding“，利用convmv命令可以进行转换：</p>
+
+<pre><code>$ convmv -f gbk -t utf-8 -r --notest path/to/your/file
+-f:指定原始编码
+-t:指定转换的目标编码
+-r:如果目标文件是一个目录，递归处理目录下的文件
+--notest:转换后将文件重命名，默认情况下这个命令不会重命名文件
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/05/29/dynamic-proxy/">Java动态代理</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-29T00:00:00+08:00" pubdate data-updated="true">May 29<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/05/29/dynamic-proxy/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/29/dynamic-proxy/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>概念</h3>
+
+<p>Java动态代理是代理模式的延伸，之所以称为”动态“，是因为我们不用去设计代理类，代理类的字节码在运行时被动态生成后由classloader加载进JVM后运行。<br/>
+动态代理相关类有：</p>
+
+<pre><code>java.lang.reflect.Proxy  
+这个类的主要作用是在运行时生成代理类的字节码，并通过这个字节码生成代理类对象供客户端使用。  
+
+java.lang.reflect.InvocationHandler  
+这个接口只定义了一个invoke方法，它是调用真实的被代理对象的地方，我们可以在这个方法里加上额外的代理逻辑，如果日志记录，访问鉴权等。  
+
+Object invoke(Object proxy, Method method, Object[] args);
+
+proxy参数是生成的代理类对象的引用，就像后面分析的，它的类型是$Proxy0，继承了Proxy类并实现了和被代理对象公共的业务接口。  
+method是当前被调用的被代理方法。  
+args是当前被调用的被代理方法的参数列表。
+</code></pre>
+
+<p><a href="/images/dynamic_proxy.png"><img src="/images/dynamic_proxy.png" alt="/images/dynamic_proxy.png" /></a></p>
+
+<p>利用动态代理的机制，我们可以实现典型的AOP(Aspect-oriented programming)编程模式，实际上，这也是Spring AOP的实现原理。</p>
+
+<h3>举例</h3>
+
+<p>首先是被代理类和代理类公共的业务接口：</p>
+
+<pre><code>public interface Subject {
+    void request();
+}
+</code></pre>
+
+<p>AOP业务接口：</p>
+
+<pre><code>public interface AopLogger {
+    void logBefore();
+
+    void logAfter();
+}
+</code></pre>
+
+<p>被代理类：</p>
+
+<pre><code>public class RealSubject implements Subject {
+    public void request() {
+        System.out
+                .println("Processing request in real subject...");
+    }
+}
+</code></pre>
+
+<p>委托对象类：</p>
+
+<pre><code>import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+
+public class RequestInvocationHandler implements InvocationHandler {
+    private Subject originalObj;
+
+    private AopLogger logger;
+
+    public RequestInvocationHandler(Subject originalObj) {
+        super();
+        this.originalObj = originalObj;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        // do some processing before the method invocation
+        System.out.println("Before requesting real subject...");
+        logger.logBefore();
+        // TODO:
+        // how to use this proxy object?
+
+        // invoke the method
+        Object result = method.invoke(originalObj, args);
+
+        // do some processing after the method invocation
+        logger.logAfter();
+        System.out.println("After requesting real subject...");
+        return result;
+    }
+
+    public AopLogger getLogger() {
+        return logger;
+    }
+
+    public void setLogger(AopLogger logger) {
+        this.logger = logger;
+    }
+}
+</code></pre>
+
+<p>客户端测试代码：</p>
+
+<pre><code>import java.lang.reflect.Field;
+import java.lang.reflect.Proxy;
+import java.util.Properties;
+
+public class Client {
+
+    public static void main(String[] args) throws Exception {
+        // ***** save proxy class into file *******
+        Field field = System.class.getDeclaredField("props");
+        field.setAccessible(true);
+        Properties props = (Properties) field.get(null);
+        props.put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
+        // ****************************************
+
+        // TODO:
+        // 怎样防止客户端绕过proxy直接调用RealSubject的方法？
+        Subject origObj = new RealSubject();
+        Subject proxy = (Subject) getProxy(origObj);
+
+        proxy.request();
+    }
+
+    private static Object getProxy(Subject origObj) {
+        RequestInvocationHandler handler = new RequestInvocationHandler(origObj);
+        handler.setLogger(new AopLogger() {
+
+            @Override
+            public void logBefore() {
+                System.out.println("AOP logger working before...");
+            }
+
+            @Override
+            public void logAfter() {
+                System.out.println("AOP logger working after...");
+            }
+
+        });
+
+        // 这里会通过ProxyGenerator类生成代理类的字节码，并由origObj所在的classloader加载进JVM，然后通过反射实例化出一个代理对象
+        return Proxy.newProxyInstance(origObj.getClass().getClassLoader(), origObj.getClass()
+                .getInterfaces(), handler);
+    }
+
+}
+</code></pre>
+
+<p>在Client测试代码中加上如下代码后可以将生成的代理类字节码保存到本地文件中：</p>
+
+<pre><code>  Field field = System.class.getDeclaredField("props");
+  field.setAccessible(true);
+  Properties props = (Properties) field.get(null);
+  props.put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
+</code></pre>
+
+<p>反编译这个class文件后察看可以更清楚幕后究竟做了什么：</p>
+
+<pre><code>import com.java.demo.dynamic_proxy.Subject;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.lang.reflect.UndeclaredThrowableException;
+
+public final class $Proxy0 extends Proxy
+  implements Subject {
+  private static Method m1;
+  private static Method m3;
+  private static Method m0;
+  private static Method m2;
+
+  public $Proxy0(InvocationHandler paramInvocationHandler)
+    throws {
+    super(paramInvocationHandler);
+  }
+
+  public final boolean equals(Object paramObject)
+    throws {
+    try {
+      return ((Boolean)this.h.invoke(this, m1, new Object[] { paramObject })).booleanValue();
+    }
+    catch (Error localError) {
+      throw localError;
+    }
+    catch (Throwable localThrowable) {
+    }
+    throw new UndeclaredThrowableException(localThrowable);
+  }
+
+  public final void request()
+    throws {
+    try {
+      // 转发给InvocationHanlder对象处理
+      this.h.invoke(this, m3, null);
+      return;
+    }
+    catch (Error localError) {
+      throw localError;
+    }
+    catch (Throwable localThrowable) {
+    }
+    throw new UndeclaredThrowableException(localThrowable);
+  }
+
+  public final int hashCode()
+    throws {
+    try {
+      return ((Integer)this.h.invoke(this, m0, null)).intValue();
+    }
+    catch (Error localError) {
+      throw localError;
+    }
+    catch (Throwable localThrowable) {
+    }
+    throw new UndeclaredThrowableException(localThrowable);
+  }
+
+  public final String toString()
+    throws {
+    try {
+      return (String)this.h.invoke(this, m2, null);
+    }
+    catch (Error localError) {
+      throw localError;
+    }
+    catch (Throwable localThrowable) {
+    }
+    throw new UndeclaredThrowableException(localThrowable);
+  }
+
+  static {
+    try {
+      m1 = Class.forName("java.lang.Object").getMethod("equals", new Class[] { Class.forName("java.lang.Object") });
+      m3 = Class.forName("com.java.demo.dynamic_proxy.Subject").getMethod("request", new Class[0]);
+      m0 = Class.forName("java.lang.Object").getMethod("hashCode", new Class[0]);
+      m2 = Class.forName("java.lang.Object").getMethod("toString", new Class[0]);
+      return;
+    }
+    catch (NoSuchMethodException localNoSuchMethodException) {
+      throw new NoSuchMethodError(localNoSuchMethodException.getMessage());
+    }
+    catch (ClassNotFoundException localClassNotFoundException) {
+    }
+    throw new NoClassDefFoundError(localClassNotFoundException.getMessage());
+  }
+}
+</code></pre>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://chjl2020.iteye.com/blog/517835">http://chjl2020.iteye.com/blog/517835</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -897,64 +1142,6 @@ Date: Wed, 06 Jun 2012 06:47:49 GMT
 <aside class="sidebar">
   
     <section>
-  <h1>Categories</h1>
-  <ul id="categories">
-    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
-<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
-<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
-<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
-<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
-<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
-<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
-<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
-<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
-<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
-<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
-<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
-<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
-<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
-<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
-
-  </ul>
-</section>
-
-<section>
-  <h1>Tags</h1>
-  <ul class="tag-cloud">
-    <a style="font-size: 90%" href="/tags/c-plus-plus/">C++</a>
-<a style="font-size: 156%" href="/tags/cyu-yan/">C语言</a>
-<a style="font-size: 210%" href="/tags/android/">android</a>
-<a style="font-size: 118%" href="/tags/archlinux/">archlinux</a>
-<a style="font-size: 90%" href="/tags/awk/">awk</a>
-<a style="font-size: 90%" href="/tags/c/">c</a>
-<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
-<a style="font-size: 118%" href="/tags/csapp/">csapp</a>
-<a style="font-size: 90%" href="/tags/debug/">debug</a>
-<a style="font-size: 118%" href="/tags/eclipse/">eclipse</a>
-<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
-<a style="font-size: 135%" href="/tags/git/">git</a>
-<a style="font-size: 90%" href="/tags/github/">github</a>
-<a style="font-size: 90%" href="/tags/graphics/">graphics</a>
-<a style="font-size: 118%" href="/tags/http/">http</a>
-<a style="font-size: 156%" href="/tags/java/">java</a>
-<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
-<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
-<a style="font-size: 175%" href="/tags/linux/">linux</a>
-<a style="font-size: 90%" href="/tags/permission/">permission</a>
-<a style="font-size: 90%" href="/tags/php/">php</a>
-<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
-<a style="font-size: 90%" href="/tags/shell/">shell</a>
-<a style="font-size: 90%" href="/tags/socket/">socket</a>
-<a style="font-size: 163%" href="/tags/todo/">todo</a>
-<a style="font-size: 135%" href="/tags/vim/">vim</a>
-<a style="font-size: 90%" href="/tags/window/">window</a>
-<a style="font-size: 175%" href="/tags/ming-ling/">命令</a>
-<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
-<a style="font-size: 118%" href="/tags/zhuan-zai/">转载</a>
-
-  </ul>
-</section>
-<section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
     
@@ -978,6 +1165,60 @@ Date: Wed, 06 Jun 2012 06:47:49 GMT
         <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
       </li>
     
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (10)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+
   </ul>
 </section>
 
