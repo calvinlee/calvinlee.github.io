@@ -3,11 +3,12 @@ layout: post
 title: "Android消息处理机制理解"
 category: Android
 tags: [android]
+toc: true
 ---
 
 Android的消息处理机制是很多功能实现的基础，如UI绘制，键盘事件传递等等。在实现上，涉及到的类有Handler, Message, Looper等等，本篇研究Android消息处理机制的内部实现细节。
 
-###UI线程消息循环的启动
+#UI线程消息循环的启动
 Android所谓UI线程的启动位于ActivityThread.java，在其main方法中会启动这个消息循环：
 
 {% codeblock lang:java %}
@@ -96,7 +97,7 @@ public static void main(String[] args) {
         }
     }
 
-###消息队列的建立
+#消息队列的建立
 每一个looper对象对应一个MessageQueue对象，Looper对象在这个消息队列上loop。每个消息是一个Message对象，而对这个消息队列的引用也是一个Message对象：
 
     Message mMessages;
@@ -166,7 +167,7 @@ C++层的Looper对象实现为framework/base/libs/utils/Looper.cpp:
 这里先通过pipe系统调用创建了一个管道，这个管道非常重要：  
 当当前线程没有新的消息需要处理时，它会睡眠在管道的读端文件描述符上，直到有新消息到来为止；另一方面，当其他线程向这个线程的消息队列发送一个消息后，其他线程会在这个管道的写端文件描述符上写入数据，这样导致等待在读端文件描述符的looper唤醒，然后对消息队列中的消息进行处理。但是，它对其他线程写入写端文件描述符的数据是什么并不关心，因为这些数据仅仅是为了唤醒它而已。
 
-###开启消息循环
+#开启消息循环
 调用Looper.loop()开启消息循环，前面看到，loop()方法从next()#MessageQueue获取下一个待处理的消息：
 
     final Message next() {
@@ -253,7 +254,7 @@ nativePollOnce函数在C++层的Looper对象的实现为pollOnce()，进而调�
 
 这里只是将数据读出，它并不关心这些数据是什么。
 
-###消息发送过程
+#消息发送过程
 发送消息最常见的方法就是使用sendMessage()#Handler, 这个方法最终会调用enqueueMessage()#MessageQueue.java:
 
     final boolean enqueueMessage(Message msg, long when) {
@@ -308,5 +309,5 @@ looper.cpp:
 
 唤醒的过程就是望管道的写文件描述符mWakeWritePipeFd写入一些数据即可，这里写入了一个"W"字符，这样等待在管道另一端的正在睡眠的线程就会被唤醒，从而导致队首的消息被取出进行处理。
 
-###HanderThread
+#HanderThread
 HandlerThread最重要的特点是它的looper是在一个子线程中loop的，从而不会阻塞UI线程。
