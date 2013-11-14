@@ -9,8 +9,7 @@
   <meta name="author" content="Calvin Lee">
 
   
-  <meta name="description" content="比较单个文件 ssh user@host "cat path/to/remote/file" | diff path/to/local/file - 比较目录 利用sshfs将远程目录mount到本地，然后你就可以像比较本地目录一样操作这两个目录了。
-安装sshfs sudo apt-get &hellip;">
+  <meta name="description" content="开机时设置屏幕亮度为最暗 sudo echo 'echo 0 &gt; /sys/class/backlight/acpi_video0/brightness'&gt;&gt;/etc/rc.local 关机或者重启时最后屏幕变黑，但是机器一直关不掉，只有强行按电源键关闭 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -28,6 +27,15 @@
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
   <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<script src="/javascripts/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  // Revert jQuery's '$' alias, to avoid clashes with ender.js. NOTE: Use
+  // jQuery(...), instead of $(...) from here on.
+  jQuery.noConflict();
+</script>
+<script src="/javascripts/generate-toc.js" type="text/javascript" charset="utf-8"></script>
+
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 
@@ -69,6 +77,857 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/05/04/archlinux-adjustment-tips/">Archlinux调教小记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-04T00:00:00+08:00" pubdate data-updated="true">May 4<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/05/04/archlinux-adjustment-tips/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/04/archlinux-adjustment-tips/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>开机时设置屏幕亮度为最暗</h3>
+
+<pre><code>sudo echo 'echo 0 &gt; /sys/class/backlight/acpi_video0/brightness'&gt;&gt;/etc/rc.local
+</code></pre>
+
+<h3>关机或者重启时最后屏幕变黑，但是机器一直关不掉，只有强行按电源键关闭</h3>
+
+<p>原因在于我试图在开机时关掉Navia显卡<a href="https://wiki.archlinux.org/index.php/Dell_XPS_15#System_Settings">https://wiki.archlinux.org/index.php/Dell_XPS_15#System_Settings</a>：</p>
+
+<pre><code>rc.conf中
+MODULES=(acpi_call)
+rc.local中
+echo '\_SB.PCI0.PEG0.PEGP._OFF' &gt; /proc/acpi/call
+</code></pre>
+
+<p>由此会造成这个问题，去掉开机加载acpi_call模块就行了，为什么会这样呢？不知道&hellip;</p>
+
+<h3>音量设置</h3>
+
+<pre><code>#pacman -S alsa-utils alsa-lib
+#alsactl store
+</code></pre>
+
+<h3>ibus输入中文显示乱码</h3>
+
+<p>使用ibus输入中文，在gedit下没有问题，在terminal中或者gvim中输入显示乱码
+google得知是glibc的问题，在/etc/locale.gen中去掉zh_CN.UTF-8的注释，再运行locale-gen即可</p>
+
+<h3>下载firefox后执行./firefox失败，</h3>
+
+<pre><code>$ /opt/firefox/firefox
+/opt/firefox/firefox: error while loading shared libraries: libstdc++.so.6: cannot open shared object file: No such file or directory
+$ file /opt/firefox/firefox
+/opt/firefox/firefox: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.9, stripped
+$ ldd /opt/firefox/firefox
+    linux-gate.so.1 =&gt;  (0xf7753000)
+    libpthread.so.0 =&gt; /usr/lib32/libpthread.so.0 (0xf771d000)
+    libdl.so.2 =&gt; /usr/lib32/libdl.so.2 (0xf7718000)
+    libstdc++.so.6 =&gt; not found
+    libm.so.6 =&gt; /usr/lib32/libm.so.6 (0xf76ea000)
+    libgcc_s.so.1 =&gt; not found
+    libc.so.6 =&gt; /usr/lib32/libc.so.6 (0xf7546000)
+    /lib/ld-linux.so.2 (0xf7754000)
+</code></pre>
+
+<p>原因是firefox可执行文件是为32位平台编译的，在我的64位机器上的/lib等目录下缺少相应的64位库文件，下载<a href="ftp://ftp.mozilla.org/pub/firefox/">ftp://ftp.mozilla.org/pub/firefox/</a>64位firefox即可。</p>
+
+<h3>Microsoft wireless mobile mouse 3500纵向滚动过快</h3>
+
+<p>每当从windows重启进入arch时会发现微软无线鼠标3500滚轮纵向滚动太快，每次拔下无线接收器问题就能解决，然而有一个更好的办法，见<a href="http://www.jochus.be/site/2010-08-02/linux/microsoft-wireless-laser-mouse-5000-scroll-speed-too-fast-ubuntu-lucid-1004-lts">here</a>,<a href="https://github.com/paulrichards321/resetmsmice">here</a>有一个patch可以解决这个问题。<br/>
+编译安装后在/etc/rc.local中添加<code>resetmsmice</code>即可。</p>
+
+<h3>Disable PC Speaker Beep</h3>
+
+<p><a href="https://wiki.archlinux.org/index.php/Disable_PC_Speaker_Beep">https://wiki.archlinux.org/index.php/Disable_PC_Speaker_Beep</a></p>
+
+<h3>禁用IPv6</h3>
+
+<p>添加ipv6.disable=1你的启动加载器的内核行中。<br/>
+另外可以通过sysctl禁用IPv6，添加下面的内容到 /etc/sysctl.conf:</p>
+
+<pre><code># Disable IPv6
+net.ipv6.conf.all.disable_ipv6 = 1
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/05/04/Why-prefer-static-inner-class/">为什么要使用static内部类</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-04T00:00:00+08:00" pubdate data-updated="true">May 4<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/05/04/Why-prefer-static-inner-class/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/04/Why-prefer-static-inner-class/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>看一个例子：</p>
+
+<pre><code>public class OuterClass {
+    class NonStaticInner {
+    }
+    static class StaticInner {
+    }
+    public void foo() {
+        NonStaticInner nonStaticInner = new NonStaticInner();
+        StaticInner staticInner = new StaticInner();
+    }
+}
+</code></pre>
+
+<p>编译后生成三个class文件：</p>
+
+<pre><code>$ tree
+.
+└── com
+    └── java
+        └── demo
+            ├── OuterClass.class
+            ├── OuterClass$NonStaticInner.class
+            ├── OuterClass$StaticInner.class
+</code></pre>
+
+<p>使用javap反编译class文件：</p>
+
+<pre><code>$ javap -classpath . -private -c com.java.demo.OuterClass\$StaticInner
+Compiled from "OuterClass.java"
+class com.java.demo.OuterClass$StaticInner extends java.lang.Object{
+com.java.demo.OuterClass$StaticInner();
+  Code:
+   0:   aload_0
+   1:   invokespecial   #8; //Method java/lang/Object."&lt;init&gt;":()V
+   4:   return
+}
+
+$ javap -classpath . -private -c com.java.demo.OuterClass\$NonStaticInner
+Compiled from "OuterClass.java"
+class com.java.demo.OuterClass$NonStaticInner extends java.lang.Object{
+final com.java.demo.OuterClass this$0;
+
+com.java.demo.OuterClass$NonStaticInner(com.java.demo.OuterClass);
+  Code:
+   0:   aload_0
+   1:   aload_1
+   2:   putfield    #10; //Field this$0:Lcom/java/demo/OuterClass;
+   5:   aload_0
+   6:   invokespecial   #12; //Method java/lang/Object."&lt;init&gt;":()V
+   9:   return
+}
+</code></pre>
+
+<p>从反编译的结果可以看出static内部类和non-static内部类的区别：<br/>
+<strong>对non-static内部类来说，它会持有一个外部类的引用.</strong>编译器会生成一个构造方法，并传入外部类的引用，像这样：</p>
+
+<pre><code>class NonStaticInner {
+    private final OuterClass this$0;
+
+    OuterClass$NonStaticInner(OuterClass outer) {
+        this$0 = outer;
+    }
+}
+</code></pre>
+
+<p>这样的话，每生成一个内部类，都会增加一个对外部类的引用，从而阻止GC来回收外部类。在Android中，如果这个外部类是一个activity类，从而会间接引用更多的图片等资源，不小心的话可能会造成内存泄漏。<br/>
+而对static的内部类则不会持有所在外部类的引用。<br/>
+所以，从GC的角度考虑，应该尽可能使用static的内部类.</p>
+
+<h3>Reference：</h3>
+
+<ul>
+<li><a href="http://stackoverflow.com/questions/3106912/why-does-android-prefer-static-classes">http://stackoverflow.com/questions/3106912/why-does-android-prefer-static-classes</a></li>
+<li><a href="http://www.techrepublic.com/article/examine-class-files-with-the-javap-command/5815354">http://www.techrepublic.com/article/examine-class-files-with-the-javap-command/5815354</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/26/android-init-socket/">Android get control socket</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-26T00:00:00+08:00" pubdate data-updated="true">Apr 26<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/26/android-init-socket/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/26/android-init-socket/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>/hardware/ril/libril/ril.cpp下有如下代码：</p>
+
+<pre><code>s_fdListen = android_get_control_socket(SOCKET_NAME_RIL);
+if (s_fdListen &lt; 0) {
+    LOGE("Failed to get socket '" SOCKET_NAME_RIL "'");
+    exit(-1);
+}
+
+if (listen(s_fdListen, 4)) {
+    exit(1);
+}
+s_fdCommand = accept(s_fdListen, (sockaddr *) &amp;peeraddr, &amp;socklen);
+</code></pre>
+
+<p>这个android_get_control_socket函数有什么作用呢？
+android_get_control_socket函数定义在/system/core/include/cutils/sockets.h:</p>
+
+<pre><code>#define ANDROID_SOCKET_ENV_PREFIX   "ANDROID_SOCKET_"
+#define ANDROID_SOCKET_DIR      "/dev/socket"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ * android_get_control_socket - simple helper function to get the file
+ * descriptor of our init-managed Unix domain socket. `name' is the name of the
+ * socket, as given in init.rc. Returns -1 on error.
+ *
+ * This is inline and not in libcutils proper because we want to use this in
+ * third-party daemons with minimal modification.
+ */
+static inline int android_get_control_socket(const char *name)
+{
+    char key[64] = ANDROID_SOCKET_ENV_PREFIX;
+    const char *val;
+    int fd;
+
+    /* build our environment variable, counting cycles like a wolf ... */
+#if HAVE_STRLCPY
+    strlcpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+        name,
+        sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+#else   /* for the host, which may lack the almightly strncpy ... */
+    strncpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+        name,
+        sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+    key[sizeof(key)-1] = '\0';
+#endif
+
+    val = getenv(key); // socket名字和对应的socket文件的文件描述符以键值对的形式存储在环境变量中， 
+    if (!val)
+        return -1;
+
+    errno = 0;
+    fd = strtol(val, NULL, 10);
+    if (errno)
+        return -1;
+
+    return fd;
+}
+</code></pre>
+
+<p>init.rc
+/system/core/init/readme.txt</p>
+
+<p>/system/core/init/util.c</p>
+
+<pre><code>/*
+ * create_socket - creates a Unix domain socket in ANDROID_SOCKET_DIR
+ * ("/dev/socket") as dictated in init.rc. This socket is inherited by the
+ * daemon. We communicate the file descriptor's value via the environment
+ * variable ANDROID_SOCKET_ENV_PREFIX&lt;name&gt; ("ANDROID_SOCKET_foo").
+ */
+int create_socket(const char *name, int type, mode_t perm, uid_t uid, gid_t gid)
+{
+    struct sockaddr_un addr;
+    int fd, ret;
+
+    fd = socket(PF_UNIX, type, 0);
+    if (fd &lt; 0) {
+        ERROR("Failed to open socket '%s': %s\n", name, strerror(errno));
+        return -1;
+    }
+
+    memset(&amp;addr, 0 , sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    snprintf(addr.sun_path, sizeof(addr.sun_path), ANDROID_SOCKET_DIR"/%s",
+             name);
+
+    ret = unlink(addr.sun_path);
+    if (ret != 0 &amp;&amp; errno != ENOENT) {
+        ERROR("Failed to unlink old socket '%s': %s\n", name, strerror(errno));
+        goto out_close;
+    }
+
+    ret = bind(fd, (struct sockaddr *) &amp;addr, sizeof (addr));
+    if (ret) {
+        ERROR("Failed to bind socket '%s': %s\n", name, strerror(errno));
+        goto out_unlink;
+    }
+
+    chown(addr.sun_path, uid, gid);
+    chmod(addr.sun_path, perm);
+
+    INFO("Created socket '%s' with mode '%o', user '%d', group '%d'\n",
+         addr.sun_path, perm, uid, gid);
+
+    return fd;
+
+out_unlink:
+    unlink(addr.sun_path);
+out_close:
+    close(fd);
+    return -1;
+}
+</code></pre>
+
+<p>init.c</p>
+
+<pre><code>static void publish_socket(const char *name, int fd)
+{
+    char key[64] = ANDROID_SOCKET_ENV_PREFIX;
+    char val[64];
+
+    strlcpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+            name,
+            sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+    snprintf(val, sizeof(val), "%d", fd);
+    add_environment(key, val); //添加到环境变量中
+
+    /* make sure we don't close-on-exec */
+    fcntl(fd, F_SETFD, 0);
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/21/android-window-management-architecture/">Android 窗口管理</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-21T00:00:00+08:00" pubdate data-updated="true">Apr 21<span>st</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/21/android-window-management-architecture/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/21/android-window-management-architecture/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>基本概念</h3>
+
+<ul>
+<li><p>Surface</p>
+
+<p>Surface就是每个View的画布，View及其子类都要画在surface上。<br/>
+Surface都是双缓冲的，back buffer用来绘制，front buffer用来合成。每个surface对象对应surfaceflinger里面的一个layer，SurfaceFlinger负责将各个layer的front buffer合成（composite），然后将合成后的数据输出到frame buffer驱动并最终绘制到屏幕上。</p></li>
+<li><p>Window</p>
+
+<p>Window可以看作desktop上的window的概念。Window类定义了顶层视图的一些属性以及对这些属性的方法，包括背景，title，一些按键事件处理（如Volume up和Volump down按键在MediaController所属的Window里面被设置位控制媒体音量大小）以及一些其他的window feature，它含有一个window manager对象用来addView，removeView，updateView等等，window manager通过和运行在system_server进程的window manager service建立联系来实现这些操作。每一个Window都对应一个Surface对象用来渲染添加到window里面的内容。<br/>
+Window的实现为PhoneWindow。</p></li>
+<li><p>View</p>
+
+<p>View是添加到window里面的和用户产生交互的UI控件。View与ViewGroup一起组成了一个树状结构，每一个Window都有一个View的层级树与之关联。这个view的层级树组成了这个window的样式和行为。DecorView作为顶层view被添加到PhoneWindow中。</p></li>
+<li><p>SurfaceView</p>
+
+<p>每个SurfaceView拥有一个独立的Surface对象。</p></li>
+<li><p>ViewRoot:
+每一个view的层级树对应一个ViewRoot，也就是说one viewroot per window。每个ViewRoot对象都有一个对应的Surface对象用来绘制UI，当window需要重绘时（比如一个view调用了invalidate()方法），重绘的操作都是这个ViewRoot对应的Surface上进行的。Surface首先被lock住，然后返回一个可供重绘的Canvas，然后在view层级树中遍历，并把这个Canvas对象依次传递给每个View的onDraw方法。重绘结束后这个surface被unlock，然后交由surface finger进行组合。View层级树中的所有view均在这个Canvas对象上绘制。<br/>
+ViewRoot是GUI管理系统与GUI呈现系统之间的桥梁，主要作用有：</p>
+
+<ol>
+<li> 向DecorView分发从WindowManagerService收到的用户发起的event事件，如按键，触屏，轨迹球等事件；</li>
+<li> 与WindowManagerService交互，完成整个Activity的GUI的绘制。</li>
+</ol>
+</li>
+</ul>
+
+
+<p><a href="/images/android-window-architecture.png"><img src="/images/android-window-architecture.png" alt="/images/android-window-architecture.png" /></a></p>
+
+<ul>
+<li><p>Bitmap</p>
+
+<p>Bitmap可以看作是一块数据存储区域，用来存储像素数据。</p></li>
+<li><p>Canvas
+每个Canvas底层都对应一个Bitmap对象，Canvas提供了一些绘制图形的接口，比如画直线，画圆，这些方法是在这个bitmap上操作的。</p></li>
+<li><p>Paint
+用来描述绘制时使用的颜色，风格等。</p></li>
+<li><p>Drawable:
+绘制的基本对象。</p></li>
+</ul>
+
+
+<p>以上四种对象构成绘制图形的四个基本元素，如图：</p>
+
+<p><a href="/images/android_graphics.png"><img src="/images/android_graphics.png" alt="/images/android_graphics.png" /></a></p>
+
+<h3>窗口类</h3>
+
+<p><a href="/images/android-window-class.png"><img src="/images/android-window-class.png" alt="/images/android-window-class.png" /></a></p>
+
+<h3>Activity.attach</h3>
+
+<ul>
+<li>ActivityManagerService.startActivity
+
+<ul>
+<li>ActivityThread.performLaunchActivity
+
+<ul>
+<li>Activity.attach
+
+<ul>
+<li>PolicyManager.makeNewWindow //实例化一个activity或者dialog或者widget的地方才会make new window</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>ActivityThread.handleResumeActivity
+
+<ul>
+<li>WindowManagerImpl.addView //添加DecorView到WindowManager中
+
+<ul>
+<li>new ViewRootImpl // 实例化一个ViewRoot对象
+
+<ul>
+<li>WindowManagerService.openSession //建立ViewRoot到WMS的通信桥梁</li>
+</ul>
+</li>
+<li>ViewRootImpl.setView
+
+<ul>
+<li>requestLayout</li>
+<li>IWindowSession.add // 将这个ViewRoot的IWindow对象（ViewRootImpl.W）添加到WMS中，作为WMS到ViewRoot的通信桥梁
+
+<ul>
+<li>WindowManagerService.addWindow</li>
+</ul>
+</li>
+<li>ViewRootImpl.performTraversals //负责绘制View hierarchy，绘制的目的地是对应Surface的back buffer。这个方法总是在UI线程中调用
+
+<ul>
+<li>DecorView.dispatchAttachedToWindow
+
+<ul>
+<li>DecorView.measure</li>
+</ul>
+</li>
+<li>ViewRootImpl.relayoutWindow // 通过WMS创建一个Surface对象，赋值给ViewRoot持有的Surface对象
+
+<ul>
+<li>WindowManagerService.relayoutWindow</li>
+</ul>
+</li>
+<li>DecorView.measure</li>
+<li>DecorView.layout</li>
+<li>ViewRootImpl.draw // 根据一个dirty的矩形区域决定重绘范围。这里有两种情况：是否使用GL绘制<br/>
+  // 如果不使用GL绘制
+
+<ul>
+<li>Surface.lockCanvas // 传入drity的区域，获取一个bitmap存储区，与一个Canvas对象绑定并返回</li>
+<li>Canvas.save</li>
+<li>DecorView.draw //绘制View hierarchy tree</li>
+<li>Canvas.restoreToCount</li>
+<li>Surface.unlockCanvasAndPost</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<h3>WindowManagerService.addWindow</h3>
+
+<ul>
+<li>WindowManagerService.addWindow
+
+<ul>
+<li>new WindowState</li>
+<li>WindowState.attach
+
+<ul>
+<li>WindowManagerService.Session.windowAddedLocked
+
+<ul>
+<li>new SurfaceSession() // Create a new connection with the surface flinger
+
+<ul>
+<li>SurfaceSession_init(android_view_Surface.cpp)
+
+<ul>
+<li>new SurfaceComposerClient(android_view_Surface.cpp)
+
+<ul>
+<li>onFirstRef(SurfaceComposerClient.cpp)
+
+<ul>
+<li>getComposerService //ComposerService 用于获取SurfaceFlinger服务，它是一个单例，每个进程一个实例</li>
+<li>BpSurfaceComposer.createConnection(SurfaceComposerClient.cpp)
+
+<ul>
+<li>SurfaceFlinger.createConnection(SurfaceFlinger.cpp)
+
+<ul>
+<li>new BnSurfaceComposerClient // 这个client对象接收来自客户端的请求，并转发给SurfaceFlinger, 主要两个接口：createSurface和destroySurface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>addWindowToListInOrderLocked</li>
+<li>updateFocusedWindowLocked</li>
+<li>assignLayersLocked</li>
+</ul>
+</li>
+</ul>
+
+
+<p>ComposerService</p>
+
+<pre><code>class ComposerService : public Singleton&lt;ComposerService&gt;
+{
+    //实际对象为BpSurfaceComposer,通过它与SurfaceFlinger进行通信，
+    //BnSurfaceComposer是SurfaceFlinger的子类
+    sp&lt;ISurfaceComposer&gt; mComposerService;
+
+    //实际对象为BpMemoryHeap,它在SurfaceFlinger中对应为管理一个4096字节的
+    //一个MemoryHeapBase对象，在SurfaceFlinger::readyToRun中创建
+    sp&lt;IMemoryHeap&gt; mServerCblkMemory;
+
+    //为MemoryHeapBase管理的内存在用户空间的基地址，通过mmap而来，
+    //具体见MemoryHeapBase::mapfd
+    surface_flinger_cblk_t volatile* mServerCblk;
+    ComposerService();
+    friend class Singleton&lt;ComposerService&gt;;
+public:
+    static sp&lt;ISurfaceComposer&gt; getComposerService();
+    static surface_flinger_cblk_t const volatile * getControlBlock();
+};
+
+ComposerService::ComposerService()
+: Singleton&lt;ComposerService&gt;() {
+    const String16 name("SurfaceFlinger");
+    //获取SurfaceFlinger服务，即BpSurfaceComposer对象
+    while (getService(name, &amp;mComposerService) != NO_ERROR) {
+        usleep(250000);
+    }
+    //获取shared control block
+    mServerCblkMemory = mComposerService-&gt;getCblk();
+    //获取shared control block 的基地址
+    mServerCblk = static_cast&lt;surface_flinger_cblk_t volatile *&gt;(
+            mServerCblkMemory-&gt;getBase());
+}
+</code></pre>
+
+<p>这一步的主要作用：<br/>
+将新的Window添加到WMS，并为这个Window对象获取一个SurfaceFlinger的代理对象BpSurfaceComposerClient。</p>
+
+<h3>WindowManagerService.relayoutWindow</h3>
+
+<ul>
+<li>WindowManagerService.relayoutWindow
+
+<ul>
+<li>WindowManagerService.WindowState.createSurfaceLocked
+
+<ul>
+<li>SurfaceComposerClient.createSurface(android_view_Surface.cpp)
+
+<ul>
+<li>BpSurfaceComposerClient.createSurface // 在上一步已经获得了
+
+<ul>
+<li>Client::createSurface(SurfaceFlinger.cpp)
+
+<ul>
+<li>SurfaceFlinger::createSurface
+
+<ul>
+<li>SurfaceFlinger.createNormalSurface
+
+<ul>
+<li>new Layer
+
+<ul>
+<li>onFirstRef > new SurfaceTextureLayer
+
+<ul>
+<li>new SurfaceTexture
+
+<ul>
+<li>SurfaceFlinger::createGraphicBufferAlloc</li>
+</ul>
+</li>
+<li>new LayerBaseClient(LayerBase.cpp)
+
+<ul>
+<li>new LayerBase(LayerBase.cpp)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Layer.setBuffers(Layer.cpp) // 为这个layer分配GraphicBuffers
+
+<ul>
+<li>new SurfaceLayer
+
+<ul>
+<li>new LayerBaseClient::Surface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>SurfaceFlinger.addClientLayer
+
+<ul>
+<li>BnSurfaceComposerClient.attachLayer</li>
+<li>addLayer_l // 将这个layer加入Z轴</li>
+</ul>
+</li>
+<li>Layer.getSurface
+
+<ul>
+<li>Layer::createSurface(Layer.cpp)
+
+<ul>
+<li>new BSurface // BSurface实现了ISurface接口</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>new SurfaceControl</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<p><a href="http://blog.csdn.net/myarrow/article/details/7180561">这篇文章</a>的这张图很好的描述了SurfaceComposerClient对象内的状态：</p>
+
+<p><a href="/images/android-surface-interfaces.jpeg"><img src="/images/android-surface-interfaces.jpeg" alt="/images/android-surface-interfaces.jpeg" /></a></p>
+
+<h3>Surface.lockCanvas</h3>
+
+<ul>
+<li>Surface.lockCanvas
+
+<ul>
+<li>Surface_lockCanvas(android_view_Surface.cpp)
+
+<ul>
+<li>getSurface
+
+<ul>
+<li>SurfaceControl.getSurface
+
+<ul>
+<li>new Surface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Surface.lock(Surface.cpp)
+
+<ul>
+<li>SurfaceTextureClient::lock
+
+<ul>
+<li>dequeueBuffer</li>
+<li>lockBuffer</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>new SkBitmap</li>
+</ul>
+</li>
+</ul>
+
+
+<p>Gralloc</p>
+
+<ol>
+<li>Used to allocate and map graphics memory to app processes</li>
+<li>Facilitates graphics memory export via Binder IPC mechanism</li>
+<li>Provides cache synchronization points</li>
+<li>Also used for framebuffer discovery</li>
+</ol>
+
+
+<h3>Surface.unlockCanvasAndPost</h3>
+
+<ul>
+<li>Surface.lockCanvas
+
+<ul>
+<li>Surface_lockCanvas(android_view_Surface.cpp)
+
+<ul>
+<li>getSurface
+
+<ul>
+<li>SurfaceControl.getSurface
+
+<ul>
+<li>new Surface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Surface.lock(Surface.cpp)
+
+<ul>
+<li>SurfaceTextureClient::unlockAndPost</li>
+<li>GraphicBuffer.unlock</li>
+<li>queueBuffer</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://www.mail-archive.com/android-framework@googlegroups.com/msg01901.html">http://www.mail-archive.com/android-framework@googlegroups.com/msg01901.html</a></li>
+<li><a href="http://stackoverflow.com/questions/4576909/understanding-canvas-and-surface-concepts">http://stackoverflow.com/questions/4576909/understanding-canvas-and-surface-concepts</a></li>
+<li><a href="http://www.androidenea.com/2010/03/share-memory-using-ashmem-and-binder-in.html">关于MemoryHeapBase</a></li>
+<li><a href="http://blog.csdn.net/myarrow/article/details/7180561">http://blog.csdn.net/myarrow/article/details/7180561</a></li>
+<li><a href="http://blog.csdn.net/droidphone/article/details/5972568">http://blog.csdn.net/droidphone/article/details/5972568</a></li>
+</ul>
+
+
+<h3>待续&hellip;</h3>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -154,6 +1013,47 @@ sudo chmod +x /dev/fusermount
 <li><a href="https://wiki.archlinux.org/index.php/Sshfs">https://wiki.archlinux.org/index.php/Sshfs</a></li>
 </ul>
 
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/19/android-graphics-system/">Android Graphics总结</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-19T00:00:00+08:00" pubdate data-updated="true">Apr 19<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/19/android-graphics-system/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/19/android-graphics-system/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>#</h2>
+
+<p><a href="/images/android_graphics.png"><img src="/images/android_graphics.png" alt="/images/android_graphics.png" /></a></p>
 </div>
   
   
@@ -560,729 +1460,6 @@ unlet s:cpo_save
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/04/13/csapp-representing-and-manipulating-information/">CSAPP读书笔记-信息的表示和处理</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-04-13T00:00:00+08:00" pubdate data-updated="true">Apr 13<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/04/13/csapp-representing-and-manipulating-information/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/13/csapp-representing-and-manipulating-information/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>寻址和字节顺序</h3>
-
-<ul>
-<li><p>字长决定整数和指针的大小，因为虚拟地址是以这样的一个字来编码的，所以字长决定的最重要的系统参数就是虚拟地址的空间的最大大小。</p></li>
-<li><p>在存储器中存储数据的顺序分为小端存储和大端存储：<br/>
-  <strong>小端存储</strong>：低字节存储在低地址，高字节存储在高地址。Intel兼容机大多采用这种规则。<br/>
-  <strong>大端存储</strong>：高字节存储在低地址，高字节存储在低地址。IBM和Sun的大型机多采用这种规则。<br/>
-  大多数时候，字节顺序对程序员是透明的。但是字节存储顺序在以下场合会产生问题：<br/>
-  在不同类型的机器间通过网络传送二进制数据，发送方应该把数据转换成网络标准再发送，接收方应该先把数据从网络标准格式转化成内部格式。<br/>
-  阅读表示整数数据的字节序列时</p></li>
-</ul>
-
-
-<h3>表示字符串</h3>
-
-<ul>
-<li><p>使用ASCII码作为字符码在任何系统上的表示方法都相同，与字节顺序和字大小规则无关，因此文本数据比二进制数据有更强的平台独立性。由于不同的机器使用不同且不兼容的指令和编码方式，因此编译后的二进制代码在不同的机器上时不兼容的，如果要在不同的机器上运行程序，必须重新编译生成新的二进制码才能运行。</p></li>
-<li><p>char类型是有符号的还是无符号的？</p></li>
-</ul>
-
-
-<h3>C语言的位运算</h3>
-
-<ul>
-<li><p>表达式~0生成一个全1的掩码，不管机器的字大小是多少，这是一个可移植的写法。</p></li>
-<li><p>C语言中的右移位运算包括逻辑右移和算术右移。逻辑右移在左端补0，算术右移在左端补最高有效位的值。C语言标准并没有规定应该使用哪种类型的右移方式。实际上，对于无符号数据，右移必须是逻辑的。而对于有符号数据，几乎所有的机器都使用算术右移。在Java中对右移有明确定义：运算符<code>&gt;&gt;</code>表示算术右移，运算符<code>&gt;&gt;&gt;</code>表示逻辑右移。</p></li>
-<li><p>一种交换指针所指向的存储位置的方法：</p>
-
-<pre><code>void swap(int *x, int *y) {
-    *y = *x ^ *y;
-    *x = *x ^ *y;
-    *y = *x ^ *y;
-}
-</code></pre></li>
-</ul>
-
-
-<h3>数据类型及转换</h3>
-
-<ul>
-<li><p>整数数据类型的取值范围</p></li>
-<li><p>确定大小的整数类型</p>
-
-<p>由于每种数据类型在不同的机器上可能有不同的取值范围，而c语言标准只是规定了每种数据类型的最小范围，而不是确定的范围，ISO C99在stdint.h中定义了形如intN_t和uintN_t，指定了N位有符号和无符号整数。N一般取值8，16，32，64，如int32_t，可以在所有机器上无歧义的定义一个32位的整型变量。
-Java中没有long long数据类型，单字节数据类型位byte，而不是char。</p></li>
-<li><p>类型转换以及有符号数和无符号数之间的转换</p>
-
-<p>当执行一个运算时，如果一个运算数是有符号的而另一个是无符号的，那么C语言会隐式的将有符号的运算数强制转换为无符号数，并假设这两个数都是非负的。<br/>
-比如在一个32位机器上计算<code>-1&lt;0U</code>，-1的二进制位模式表示为FFFFFFFF，那么有符号数-1会被隐式转换为无符号数——以无符号数来解释位模式FFFFFFFF，那么就变成了计算<code>4294967295U &lt; 0U</code>，而得出来的答案显然是错的。<br/>
-无符号数和有符号数之间的这种隐式转换很容易导致隐藏的bug，使用无符号数一定要谨慎。</p>
-
-<p>类型转换的时机：</p>
-
-<ol>
-<li> 显示的强制转换</li>
-<li> 当一种类型的表达式被赋值给另外一种类型的变量时，发生隐式转换。</li>
-</ol>
-
-
-<p>C语言允许不同数据类型之间的强制转换。这种转换的一般规则是：<strong>转换的数底层的存储位模式不会改变，只是改变了解释这些位的方式。</strong><br/>
-当转换既涉及到大小变化（如int&mdash;>short）又涉及到符号改变时，会先进行大小的转换，再以有符号或者无符号的方式去解释转换后的位模式。如：</p>
-
-<pre><code>  short  sx = 0xcfc7;
-  unsigned uy = sx;
-  printf("uy = %u\n", uy);
-</code></pre>
-
-<p>输出：uy = 4294954951</p>
-
-<p>转换的过程是：<br/>
-先转换大小：short&mdash;>int，进行位扩展，0xcfc7&mdash;>0xffffcfc7<br/>
-再完成有符号到无符号的转换：以无符号的方式解释0xffffcfc7，得到4294954951。</p></li>
-</ul>
-
-
-<h3>Reference</h3>
-
-<p><a href="http://www.ruanyifeng.com/blog/2009/08/twos_complement.html">关于补码</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/04/05/interesting-c-code-snippets/">一些有趣的C程序</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-04-05T00:00:00+08:00" pubdate data-updated="true">Apr 5<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/04/05/interesting-c-code-snippets/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/05/interesting-c-code-snippets/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><pre><code>#include &lt;stdio.h&gt;
-
-int n[]={0x48,0x65,0x6C,0x6C, 
-0x6F,0x2C,0x20, 
-0x77,0x6F,0x72, 
-0x6C,0x64,0x21, 
-0x0A,0x00},\*m=n;
-
-main(n){ 
-    if(putchar (\*m)!='\0') main(m++);
-}
-</code></pre>
-
-<p>输出<code>Hello, world!</code></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/04/04/kindle-related-resources/">Kindle Keyboard 资源索引</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-04-04T00:00:00+08:00" pubdate data-updated="true">Apr 4<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/04/04/kindle-related-resources/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/04/kindle-related-resources/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="/images/amazon_kindle_wifi_3rd_generation.jpg"><img src="/images/amazon_kindle_wifi_3rd_generation.jpg" alt="/images/amazon_kindle_wifi_3rd_generation.jpg" /></a></p>
-
-<h3>越狱</h3>
-
-<p>下载 <a href="http://www.mobileread.com/forums/showthread.php?t=88004">update-jailbreak-*.zip</a>，并解压出对应你的机器的版本的 update_jailbreak_*_install.bin 文件，放到 Kindle 的根目录中，然后在 Kindle 的 Settings 页面中，按 Menu，选择 Update your Kindle，等待两分钟左右，即可完成越狱，并且由于已经重启了，这时 Kindle 的根目录中应该已经多出了 linkjail 这个目录了。在 Kindle 的内部文件系统中，相应的目录已经被换成了符号链接，目标就是这个 linkjail，我们可以通过修改 linkjail 中的文件来达到修改 Kindle 内部文件系统文件的目的。</p>
-
-<h3>中文字体优化</h3>
-
-<ul>
-<li><a href="http://wzyboy.im/post/736.html">Kindle 中文阅读终极优化指南</a></li>
-<li><a href="http://www.kdolphin.com/1204">Kindle 3的字体、行距、边距</a></li>
-<li><a href="http://irising.me/2011/06/4986/">Kindle 3 安装中文输入法</a></li>
-</ul>
-
-
-<h3>电子书资源</h3>
-
-<ul>
-<li><a href="http://www.douban.com/group/topic/22560203/">http://www.douban.com/group/topic/22560203/</a></li>
-<li><a href="http://book.zi5.me/">子乌书简</a></li>
-<li><a href="http://ikindle.mobi/book/">ikindle万卷书</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/31/connect-2-android-emulator-instance/">Android模拟器与host主机以及模拟器之间进行TCP通信</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-31T00:00:00+08:00" pubdate data-updated="true">Mar 31<span>st</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/31/connect-2-android-emulator-instance/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/31/connect-2-android-emulator-instance/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>QEMU Networking</h3>
-
-<p>Android 模拟器基于QEMU虚拟机构建，虚拟机（guest）与所在的PC主机（host）之间的网络通信有几种方式：</p>
-
-<ol>
-<li><p>NAT方式<br/>
-  Android模拟器的网络连接使用NAT方式。<br/>
- 这种方式通过host机器的网络接口访问网络，优点是方便设置，不用创建额外的网络接口。缺点是guest可以访问外部网络，但是反过来host不能访问到guest。Android通过端口转发解决这一问题。<br/>
- NAT网络结构如下所示(图片来自<a href="http://wiki.qemu.org/Documentation/Networking">qumu wiki</a>)：</p>
-
-<p> <a href="/images/qemu_Slirp_concept.png"><img src="/images/qemu_Slirp_concept.png" alt="/images/qemu_Slirp_concept.png" /></a></p>
-
-<p> 由此可见，guest与host不在同一个网段，guest通过10.0.2.2访问host机器.</p></li>
-<li>Bridge方式</li>
-</ol>
-
-
-<h3>模拟器与host通信</h3>
-
-<p>启动模拟器，adb server会在5554端口上监听来自adb client的连接，我们可以通过这个端口与模拟器通信。<br/>
-在模拟器上运行如下服务器程序，在<strong>模拟器</strong>的8000端口上监听客户端连接，接收到客户端连接后，发送一段echo字符串，然后关闭连接：</p>
-
-<pre><code>public class EmulatorServerActivity extends Activity {
-    private ServerSocket serverSocket = null;
-
-    public static final int SERVERPORT = 8000;
-
-    private boolean keepRunning = false;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        keepRunning = true;
-        new Thread(new ServerThread()).start();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        try {
-            keepRunning = false;
-            serverSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    class ServerThread implements Runnable {
-        public void run() {
-            try {
-                serverSocket = new ServerSocket(SERVERPORT);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
-
-            while (keepRunning) {
-                try {
-                    Log.d("Server", "Wating for connection...");
-                    Socket s = serverSocket.accept();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(
-                            s.getInputStream()));
-                    String msg = reader.readLine();
-                    Log.d("Server", "Received message from client:" + msg);
-                    String echo = "You are telling me: " + msg + ", bye\n";
-                    s.getOutputStream().write(echo.getBytes());
-                    s.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-}
-</code></pre>
-
-<p>在host机器上通过telnet连接到模拟器：</p>
-
-<pre><code>telnet localhost 5554
-</code></pre>
-
-<p>然后设置端口转发：</p>
-
-<pre><code>redir add tcp:7777:8000
-redir list // 显示已添加的端口转发
-exit
-</code></pre>
-
-<p>添加端口转发命令格式为：</p>
-
-<pre><code>redir add &lt;protocol&gt;:&lt;host-port&gt;:&lt;guest-port&gt;
-</code></pre>
-
-<p>其中，protocol必须是tcp或udp，host-port是主机上开启的端口号，guest-port 是模拟器的监听端口号。</p>
-
-<p>这条端口转发命令表示将发送到host机器的7777端口的所有tcp数据转发到guest机器的8000端口，也就是我们的server程序监听的端口，这个过程对client来说是完全透明的，它只知道它把数据发送到host的7777端口，它对数据如何转发一无所知。这时在host机器上可以看到7777端口已经处于监听状态：</p>
-
-<pre><code>$ netstat -tln
-Active Internet connections (only servers)
-Proto Recv-Q Send-Q Local Address           Foreign Address         State      
-tcp        0      0 127.0.0.1:7777          0.0.0.0:*               LISTEN 
-</code></pre>
-
-<p>通过设置端口转发，host机器就可以通过这个7777端口连接guest机器上的服务程序了：</p>
-
-<pre><code>$ telnet localhost 7777
-Trying 127.0.0.1...
-Connected to localhost.
-Escape character is '^]'.
-hello
-You are telling me: hello, bye
-Connection closed by foreign host.
-</code></pre>
-
-<h3>模拟器之间通信</h3>
-
-<p>启动另一个模拟器，运行客户端程序：</p>
-
-<pre><code>public class EmulatorClientActivity extends Activity {
-    private String serverIpAddress = "10.0.2.2";
-
-    // 注意：我们需要连接host机器的7777端口
-    private static final int REDIRECTED_SERVERPORT = 7777;
-
-    private Socket socket;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-        new Thread(new CommsThread()).start();
-    }
-
-    class CommsThread implements Runnable {
-        public void run() {
-            try {
-                InetAddress serverAddr = InetAddress.getByName(serverIpAddress);
-                socket = new Socket(serverAddr, REDIRECTED_SERVERPORT);
-                socket.getOutputStream().write(new String("Hello\n").getBytes());
-                Log.d("Client", "Message sent to server");
-                socket.close();
-            } catch (UnknownHostException e1) {
-                e1.printStackTrace();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-        }
-    }
-}
-</code></pre>
-
-<p>注意：在这个客户端程序里，我们需要连接的socket为10.0.2.2:7777,其中，10.0.2.2是host机器的ip地址，发送到host机器的7777端口的数据会被透明的转发到另一个模拟器的8000端口上，这样，连接就建立起来了。</p>
-
-<h3>Reference</h3>
-
-<ul>
-<li><a href="http://wiki.qemu.org/Documentation/Networking">http://wiki.qemu.org/Documentation/Networking</a></li>
-<li><a href="http://www.virtualbox.org/manual/ch06.html#nat-limitations">http://www.virtualbox.org/manual/ch06.html#nat-limitations</a></li>
-<li><a href="http://felipec.wordpress.com/2009/12/27/setting-up-qemu-with-a-nat/">http://felipec.wordpress.com/2009/12/27/setting-up-qemu-with-a-nat/</a></li>
-<li><a href="http://www.cnblogs.com/yangnas/archive/2010/05/28/1745917.html">http://www.cnblogs.com/yangnas/archive/2010/05/28/1745917.html</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/03/26/git-tips/">Git Tips</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-03-26T00:00:00+08:00" pubdate data-updated="true">Mar 26<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/03/26/git-tips/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/26/git-tips/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>配置</h3>
-
-<ul>
-<li><p>git alias</p>
-
-<p>  git config &mdash;global alias.co checkout<br/>
-  git config &mdash;global alias.br branch<br/>
-  git config &mdash;global alias.ci commit<br/>
-  git config &mdash;global alias.st status<br/>
-  &hellip; &hellip;</p></li>
-</ul>
-
-
-<h3>查看历史</h3>
-
-<ul>
-<li><p>git log</p>
-
-<p>-N                 只显示最近N次提交<br/>
--p                 按补丁格式显示每个更新之间的差异。<br/>
-&mdash;stat             显示每次更新的文件修改统计信息。<br/>
-&mdash;shortstat        只显示&mdash;stat中最后的行数修改添加移除统计。<br/>
-&mdash;name-only        仅在提交信息后显示已修改的文件清单。<br/>
-&mdash;name-status      显示新增、修改、删除的文件清单。<br/>
-&mdash;relative-date    使用较短的相对时间显示（比如，“2 weeks ago”）。<br/>
-&mdash;graph            显示 ASCII 图形表示的分支合并历史。<br/>
-&mdash;pretty           使用其他格式显示历史提交信息。可用的选项包括oneline，short，full，fuller和format（后跟指定格式）。<br/>
-&mdash;since,&mdash;after    仅显示指定时间之后的提交。<br/>
-&mdash;until,&mdash;before   仅显示指定时间之前的提交。<br/>
-&mdash;author           仅显示指定作者相关的提交。<br/>
-&mdash;committer        仅显示指定提交者相关的提交。</p>
-
-<p><code>git log --stat</code><br/>
-查看每次提交修改的代码行数</p>
-
-<p><code>git log --name-status  --author=bob --pretty=format:</code> // 注意format为空
-统计bob改动的文件列表，可以将结果保存为文本文件，用vim打开，使用<code>:sort u</code>删去重复的行</p>
-
-<p><code>git instaweb</code> 以web的方式查看仓库<br/>
-<code>git instaweb --stop</code> 停止服务器</p></li>
-</ul>
-
-
-<h3>撤销回滚</h3>
-
-<ul>
-<li><p>git reset</p>
-
-<ol>
-<li> git reset &mdash;soft 只撤销 commit,保留 working tree 和 index file。</li>
-<li> git reset &mdash;hard 撤销 commit、index file 和 working tree,即彻底销毁最近一次的 commit</li>
-<li> git reset &mdash;mixed 撤销 commit 和 index file,保留 working tree</li>
-<li> git reset 和 git reset &mdash;mixed 完全一样</li>
-<li> git reset &mdash;用于删除登记在 index file 里的某个文件。</li>
-</ol>
-
-
-<p>  git reset的第二种用法: <br/>
-  <code>git reset [-q] [&lt;commit&gt;] [--] &lt;paths&gt;...</code>
-  将指定路径的文件在commit的内容拷贝到暂存区。git reset path和git add path效果相反。</p></li>
-<li><p>回退版本(参考<a href="http://hi.baidu.com/talltwintowers/blog/item/36c931bf7685360119d81fc6.html">这里</a>)</p>
-
-<p>回退版本很简单，<code>git checkout sha1</code> 即可。<br/>
-现在你不在任何一个branch（no branch），执行git status显示：</p>
-
-<pre><code>  $ git status
-  # Not currently on any branch.
-  nothing to commit (working directory clean)
-</code></pre>
-
-<p>  这个操作会将HEAD指向指定commit,并重置index和working tree到此commit的状态. 但由于此commit不是任何branch的头(&ldquo;head&rdquo; or &ldquo;tip&rdquo;),所以git会给出警告.这种情况称为&#8221;HEAD is detached&#8221;.参考<a href="http://www.kernel.org/pub/software/scm/git/docs/user-manual.html#detached-head">这里</a><br/>
-  虽然警告,但并没有什么危险,只要别做commit,最后checkout回(某个branch)来就行了.<br/>
-  如果此时做commit呢?&mdash;那也没有什么,只是这个新的commit以后只能通过SHA1来引用了(当然,还可以用git reflog看到),好比一个野指针;或者你赋个tag给它.不过这没有意义,如果你真的想从这儿发展下去,那么应该新建一个branch,比如<code>git checkout -b &lt;new_branch&gt; &lt;start_point&gt;</code><br/>
-  但是注意,做此操作时working tree和index应该是&#8221;干净的&#8221;,就是和HEAD(所指的commit)完全一致,没有任何改动,否则git会报错不执行;你可能会看到类似这样的error:</p>
-
-<pre><code>  error: You have local changes to 'somefile'; cannot switch branches.或
-  error: Entry 'somefile' would be overwritten by merge. Cannot merge.
-</code></pre>
-
-<p>  (不过,你可以用&mdash;merge选项强制执行,此时git会做一个three-way merge)</p>
-
-<p>  要切换回HEAD commit,执行<code>git checkout branch-name</code></p></li>
-</ul>
-
-
-<h3>Diff &amp; Patch</h3>
-
-<ul>
-<li><p>git diff</p>
-
-<pre><code>git diff 查看 working tree 与 index file 的差别。  
-git diff --cached/--staged 查看 index file 与最后一次提交的commit之间的差别的。  
-git diff HEAD 是查看 working tree 和最后一次提交的commit之间的差别的。  
-</code></pre></li>
-<li><pre><code>git format-patch -1    生成最后一个提交对应的patch文件
-git am &lt; diff.patch    把一个patch文件应用到当前分支
-</code></pre></li>
-</ul>
-
-
-<h3>Branch</h3>
-
-<ul>
-<li>所谓Branch，本质上是一个指针（一串SHA号），指向某个commit。特别的，HEAD是当前分支的最后一个commit的别名。</li>
-<li><p>git merge
-  多个分支进行merge时可能存在两种方式：</p>
-
-<ol>
-<li> Fast-forward</li>
-<li> 两个分支（A，B）的末端和这两个分支的共同祖先（C）进行三方合并（可能出现冲突），合并后将产生一个新的commit，这个commit有两个祖先（A和B）。</li>
-</ol>
-
-
-<p>  <code>git branch --merged</code> 查看有哪些分支已经合并进当前分支了，这些分支可以删掉了，因为这些分支的更改已经包含再当前分支里面了<br/>
-  <code>git branch --no-merged</code> 查看尚未合并的分支</p></li>
-<li><p>git rebase
-                   A&mdash;-B&mdash;-C topic
-                  /
-             D&mdash;-E&mdash;-F&mdash;-G master
-当前分支为topic，<code>git rebase master</code>，rebase的过程是：</p>
-
-<ol>
-<li>把从topic和master共同的祖先E开始在当前分支上的提交生成一个patch文件</li>
-<li>将A、B、C砍掉，相当与执行<code>git reset --hard master</code></li>
-<li>将生成的patch文件一个一个应用到G上</li>
-</ol>
-
-
-<p>结果变成这样：
-                           A&#8217;&mdash;B&#8217;&mdash;C&#8217; topic
-                          /
-             D&mdash;-E&mdash;-F&mdash;-G master
-topic的提交历史被改写了，成了master分支的直接下游，这时在master分支上做一次fast-forward的merge就好了。</p>
-
-<p>可见，相比于merge，rebase不会产生一个新的commit，合并后的主线更加干净。如果希望在执行git pull时自动使用git rebase取代默认的git merge操作，可以执行</p>
-
-<pre><code>git pull --rebase
-</code></pre>
-
-<p>参见<a href="http://www.worldhello.net/gotgithub/04-work-with-others/020-shared-repo.html#rebase-and-push">这里</a></p></li>
-<li><p>git pull</p>
-
-<p>  git pull = git fetch + git merge<br/>
-  git pull origin next = git fetch origin/next + git merge origin/next  // 将远程分支next合并到当前分支上</p>
-
-<p><code>git pull</code>会把所有正在跟踪远端仓库的分支的本地分支进行数据拉取。
-执行git pull, git merge, git reset之前的HEAD会被保存到ORIG_HEAD,所以如果要回滚刚才的pull动作，那么执行<code>git reset --hard ORIG_HEAD</code>。查看pull下来的内容，执行<code>git diff ORIG_HEAD</code></p></li>
-<li><p>git push</p>
-
-<p><code>git push origin featureA</code> 将本地的featureA分支推送到远程仓库<br/>
-<code>git push origin local_branch:remote_branch</code> 将本地的local_branch的内容推送到origin远程仓库的remote_branch分支上去，所以执行 <code>git push origin :remote_branch</code> 将删除远程版本库的 remote_branch 分支。</p></li>
-<li><p>git fetch</p>
-
-<pre><code>$ git remote add rc git@github.com:calvinlee/git-sandbox.git
-$ git remote -v
-origin    git@github.com:calvinlee/git-sandbox.git (fetch)
-origin    git@github.com:calvinlee/git-sandbox.git (push)
-rc    git@github.com:calvinlee/git-sandbox.git (fetch)
-rc    git@github.com:calvinlee/git-sandbox.git (push)
-$ git fetch rc
- * [new branch]      experimental -&gt; rc/experimental
- * [new branch]      master     -&gt; rc/master
-</code></pre>
-
-<p>运行git fetch后，本地多了从rc这个库fetch下来的分支：</p>
-
-<pre><code>$ git branch -r
-origin/HEAD -&gt; origin/master
-origin/experimental
-origin/master
-rc/experimental
-rc/master
-</code></pre>
-
-<p>现在可以切换到这个分支查看，或者选择merge到本地分支。（远程分支以这样的形式命名：远程仓库名/分支名）</p></li>
-</ul>
-
-
-<h3>git reset与git checkout</h3>
-
-<p><code>git reset</code>用来修改refs的指向:修改的是.git/refs/heads/master的值，HEAD本身一直指向refs/heads/master, 并没有在reset过程中改变。
-<code>git checkout</code>用来修改HEAD的指向: 修改的是.git/HEAD的文件内容, checkout不影响.git/refs/heads/下文件的内容。</p>
-
-<p>什么叫detached HEAD？<br/>
-这个状态下.git/HEAD指向了一个具体的commit ID，而不是一个分支的名称。</p>
-
-<h3>符号</h3>
-
-<ul>
-<li><p>branchA..branchB</p>
-
-<p>用来获取在branchB上但是不在branchA上的提交。如：<br/>
-<code>git log --pretty=format:"%h %s" HEAD~3..HEAD</code> 显示最近三次提交的log<br/>
-<code>git log origin/master..HEAD</code> 显示所有在当前分支上但不在远程分支上的提交。如果当前分支正在track远程分支，那么下次运行<code>git push</code>将推送这些提交到远程分支上。</p>
-
-<p>这种表示法与下列语法等价：</p>
-
-<pre><code> ^branchA branchB
- branchB --not branchA
-</code></pre></li>
-<li><p>branchA&hellip;branchB</p>
-
-<p>获取被两个分支之一包含但不被这两个分支同时包含的提交。</p></li>
-<li><p>^[N] 和 ~[N]</p>
-
-<p>两个分支合并后，你合并时所在分支称为first parent，你所合并的分支称为second parent<br/>
-HEAD^[N]表示HEAD的第N个second parent<br/>
-HEAD~[N]表示HEAD的第N个first parent</p></li>
-<li><p>获取某一次特定提交对应的文件内容
-e43fef:path/to/file<br/>
-获取暂存区中的文件对象：<br/>
-:path/to/file</p></li>
-</ul>
-
-
-<h3>其它</h3>
-
-<ul>
-<li><p>将多个commit合成一个commit后提交</p>
-
-<p>场景：<br/>
-packages/apps/Email 已经提交了多个commit在branchA上，现在要把这些commit压成一个commit合并到merge_fix分支上。</p>
-
-<pre><code> $ cd packages/apps/Email
- $ repo sync .
- $ git log --pretty=oneline // 假如需要squash commit1 和 commit2
-   e8949d30bcb568b32a12338a28fb9d7a13e8b086 commit1
-   6d7eef22cd2634bd0da8de8e38635dd92b3e5a48 commit2
-   0130c5a03756b01ec4a39422ab08474625153a81 commit3
- $ git rebase -i 0130c5a03756b01ec4a39422ab08474625153a81 //注意这里是想要squash的commit的前一个commit(commit3), 更改commit message后继续
- $ git log -2 //找到squash后的commit，假如squash后的commit号为bed1b4fa7ae3f9a4a546f2aa367a8f2e7ba4b7b1
- $ git checkout merge_fix
- $ git cherry-pick bed1b4fa7ae3f9a4a546f2aa367a8f2e7ba4b7b1
-</code></pre>
-
-<p>  完毕</p></li>
-<li><p>一个图片文件 index.jpeg 冲突了，如何取出他人的版本?</p>
-
-<pre><code>git show :3:./index.jpeg &gt; index.jpeg-theirs
-</code></pre>
-
-<p>可以先使用git ls-files查看：</p>
-
-<pre><code>$ git ls-files -s
-100644 a97de6ee1b2352f4e33d09196fa478ffaae0b024 0 README
-100644 04c14c2023f69123e719fae7c4242537c943b726 0 file1
-100644 2f08be9a02925b5c016904e19fbd5e8d057ae756 0 hello.c
-100644 eb651d4b863843d3ad12c446b541075f2839d7d2 2 index.jpeg
-100644 099df17855c924472b1809d99389d8eee7582d9f 3 index.jpeg
-</code></pre>
-
-<p>第三栏称为stage number，stage number为2的存储着合并前的版本，stage number为3的存储着合并过来的版本。参见<a href="http://book.git-scm.com/7_the_git_index.html">这里</a></p></li>
-<li><p>漂亮的git前端工具 &ndash; <a href="http://jonas.nitro.dk/tig/">tig</a></p></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/5/">&larr; Older</a>
@@ -1324,8 +1501,9 @@ packages/apps/Email 已经提交了多个commit在branchA上，现在要把这�
 <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/android/'>Android (10)</a></li>
-<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
 <li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
 <li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
 <li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
@@ -1337,7 +1515,7 @@ packages/apps/Email 已经提交了多个commit在branchA上，现在要把这�
 <li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
 <li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
 <li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
-<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
 
   </ul>
 </section>
@@ -1345,33 +1523,36 @@ packages/apps/Email 已经提交了多个commit在branchA上，现在要把这�
 <section>
   <h1>Tags</h1>
   <ul class="tag-cloud">
-    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+    <a style="font-size: 90%" href="/tags/c-plus-plus/">C++</a>
+<a style="font-size: 156%" href="/tags/cyu-yan/">C语言</a>
 <a style="font-size: 210%" href="/tags/android/">android</a>
-<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 118%" href="/tags/archlinux/">archlinux</a>
 <a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c/">c</a>
 <a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
-<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 118%" href="/tags/csapp/">csapp</a>
 <a style="font-size: 90%" href="/tags/debug/">debug</a>
-<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 118%" href="/tags/eclipse/">eclipse</a>
 <a style="font-size: 90%" href="/tags/gcc/">gcc</a>
-<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 135%" href="/tags/git/">git</a>
 <a style="font-size: 90%" href="/tags/github/">github</a>
-<a style="font-size: 119%" href="/tags/http/">http</a>
-<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/graphics/">graphics</a>
+<a style="font-size: 118%" href="/tags/http/">http</a>
+<a style="font-size: 156%" href="/tags/java/">java</a>
 <a style="font-size: 90%" href="/tags/kernel/">kernel</a>
 <a style="font-size: 90%" href="/tags/kindle/">kindle</a>
-<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 175%" href="/tags/linux/">linux</a>
 <a style="font-size: 90%" href="/tags/permission/">permission</a>
 <a style="font-size: 90%" href="/tags/php/">php</a>
 <a style="font-size: 90%" href="/tags/proxy/">proxy</a>
 <a style="font-size: 90%" href="/tags/shell/">shell</a>
 <a style="font-size: 90%" href="/tags/socket/">socket</a>
-<a style="font-size: 149%" href="/tags/todo/">todo</a>
-<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 163%" href="/tags/todo/">todo</a>
+<a style="font-size: 135%" href="/tags/vim/">vim</a>
 <a style="font-size: 90%" href="/tags/window/">window</a>
-<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 175%" href="/tags/ming-ling/">命令</a>
 <a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
-<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+<a style="font-size: 118%" href="/tags/zhuan-zai/">转载</a>
 
   </ul>
 </section>
@@ -1404,6 +1585,8 @@ packages/apps/Email 已经提交了多个commit在branchA上，现在要把这�
       (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
     }());
 </script>
+
+
 
 
 

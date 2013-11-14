@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: c | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/tags/c/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2013-11-14T10:14:43+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[char类型是有符号的还是无符号的？]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/04/10/is-char-signed-or-unsigned/"/>
+    <updated>2012-04-10T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/04/10/is-char-signed-or-unsigned</id>
+    <content type="html"><![CDATA[<p><a href="http://ihacklog.com/programming/c/char-is-signed-or-unsigned-by-default.html">http://ihacklog.com/programming/c/char-is-signed-or-unsigned-by-default.html</a></p>
+]]></content>
+  </entry>
+  
+</feed>

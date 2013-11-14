@@ -53,6 +53,15 @@
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
   <script src="/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<script src="/javascripts/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  // Revert jQuery's '$' alias, to avoid clashes with ender.js. NOTE: Use
+  // jQuery(...), instead of $(...) from here on.
+  jQuery.noConflict();
+</script>
+<script src="/javascripts/generate-toc.js" type="text/javascript" charset="utf-8"></script>
+
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 
@@ -769,6 +778,45 @@ Window &ndash;> Preference &ndash;> Keys &ndash;> Word Completion &ndash;> Unbin
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/01/21/android-MMS-cache-implementation/">Android Mms 缓存机制分析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-21T00:00:00+08:00" pubdate data-updated="true">Jan 21<span>st</span>, 2013</time>
+        
+           | <a href="/blog/2013/01/21/android-MMS-cache-implementation/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2013/01/21/android-MMS-cache-implementation/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/01/20/android-handler-looper-message/">Android消息处理机制理解</a></h1>
     
     
@@ -797,7 +845,7 @@ Window &ndash;> Preference &ndash;> Keys &ndash;> Word Completion &ndash;> Unbin
 
   <div class="entry-content"><p>Android的消息处理机制是很多功能实现的基础，如UI绘制，键盘事件传递等等。在实现上，涉及到的类有Handler, Message, Looper等等，本篇研究Android消息处理机制的内部实现细节。</p>
 
-<h3>UI线程消息循环的启动</h3>
+<h1>UI线程消息循环的启动</h1>
 
 <p>Android所谓UI线程的启动位于ActivityThread.java，在其main方法中会启动这个消息循环：</p>
 
@@ -936,7 +984,7 @@ public static void loop() {
 }
 </code></pre>
 
-<h3>消息队列的建立</h3>
+<h1>消息队列的建立</h1>
 
 <p>每一个looper对象对应一个MessageQueue对象，Looper对象在这个消息队列上loop。每个消息是一个Message对象，而对这个消息队列的引用也是一个Message对象：</p>
 
@@ -1012,7 +1060,7 @@ public static void loop() {
 <p>这里先通过pipe系统调用创建了一个管道，这个管道非常重要：<br/>
 当当前线程没有新的消息需要处理时，它会睡眠在管道的读端文件描述符上，直到有新消息到来为止；另一方面，当其他线程向这个线程的消息队列发送一个消息后，其他线程会在这个管道的写端文件描述符上写入数据，这样导致等待在读端文件描述符的looper唤醒，然后对消息队列中的消息进行处理。但是，它对其他线程写入写端文件描述符的数据是什么并不关心，因为这些数据仅仅是为了唤醒它而已。</p>
 
-<h3>开启消息循环</h3>
+<h1>开启消息循环</h1>
 
 <p>调用Looper.loop()开启消息循环，前面看到，loop()方法从next()#MessageQueue获取下一个待处理的消息：</p>
 
@@ -1103,7 +1151,7 @@ public static void loop() {
 
 <p>这里只是将数据读出，它并不关心这些数据是什么。</p>
 
-<h3>消息发送过程</h3>
+<h1>消息发送过程</h1>
 
 <p>发送消息最常见的方法就是使用sendMessage()#Handler, 这个方法最终会调用enqueueMessage()#MessageQueue.java:</p>
 
@@ -1164,7 +1212,7 @@ looper.cpp:</p>
 
 <p>唤醒的过程就是望管道的写文件描述符mWakeWritePipeFd写入一些数据即可，这里写入了一个&#8221;W&#8221;字符，这样等待在管道另一端的正在睡眠的线程就会被唤醒，从而导致队首的消息被取出进行处理。</p>
 
-<h3>HanderThread</h3>
+<h1>HanderThread</h1>
 
 <p>HandlerThread最重要的特点是它的looper是在一个子线程中loop的，从而不会阻塞UI线程。</p>
 </div>
@@ -1179,7 +1227,7 @@ looper.cpp:</p>
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2012/11/29/convertion-between-epoch-and-regular-time/">Unix Epoch 与 时间字符串的转换</a></h1>
+      <h1 class="entry-title"><a href="/blog/2013/01/18/update-grub-from-livecd/">通过LiveCD更新grub</a></h1>
     
     
       <p class="meta">
@@ -1195,132 +1243,18 @@ looper.cpp:</p>
   
 
 
-<time datetime="2012-11-29T00:00:00+08:00" pubdate data-updated="true">Nov 29<span>th</span>, 2012</time>
+<time datetime="2013-01-18T00:00:00+08:00" pubdate data-updated="true">Jan 18<span>th</span>, 2013</time>
         
-           | <a href="/blog/2012/11/29/convertion-between-epoch-and-regular-time/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/11/29/convertion-between-epoch-and-regular-time/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>字符串 &mdash;> Epoch</h3>
-
-<pre><code>$ date -d "2012/11/29" +%s
-1354118400
-</code></pre>
-
-<h3>Epoch &mdash;> 字符串</h3>
-
-<pre><code>$ date -d@1354118400
-Thu Nov 29 00:00:00 CST 2012
-</code></pre>
-
-<p>或者加上格式控制：</p>
-
-<pre><code>$ date -d@1354118400 '+%Y-%m-%d %H:%M:%S'
-2012-11-29 00:00:00
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/10/18/git-tricks/">Git Tips and Tricks</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-10-18T00:00:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/10/18/git-tricks/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/10/18/git-tricks/">Comments</a>
+           | <a href="/blog/2013/01/18/update-grub-from-livecd/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2013/01/18/update-grub-from-livecd/">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h3>在提交历史中查找指定文本</h3>
-
-<pre><code>git log -G'password' --all
-</code></pre>
-
-<p>or</p>
-
-<pre><code>git rev-list --all | (
-while read revision; do
-    git grep -F 'password' $revision
-done
-)
-</code></pre>
-
-<p>or</p>
-
-<pre><code>for revision in `git rev-list --all`; 
-do
-    git grep -F 'password' $revision;
-done
-</code></pre>
-
-<p>or
-<code>git log -S'bad\_code' path/to/file</code> 查看指定代码片段在哪个版本出现过。
-<code>git blame path/to/file</code>: 查看指定文件的每一行的最后修改时间是在哪个版本，但不能查看删除的行或者被替换的行
-参见man git-blame.</p>
-
-<h3>git commit</h3>
-
-<p><code>git commit -c &lt;commit&gt;</code>  reedit commit message of <commit>
-<code>git commit -C &lt;commit&gt;</code>  reuse commit message of <commit></p>
-
-<h3>git底层命令</h3>
-
-<p>git ls-tree<br/>
-git write-tree<br/>
-git ls-files<br/>
-git cat-file<br/>
-git rev-parse</p>
-
-<p>.git/refs 保存所有引用的命名空间
-.git/refs/heads 所有的本地分支</p>
-
-<p>git commit &mdash;allow-empty &mdash;amend</p>
-
-<p>[TODO] strace命令</p>
-
-<p>.git/index 包含文件索引的目录树，记录了文件名和文件的状态信息，文件的内容存储在.git/objects中，文件索引建立了文件和对象库中的文件对象之间的对应关系。</p>
-
-<p>git checkout . / git checkout &mdash; <file><br/>
-丢弃workspace中的内容，保留暂存区的内容</p>
-
-<p>git checkout HEAD . / git checkout HEAD <file><br/>
-用HEAD指向的commit中的内容替代workspace和暂存区的内容，这将导致当前workspace和暂存区的内容被丢弃。</p>
-
-<h3>使用git reflog挽回错误的reset</h3>
-
-<p>git reflog<br/>
-git reflog show master</p>
-
-<p>分支的变更记录都会被记录在.git/logs/refs下，通过 git reflog命令可以获得分支的历史变更记录，然后可以通过git reset 命令将HEAD任意重置到任意一个提交。</p>
+  <div class="entry-content"><p><a href="http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd">http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd</a>
+<a href="http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd">http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd</a></p>
 </div>
   
   
@@ -1367,8 +1301,9 @@ git reflog show master</p>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
-    <li class='category'><a href='/blog/categories/android/'>Android (10)</a></li>
-<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
 <li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
 <li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
 <li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
@@ -1380,7 +1315,7 @@ git reflog show master</p>
 <li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
 <li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
 <li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
-<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
 
   </ul>
 </section>
@@ -1388,33 +1323,36 @@ git reflog show master</p>
 <section>
   <h1>Tags</h1>
   <ul class="tag-cloud">
-    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+    <a style="font-size: 90%" href="/tags/c-plus-plus/">C++</a>
+<a style="font-size: 156%" href="/tags/cyu-yan/">C语言</a>
 <a style="font-size: 210%" href="/tags/android/">android</a>
-<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 118%" href="/tags/archlinux/">archlinux</a>
 <a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c/">c</a>
 <a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
-<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 118%" href="/tags/csapp/">csapp</a>
 <a style="font-size: 90%" href="/tags/debug/">debug</a>
-<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 118%" href="/tags/eclipse/">eclipse</a>
 <a style="font-size: 90%" href="/tags/gcc/">gcc</a>
-<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 135%" href="/tags/git/">git</a>
 <a style="font-size: 90%" href="/tags/github/">github</a>
-<a style="font-size: 119%" href="/tags/http/">http</a>
-<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/graphics/">graphics</a>
+<a style="font-size: 118%" href="/tags/http/">http</a>
+<a style="font-size: 156%" href="/tags/java/">java</a>
 <a style="font-size: 90%" href="/tags/kernel/">kernel</a>
 <a style="font-size: 90%" href="/tags/kindle/">kindle</a>
-<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 175%" href="/tags/linux/">linux</a>
 <a style="font-size: 90%" href="/tags/permission/">permission</a>
 <a style="font-size: 90%" href="/tags/php/">php</a>
 <a style="font-size: 90%" href="/tags/proxy/">proxy</a>
 <a style="font-size: 90%" href="/tags/shell/">shell</a>
 <a style="font-size: 90%" href="/tags/socket/">socket</a>
-<a style="font-size: 149%" href="/tags/todo/">todo</a>
-<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 163%" href="/tags/todo/">todo</a>
+<a style="font-size: 135%" href="/tags/vim/">vim</a>
 <a style="font-size: 90%" href="/tags/window/">window</a>
-<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 175%" href="/tags/ming-ling/">命令</a>
 <a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
-<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+<a style="font-size: 118%" href="/tags/zhuan-zai/">转载</a>
 
   </ul>
 </section>
@@ -1447,6 +1385,8 @@ git reflog show master</p>
       (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
     }());
 </script>
+
+
 
 
 
