@@ -7,11 +7,11 @@ categories: [Android]
 tags: []
 ---
 
-{% codeblock %}
+##使用dumpsys
+``` bash
 shell@android:/ # dumpsys meminfo com.android.systemui
 Applications Memory Usage (kB):
 Uptime: 296724 Realtime: 296723
-
 ** MEMINFO in pid 2786 [com.android.systemui] **
                          Shared  Private     Heap     Heap     Heap
                    Pss    Dirty    Dirty     Size    Alloc     Free
@@ -41,7 +41,7 @@ Uptime: 296724 Realtime: 296723
  SQL
          MEMORY_USED:        0
   PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0
-{% endcodeblock %}
+```
 
 有价值的两个值：
 
@@ -70,7 +70,7 @@ adb shell cat /proc/meminfo
 
 ##Reference
 <http://developer.android.com/tools/debugging/debugging-memory.html>
-<http://elinux.org/Android_Memory_Usage>
+<http://elinux.org/Android\_Memory\_Usage>
 <http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/>
 
 
