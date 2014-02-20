@@ -67,7 +67,9 @@ EOF
 
 echo "Created new post $POST_PATH"
 
-if [ `which gvim` ]; then
+if [ `uname -s` = 'Darwin' ]; then
+    open $POST_PATH
+elif [ `which gvim` ]; then
     # set line number and put cursor at UpdateMe
     gvim "+set nu" "+call cursor(3,9)" $POST_PATH
 fi
