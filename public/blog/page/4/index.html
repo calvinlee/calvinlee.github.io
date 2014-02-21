@@ -1,0 +1,1571 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="/hardware/ril/libril/ril.cpp下有如下代码： s_fdListen = android_get_control_socket(SOCKET_NAME_RIL);
+if (s_fdListen &lt; 0) { LOGE("Failed to get socket '" &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/page/4">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<script src="/javascripts/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  // Revert jQuery's '$' alias, to avoid clashes with ender.js. NOTE: Use
+  // jQuery(...), instead of $(...) from here on.
+  jQuery.noConflict();
+</script>
+<script src="/javascripts/generate-toc.js" type="text/javascript" charset="utf-8"></script>
+
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/26/android-init-socket/">Android get control socket</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-26T00:00:00+08:00" pubdate data-updated="true">Apr 26<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/26/android-init-socket/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/26/android-init-socket/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>/hardware/ril/libril/ril.cpp下有如下代码：</p>
+
+<pre><code>s_fdListen = android_get_control_socket(SOCKET_NAME_RIL);
+if (s_fdListen &lt; 0) {
+    LOGE("Failed to get socket '" SOCKET_NAME_RIL "'");
+    exit(-1);
+}
+
+if (listen(s_fdListen, 4)) {
+    exit(1);
+}
+s_fdCommand = accept(s_fdListen, (sockaddr *) &amp;peeraddr, &amp;socklen);
+</code></pre>
+
+<p>这个android_get_control_socket函数有什么作用呢？
+android_get_control_socket函数定义在/system/core/include/cutils/sockets.h:</p>
+
+<pre><code>#define ANDROID_SOCKET_ENV_PREFIX   "ANDROID_SOCKET_"
+#define ANDROID_SOCKET_DIR      "/dev/socket"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ * android_get_control_socket - simple helper function to get the file
+ * descriptor of our init-managed Unix domain socket. `name' is the name of the
+ * socket, as given in init.rc. Returns -1 on error.
+ *
+ * This is inline and not in libcutils proper because we want to use this in
+ * third-party daemons with minimal modification.
+ */
+static inline int android_get_control_socket(const char *name)
+{
+    char key[64] = ANDROID_SOCKET_ENV_PREFIX;
+    const char *val;
+    int fd;
+
+    /* build our environment variable, counting cycles like a wolf ... */
+#if HAVE_STRLCPY
+    strlcpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+        name,
+        sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+#else   /* for the host, which may lack the almightly strncpy ... */
+    strncpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+        name,
+        sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+    key[sizeof(key)-1] = '\0';
+#endif
+
+    val = getenv(key); // socket名字和对应的socket文件的文件描述符以键值对的形式存储在环境变量中， 
+    if (!val)
+        return -1;
+
+    errno = 0;
+    fd = strtol(val, NULL, 10);
+    if (errno)
+        return -1;
+
+    return fd;
+}
+</code></pre>
+
+<p>init.rc
+/system/core/init/readme.txt</p>
+
+<p>/system/core/init/util.c</p>
+
+<pre><code>/*
+ * create_socket - creates a Unix domain socket in ANDROID_SOCKET_DIR
+ * ("/dev/socket") as dictated in init.rc. This socket is inherited by the
+ * daemon. We communicate the file descriptor's value via the environment
+ * variable ANDROID_SOCKET_ENV_PREFIX&lt;name&gt; ("ANDROID_SOCKET_foo").
+ */
+int create_socket(const char *name, int type, mode_t perm, uid_t uid, gid_t gid)
+{
+    struct sockaddr_un addr;
+    int fd, ret;
+
+    fd = socket(PF_UNIX, type, 0);
+    if (fd &lt; 0) {
+        ERROR("Failed to open socket '%s': %s\n", name, strerror(errno));
+        return -1;
+    }
+
+    memset(&amp;addr, 0 , sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    snprintf(addr.sun_path, sizeof(addr.sun_path), ANDROID_SOCKET_DIR"/%s",
+             name);
+
+    ret = unlink(addr.sun_path);
+    if (ret != 0 &amp;&amp; errno != ENOENT) {
+        ERROR("Failed to unlink old socket '%s': %s\n", name, strerror(errno));
+        goto out_close;
+    }
+
+    ret = bind(fd, (struct sockaddr *) &amp;addr, sizeof (addr));
+    if (ret) {
+        ERROR("Failed to bind socket '%s': %s\n", name, strerror(errno));
+        goto out_unlink;
+    }
+
+    chown(addr.sun_path, uid, gid);
+    chmod(addr.sun_path, perm);
+
+    INFO("Created socket '%s' with mode '%o', user '%d', group '%d'\n",
+         addr.sun_path, perm, uid, gid);
+
+    return fd;
+
+out_unlink:
+    unlink(addr.sun_path);
+out_close:
+    close(fd);
+    return -1;
+}
+</code></pre>
+
+<p>init.c</p>
+
+<pre><code>static void publish_socket(const char *name, int fd)
+{
+    char key[64] = ANDROID_SOCKET_ENV_PREFIX;
+    char val[64];
+
+    strlcpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
+            name,
+            sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
+    snprintf(val, sizeof(val), "%d", fd);
+    add_environment(key, val); //添加到环境变量中
+
+    /* make sure we don't close-on-exec */
+    fcntl(fd, F_SETFD, 0);
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/21/android-window-management-architecture/">Android 窗口管理</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-21T00:00:00+08:00" pubdate data-updated="true">Apr 21<span>st</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/21/android-window-management-architecture/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/21/android-window-management-architecture/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>基本概念</h3>
+
+<ul>
+<li><p>Surface</p>
+
+<p>Surface就是每个View的画布，View及其子类都要画在surface上。<br/>
+Surface都是双缓冲的，back buffer用来绘制，front buffer用来合成。每个surface对象对应surfaceflinger里面的一个layer，SurfaceFlinger负责将各个layer的front buffer合成（composite），然后将合成后的数据输出到frame buffer驱动并最终绘制到屏幕上。</p></li>
+<li><p>Window</p>
+
+<p>Window可以看作desktop上的window的概念。Window类定义了顶层视图的一些属性以及对这些属性的方法，包括背景，title，一些按键事件处理（如Volume up和Volump down按键在MediaController所属的Window里面被设置位控制媒体音量大小）以及一些其他的window feature，它含有一个window manager对象用来addView，removeView，updateView等等，window manager通过和运行在system_server进程的window manager service建立联系来实现这些操作。每一个Window都对应一个Surface对象用来渲染添加到window里面的内容。<br/>
+Window的实现为PhoneWindow。</p></li>
+<li><p>View</p>
+
+<p>View是添加到window里面的和用户产生交互的UI控件。View与ViewGroup一起组成了一个树状结构，每一个Window都有一个View的层级树与之关联。这个view的层级树组成了这个window的样式和行为。DecorView作为顶层view被添加到PhoneWindow中。</p></li>
+<li><p>SurfaceView</p>
+
+<p>每个SurfaceView拥有一个独立的Surface对象。</p></li>
+<li><p>ViewRoot:
+每一个view的层级树对应一个ViewRoot，也就是说one viewroot per window。每个ViewRoot对象都有一个对应的Surface对象用来绘制UI，当window需要重绘时（比如一个view调用了invalidate()方法），重绘的操作都是这个ViewRoot对应的Surface上进行的。Surface首先被lock住，然后返回一个可供重绘的Canvas，然后在view层级树中遍历，并把这个Canvas对象依次传递给每个View的onDraw方法。重绘结束后这个surface被unlock，然后交由surface finger进行组合。View层级树中的所有view均在这个Canvas对象上绘制。<br/>
+ViewRoot是GUI管理系统与GUI呈现系统之间的桥梁，主要作用有：</p>
+
+<ol>
+<li> 向DecorView分发从WindowManagerService收到的用户发起的event事件，如按键，触屏，轨迹球等事件；</li>
+<li> 与WindowManagerService交互，完成整个Activity的GUI的绘制。</li>
+</ol>
+</li>
+</ul>
+
+
+<p><a href="/images/android-window-architecture.png"><img src="/images/android-window-architecture.png" alt="/images/android-window-architecture.png" /></a></p>
+
+<ul>
+<li><p>Bitmap</p>
+
+<p>Bitmap可以看作是一块数据存储区域，用来存储像素数据。</p></li>
+<li><p>Canvas
+每个Canvas底层都对应一个Bitmap对象，Canvas提供了一些绘制图形的接口，比如画直线，画圆，这些方法是在这个bitmap上操作的。</p></li>
+<li><p>Paint
+用来描述绘制时使用的颜色，风格等。</p></li>
+<li><p>Drawable:
+绘制的基本对象。</p></li>
+</ul>
+
+
+<p>以上四种对象构成绘制图形的四个基本元素，如图：</p>
+
+<p><a href="/images/android_graphics.png"><img src="/images/android_graphics.png" alt="/images/android_graphics.png" /></a></p>
+
+<h3>窗口类</h3>
+
+<p><a href="/images/android-window-class.png"><img src="/images/android-window-class.png" alt="/images/android-window-class.png" /></a></p>
+
+<h3>Activity.attach</h3>
+
+<ul>
+<li>ActivityManagerService.startActivity
+
+<ul>
+<li>ActivityThread.performLaunchActivity
+
+<ul>
+<li>Activity.attach
+
+<ul>
+<li>PolicyManager.makeNewWindow //实例化一个activity或者dialog或者widget的地方才会make new window</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>ActivityThread.handleResumeActivity
+
+<ul>
+<li>WindowManagerImpl.addView //添加DecorView到WindowManager中
+
+<ul>
+<li>new ViewRootImpl // 实例化一个ViewRoot对象
+
+<ul>
+<li>WindowManagerService.openSession //建立ViewRoot到WMS的通信桥梁</li>
+</ul>
+</li>
+<li>ViewRootImpl.setView
+
+<ul>
+<li>requestLayout</li>
+<li>IWindowSession.add // 将这个ViewRoot的IWindow对象（ViewRootImpl.W）添加到WMS中，作为WMS到ViewRoot的通信桥梁
+
+<ul>
+<li>WindowManagerService.addWindow</li>
+</ul>
+</li>
+<li>ViewRootImpl.performTraversals //负责绘制View hierarchy，绘制的目的地是对应Surface的back buffer。这个方法总是在UI线程中调用
+
+<ul>
+<li>DecorView.dispatchAttachedToWindow
+
+<ul>
+<li>DecorView.measure</li>
+</ul>
+</li>
+<li>ViewRootImpl.relayoutWindow // 通过WMS创建一个Surface对象，赋值给ViewRoot持有的Surface对象
+
+<ul>
+<li>WindowManagerService.relayoutWindow</li>
+</ul>
+</li>
+<li>DecorView.measure</li>
+<li>DecorView.layout</li>
+<li>ViewRootImpl.draw // 根据一个dirty的矩形区域决定重绘范围。这里有两种情况：是否使用GL绘制<br/>
+  // 如果不使用GL绘制
+
+<ul>
+<li>Surface.lockCanvas // 传入drity的区域，获取一个bitmap存储区，与一个Canvas对象绑定并返回</li>
+<li>Canvas.save</li>
+<li>DecorView.draw //绘制View hierarchy tree</li>
+<li>Canvas.restoreToCount</li>
+<li>Surface.unlockCanvasAndPost</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<h3>WindowManagerService.addWindow</h3>
+
+<ul>
+<li>WindowManagerService.addWindow
+
+<ul>
+<li>new WindowState</li>
+<li>WindowState.attach
+
+<ul>
+<li>WindowManagerService.Session.windowAddedLocked
+
+<ul>
+<li>new SurfaceSession() // Create a new connection with the surface flinger
+
+<ul>
+<li>SurfaceSession_init(android_view_Surface.cpp)
+
+<ul>
+<li>new SurfaceComposerClient(android_view_Surface.cpp)
+
+<ul>
+<li>onFirstRef(SurfaceComposerClient.cpp)
+
+<ul>
+<li>getComposerService //ComposerService 用于获取SurfaceFlinger服务，它是一个单例，每个进程一个实例</li>
+<li>BpSurfaceComposer.createConnection(SurfaceComposerClient.cpp)
+
+<ul>
+<li>SurfaceFlinger.createConnection(SurfaceFlinger.cpp)
+
+<ul>
+<li>new BnSurfaceComposerClient // 这个client对象接收来自客户端的请求，并转发给SurfaceFlinger, 主要两个接口：createSurface和destroySurface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>addWindowToListInOrderLocked</li>
+<li>updateFocusedWindowLocked</li>
+<li>assignLayersLocked</li>
+</ul>
+</li>
+</ul>
+
+
+<p>ComposerService</p>
+
+<pre><code>class ComposerService : public Singleton&lt;ComposerService&gt;
+{
+    //实际对象为BpSurfaceComposer,通过它与SurfaceFlinger进行通信，
+    //BnSurfaceComposer是SurfaceFlinger的子类
+    sp&lt;ISurfaceComposer&gt; mComposerService;
+
+    //实际对象为BpMemoryHeap,它在SurfaceFlinger中对应为管理一个4096字节的
+    //一个MemoryHeapBase对象，在SurfaceFlinger::readyToRun中创建
+    sp&lt;IMemoryHeap&gt; mServerCblkMemory;
+
+    //为MemoryHeapBase管理的内存在用户空间的基地址，通过mmap而来，
+    //具体见MemoryHeapBase::mapfd
+    surface_flinger_cblk_t volatile* mServerCblk;
+    ComposerService();
+    friend class Singleton&lt;ComposerService&gt;;
+public:
+    static sp&lt;ISurfaceComposer&gt; getComposerService();
+    static surface_flinger_cblk_t const volatile * getControlBlock();
+};
+
+ComposerService::ComposerService()
+: Singleton&lt;ComposerService&gt;() {
+    const String16 name("SurfaceFlinger");
+    //获取SurfaceFlinger服务，即BpSurfaceComposer对象
+    while (getService(name, &amp;mComposerService) != NO_ERROR) {
+        usleep(250000);
+    }
+    //获取shared control block
+    mServerCblkMemory = mComposerService-&gt;getCblk();
+    //获取shared control block 的基地址
+    mServerCblk = static_cast&lt;surface_flinger_cblk_t volatile *&gt;(
+            mServerCblkMemory-&gt;getBase());
+}
+</code></pre>
+
+<p>这一步的主要作用：<br/>
+将新的Window添加到WMS，并为这个Window对象获取一个SurfaceFlinger的代理对象BpSurfaceComposerClient。</p>
+
+<h3>WindowManagerService.relayoutWindow</h3>
+
+<ul>
+<li>WindowManagerService.relayoutWindow
+
+<ul>
+<li>WindowManagerService.WindowState.createSurfaceLocked
+
+<ul>
+<li>SurfaceComposerClient.createSurface(android_view_Surface.cpp)
+
+<ul>
+<li>BpSurfaceComposerClient.createSurface // 在上一步已经获得了
+
+<ul>
+<li>Client::createSurface(SurfaceFlinger.cpp)
+
+<ul>
+<li>SurfaceFlinger::createSurface
+
+<ul>
+<li>SurfaceFlinger.createNormalSurface
+
+<ul>
+<li>new Layer
+
+<ul>
+<li>onFirstRef > new SurfaceTextureLayer
+
+<ul>
+<li>new SurfaceTexture
+
+<ul>
+<li>SurfaceFlinger::createGraphicBufferAlloc</li>
+</ul>
+</li>
+<li>new LayerBaseClient(LayerBase.cpp)
+
+<ul>
+<li>new LayerBase(LayerBase.cpp)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Layer.setBuffers(Layer.cpp) // 为这个layer分配GraphicBuffers
+
+<ul>
+<li>new SurfaceLayer
+
+<ul>
+<li>new LayerBaseClient::Surface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>SurfaceFlinger.addClientLayer
+
+<ul>
+<li>BnSurfaceComposerClient.attachLayer</li>
+<li>addLayer_l // 将这个layer加入Z轴</li>
+</ul>
+</li>
+<li>Layer.getSurface
+
+<ul>
+<li>Layer::createSurface(Layer.cpp)
+
+<ul>
+<li>new BSurface // BSurface实现了ISurface接口</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>new SurfaceControl</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<p><a href="http://blog.csdn.net/myarrow/article/details/7180561">这篇文章</a>的这张图很好的描述了SurfaceComposerClient对象内的状态：</p>
+
+<p><a href="/images/android-surface-interfaces.jpeg"><img src="/images/android-surface-interfaces.jpeg" alt="/images/android-surface-interfaces.jpeg" /></a></p>
+
+<h3>Surface.lockCanvas</h3>
+
+<ul>
+<li>Surface.lockCanvas
+
+<ul>
+<li>Surface_lockCanvas(android_view_Surface.cpp)
+
+<ul>
+<li>getSurface
+
+<ul>
+<li>SurfaceControl.getSurface
+
+<ul>
+<li>new Surface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Surface.lock(Surface.cpp)
+
+<ul>
+<li>SurfaceTextureClient::lock
+
+<ul>
+<li>dequeueBuffer</li>
+<li>lockBuffer</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>new SkBitmap</li>
+</ul>
+</li>
+</ul>
+
+
+<p>Gralloc</p>
+
+<ol>
+<li>Used to allocate and map graphics memory to app processes</li>
+<li>Facilitates graphics memory export via Binder IPC mechanism</li>
+<li>Provides cache synchronization points</li>
+<li>Also used for framebuffer discovery</li>
+</ol>
+
+
+<h3>Surface.unlockCanvasAndPost</h3>
+
+<ul>
+<li>Surface.lockCanvas
+
+<ul>
+<li>Surface_lockCanvas(android_view_Surface.cpp)
+
+<ul>
+<li>getSurface
+
+<ul>
+<li>SurfaceControl.getSurface
+
+<ul>
+<li>new Surface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Surface.lock(Surface.cpp)
+
+<ul>
+<li>SurfaceTextureClient::unlockAndPost</li>
+<li>GraphicBuffer.unlock</li>
+<li>queueBuffer</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://www.mail-archive.com/android-framework@googlegroups.com/msg01901.html">http://www.mail-archive.com/android-framework@googlegroups.com/msg01901.html</a></li>
+<li><a href="http://stackoverflow.com/questions/4576909/understanding-canvas-and-surface-concepts">http://stackoverflow.com/questions/4576909/understanding-canvas-and-surface-concepts</a></li>
+<li><a href="http://www.androidenea.com/2010/03/share-memory-using-ashmem-and-binder-in.html">关于MemoryHeapBase</a></li>
+<li><a href="http://blog.csdn.net/myarrow/article/details/7180561">http://blog.csdn.net/myarrow/article/details/7180561</a></li>
+<li><a href="http://blog.csdn.net/droidphone/article/details/5972568">http://blog.csdn.net/droidphone/article/details/5972568</a></li>
+</ul>
+
+
+<h3>待续&hellip;</h3>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/20/diff-files-over-ssh/">Diff Files Over SSH</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-20T00:00:00+08:00" pubdate data-updated="true">Apr 20<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/20/diff-files-over-ssh/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/20/diff-files-over-ssh/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>比较单个文件</h3>
+
+<pre><code>ssh user@host "cat path/to/remote/file" | diff path/to/local/file -
+</code></pre>
+
+<h3>比较目录</h3>
+
+<p>利用sshfs将远程目录mount到本地，然后你就可以像比较本地目录一样操作这两个目录了。
+安装sshfs</p>
+
+<pre><code>sudo apt-get install sshfs
+</code></pre>
+
+<p>这会同时安装sshfs和<a href="http://en.wikipedia.org/wiki/Filesystem_in_Userspace">fuse</a></p>
+
+<p>加载fuse模块到内核</p>
+
+<pre><code>sudo modprobe fuse
+</code></pre>
+
+<p>挂载远程目录到本地的挂载点，执行比较</p>
+
+<pre><code>$ mkdir local-mount-point
+$ sshfs user@host:/path/to/remote/dir local-mount-point
+$ diff -r /path/to/local/dir local-mount-point
+</code></pre>
+
+<p>最后，umount这个目录</p>
+
+<pre><code>$ fusermount -u local-mount-point
+</code></pre>
+
+<p>umount的时候可能提示failed to unmount device or resource busy的错误信息，这时可以：</p>
+
+<pre><code>$ fusermount -m local-mount-point  // 查看哪些进程在使用这个挂载点
+$ fusermount -k pid                // 杀掉这个进程
+$ fusermount -u local-mount-point
+</code></pre>
+
+<p>另外，fusermount命令的setuid属性被设置了，所以运行的时候可能会有权限问题，需要把当前用户添加到fuse这个用户组中：</p>
+
+<pre><code>sudo adduser &lt;username&gt; fuse
+sudo chown root:fuse /dev/fuse
+sudo chmod +x /dev/fusermount
+</code></pre>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://www.howtogeek.com/howto/ubuntu/how-to-mount-a-remote-folder-using-ssh-on-ubuntu/">http://www.howtogeek.com/howto/ubuntu/how-to-mount-a-remote-folder-using-ssh-on-ubuntu/</a></li>
+<li><a href="https://wiki.archlinux.org/index.php/Sshfs">https://wiki.archlinux.org/index.php/Sshfs</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/15/ubuntu-gcc-cannot-find-lc/">Ubuntu下gcc编译找不到libc.so</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-15T00:00:00+08:00" pubdate data-updated="true">Apr 15<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/15/ubuntu-gcc-cannot-find-lc/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/15/ubuntu-gcc-cannot-find-lc/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前几天升级了Ubuntu系统，今天编译时出现如下错误：</p>
+
+<pre><code>$ gcc buffer.c 
+/usr/bin/ld: cannot find -lc
+collect2: ld returned 1 exit status
+</code></pre>
+
+<p>明显是ld找不到libc.so，可能时升级系统引起的。
+查看/etc/ld.so.conf:</p>
+
+<pre><code>$ cat /etc/ld.so.conf
+include /etc/ld.so.conf.d/*.conf
+$ cat /etc/ld.so.conf.d/*.conf
+/usr/lib/mesa
+# Multiarch support
+/lib/i486-linux-gnu
+/usr/lib/i486-linux-gnu
+# Multiarch support
+/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu
+/lib/i686-linux-gnu
+/usr/lib/i686-linux-gnu
+/usr/lib/alsa-lib
+# libc default configuration
+/usr/local/lib
+</code></pre>
+
+<p>刷新ld conf cache：</p>
+
+<pre><code>$ sudo ldconfig
+</code></pre>
+
+<p>还是不能解决问题。
+之后</p>
+
+<pre><code>$ locate libc.so
+/lib/i386-linux-gnu/libc.so.6
+/usr/lib/i386-linux-gnu/libc.so
+$ sudo ln -s /usr/lib/i386-linux-gnu/libc.so /usr/lib/libc.so
+</code></pre>
+
+<p>再编译，成功了，ld.so.conf中已经包含了/usr/lib/i386-linux-gnu目录了，按理说应该可以找到libc.so，不知道为何要在/usr/lib下建个软链接才行。不解，留待日后再研究。</p>
+
+<hr />
+
+<h3>Update</h3>
+
+<h4>编译期链接</h4>
+
+<p>当编译完成生成目标文件（.o）后，ld程序会对目标文件进行链接。(GCC没有调用ld进行链接，它调用一个名为collect2的程序，然后由collect2调用ld来进行链接)<br/>
+默认情况下，GCC在编译阶段搜索头文件的路径为：</p>
+
+<pre><code>1. /usr/local/include/
+2. /usr/include/
+</code></pre>
+
+<p>在链接搜索库文件的路径为：</p>
+
+<pre><code>1. /usr/local/lib/
+2. /usr/lib/
+</code></pre>
+
+<p>通过gcc选项指定搜索路径</p>
+
+<ul>
+<li>头文件的搜索路径可以通过gcc -I选项指定。</li>
+<li>库文件的搜索路径可以通过gcc -L选项指定。</li>
+</ul>
+
+
+<p>通过环境变量指定搜索路径</p>
+
+<ul>
+<li>环境变量C_INCLUDE_PATH(for c)和CPLUS_INCLUDE_PATH(for c++)可以指定头文件搜索路径</li>
+<li>环境变量LIBRARY_PATH可以指定库文件搜索路径</li>
+</ul>
+
+
+<p>搜索顺序为：</p>
+
+<ol>
+<li>-I或者-L指定的路径</li>
+<li>通过环境变量指定的路径</li>
+<li>默认路径</li>
+</ol>
+
+
+<p>参考<a href="http://www.network-theory.co.uk/docs/gccintro/gccintro_21.html">here</a></p>
+
+<h4>运行时进行动态链接</h4>
+
+<p>运行一个程序时，ld.so/ld-linux.so会对程序依赖的共享库进行搜索，然后装载进内存，进行重定位，最后控制权移交给程序开始运行。ld.so搜索依赖的共享库的路径顺序为：</p>
+
+<ol>
+<li>查找环境变量LD_LIBRARY_PATH指定的路径。然而如果这个程序的setuid/setgid为被设置，这个步骤被忽略</li>
+<li>查找/etc/ld.so.cache中的共享库列表</li>
+<li>查找/lib</li>
+<li>查找/usr/lib</li>
+</ol>
+
+
+<p>另外，程序本身也可以通过hard-code的方式在执行文件中通过rpath这个字段指定依赖的啥share library的路径：</p>
+
+<pre><code>readelf -d &lt;binary_file&gt; | grep RPATH
+</code></pre>
+
+<p><strong>/etc/ld.so.conf以及LD_LIBRARY_PATH配置的路径是为runtime-linker（ld.so）用的，不是compile-time(ld)!</strong><br/>
+上述问题是一个编译期问题，所以修改更新/etc/ld.so.conf对解决问题没有帮助，而在/usr/lib下创建一个到libc.so的链接则可以让gcc找到从而正确链接。</p>
+
+<p>参考 man ldd, man ld, man 8 ld.so, man dlopen, man ldconfig</p>
+
+<p>Reference:</p>
+
+<ul>
+<li><a href="http://www.threeway.cc/sitecn/informationInfo.aspx?tid=1382&amp;pid=2445">http://www.threeway.cc/sitecn/informationInfo.aspx?tid=1382&amp;pid=2445</a></li>
+<li><a href="http://askubuntu.com/questions/40416/why-is-lib-libc-so-6-missing">http://askubuntu.com/questions/40416/why-is-lib-libc-so-6-missing</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/14/format-heredoc-in-vim/">VIM Heredoc格式化问题</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-14T00:00:00+08:00" pubdate data-updated="true">Apr 14<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/14/format-heredoc-in-vim/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/14/format-heredoc-in-vim/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在VIM下使用gg=G格式化shell代码时，如果代码中有heredoc，经过格式化后会造成代码运行失败。如下：</p>
+
+<pre><code>do
+    echo "Deploying..."
+    ssh $USER@$HOST &lt;&lt;-EOF
+cd testdir
+mv client client-bak-`date +%Y%m%d`
+tar zxf `basename $TARGET_DEPLOY_ZIP` -C .
+exit
+EOF
+    echo ""
+</code></pre>
+
+<p>格式化后会成这样：</p>
+
+<pre><code>do
+    echo "Deploying..."
+    ssh $USER@$HOST &lt;&lt;-EOF
+     cd testdir
+     mv client client-bak-`date +%Y%m%d`
+     tar zxf `basename $TARGET_DEPLOY_ZIP` -C .
+     exit
+    EOF
+    echo ""
+done
+</code></pre>
+
+<p>vim对heredoc的代码进行了缩进（四个空格），这样会导致执行出错。</p>
+
+<p>解决：修改vim格式化shell脚本的规则，格式化时忽略heredoc。<br/>
+将<a href="http://vim.1045645.n5.nabble.com/bash-heredoc-in-a-for-loop-indented-incorrectly-td1177006.html">这个</a>脚本保存到.vim/indent/sh.vim(摘录至此):</p>
+
+<pre><code>" Vim indent file
+" Language:    Shell Script
+" Maintainer:       Nikolai Weibull &lt;[hidden email]&gt;
+" Latest Revision:  2006-04-19
+
+if exists("b:did_indent")
+  finish
+endif
+let b:did_indent = 1
+
+setlocal indentexpr=GetShIndent()
+setlocal indentkeys+==then,=do,=else,=elif,=esac,=fi,=fin,=fil,=done,=EOF,=END
+setlocal indentkeys-=:,0#
+
+if exists("*GetShIndent")
+  finish
+endif
+
+let s:cpo_save = &amp;cpo
+set cpo&amp;vim
+
+function GetShIndent()
+  let lnum = prevnonblank(v:lnum - 1)
+  if lnum == 0
+    return 0
+  endif
+
+  " Add a 'shiftwidth' after if, while, else, case, until, for, function()
+  " Skip if the line also contains the closure for the above
+  let ind = indent(lnum)
+  let line = getline(lnum)
+  if line =~ '^\s*\(if\|then\|do\|else\|elif\|case\|while\|until\|for\)\&gt;'
+        \ || line =~ '^\s*\&lt;\k\+\&gt;\s*()\s*{'
+        \ || line =~ '^\s*{'
+    if line !~ '\(esac\|fi\|done\)\&gt;\s*$' &amp;&amp; line !~ '}\s*$'
+      let ind = ind + &amp;sw
+    endif
+  endif
+
+  if line =~ '^.*&lt;&lt;.*\(EOF\|END\)'
+    let ind = 0
+  endif
+  if line =~ '^"\?\(EOF\|END\)"\?$'
+    let ind = indent(search('&gt;.*EOF', 'b'))
+  endif
+  " Subtract a 'shiftwidth' on a then, do, else, esac, fi, done
+  " Retain the indentation level if line matches fin (for find)
+  let line = getline(v:lnum)
+  if (line =~ '^\s*\(then\|do\|else\|elif\|esac\|fi\|done\)\&gt;' || line =~ '^\s*}')
+        \ &amp;&amp; line !~ '^\s*fi[ln]\&gt;'
+    let ind = ind - &amp;sw
+  endif
+
+  return ind
+endfunction
+
+let &amp;cpo = s:cpo_save
+unlet s:cpo_save 
+</code></pre>
+
+<p>不过delimiter只能是EOF或者END。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/14/debug-php-with-xdebug-in-vim/">VIM+Xdebug调试php</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-14T00:00:00+08:00" pubdate data-updated="true">Apr 14<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/14/debug-php-with-xdebug-in-vim/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/14/debug-php-with-xdebug-in-vim/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><ol>
+<li><p>安装Xdebug</p>
+
+<pre><code> sudo apt-get install php5-xdebug
+</code></pre></li>
+<li><p>配置Xdebug
+编辑/etc/php5/apache2/conf.d/xdebug.ini，加入</p>
+
+<pre><code>  xdebug.remote_enable = 1
+  xdebug.remote_port = 9000
+  xdebug.remote_host = localhost
+</code></pre></li>
+<li><p>安装vim插件DBGp
+下载页面： <a href="http://www.vim.org/scripts/script.php?script_id=1929">http://www.vim.org/scripts/script.php?script_id=1929</a>
+下载后放入plugins目录中即可。</p></li>
+<li><p>在浏览器中打开要调试的php页面,在URL后加上<code>?XDEBUG_SESSION_START=1</code>参数
+用vim打开此文件，用:Bp 设置断点，然后安 F5 键，vi会提示 waiting for a new connection on port 9000 for 5 seconds… ，此时在5秒内刷新刚才那个页面，即可在vim中看到调试界面。
+如果出现 AttributeError(&ldquo;DbgProtocol instance has no attribute &lsquo;stop&rsquo;&rdquo;, 则说明没有配置成功，要么是 xdebug.remote_* 没有配置好，要么是url尾部上没有加入 ?XDEBUG_SESSION_START=1 ，要么是你没有在5秒内刷新页面 .</p></li>
+<li><p>在获取变量内容时，如果变量为 array ，那么默认只会显出 (array) ，而不会显示数组内的各元素，如果无法显示数组元素内容，那么调试会遇到很多问题，因此可以根据 debugger.vim 中的注释，自行在 .vimrc 中加上如下一行：</p>
+
+<pre><code> let g:debuggerMaxDepth = 5
+</code></pre></li>
+</ol>
+
+
+<p>更多的配置，可以依次类推，都在debugger.vim中有所说明。</p>
+
+<p>Reference:<br/>
+<a href="http://lds2008.blogbus.com/logs/115127244.html">http://lds2008.blogbus.com/logs/115127244.html</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/14/are-you-a-geek/">Are You a Computer Geek?</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-14T00:00:00+08:00" pubdate data-updated="true">Apr 14<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/14/are-you-a-geek/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/14/are-you-a-geek/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><div align="center">
+<a href="http://www.nerdtests.com/ft_cg.php?im">
+<img src="http://www.nerdtests.com/images/ft/cg.php?val=7728" alt="My computer geek score is greater than 70% of all people in the world! How do you compare? Click here to find out!"> </a>
+</div>
+
+
+<p><strong>My computer geek score is greater than 70% of all people in the world! How do you compare? Click <a href="http://www.nerdtests.com/ft_cg.php?im">here</a> to find out!</strong></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/13/csapp-representing-and-manipulating-information/">CSAPP读书笔记-信息的表示和处理</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-13T00:00:00+08:00" pubdate data-updated="true">Apr 13<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/13/csapp-representing-and-manipulating-information/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/13/csapp-representing-and-manipulating-information/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>寻址和字节顺序</h3>
+
+<ul>
+<li><p>字长决定整数和指针的大小，因为虚拟地址是以这样的一个字来编码的，所以字长决定的最重要的系统参数就是虚拟地址的空间的最大大小。</p></li>
+<li><p>在存储器中存储数据的顺序分为小端存储和大端存储：<br/>
+  <strong>小端存储</strong>：低字节存储在低地址，高字节存储在高地址。Intel兼容机大多采用这种规则。<br/>
+  <strong>大端存储</strong>：高字节存储在低地址，高字节存储在低地址。IBM和Sun的大型机多采用这种规则。<br/>
+  大多数时候，字节顺序对程序员是透明的。但是字节存储顺序在以下场合会产生问题：<br/>
+  在不同类型的机器间通过网络传送二进制数据，发送方应该把数据转换成网络标准再发送，接收方应该先把数据从网络标准格式转化成内部格式。<br/>
+  阅读表示整数数据的字节序列时</p></li>
+</ul>
+
+
+<h3>表示字符串</h3>
+
+<ul>
+<li><p>使用ASCII码作为字符码在任何系统上的表示方法都相同，与字节顺序和字大小规则无关，因此文本数据比二进制数据有更强的平台独立性。由于不同的机器使用不同且不兼容的指令和编码方式，因此编译后的二进制代码在不同的机器上时不兼容的，如果要在不同的机器上运行程序，必须重新编译生成新的二进制码才能运行。</p></li>
+<li><p>char类型是有符号的还是无符号的？</p></li>
+</ul>
+
+
+<h3>C语言的位运算</h3>
+
+<ul>
+<li><p>表达式~0生成一个全1的掩码，不管机器的字大小是多少，这是一个可移植的写法。</p></li>
+<li><p>C语言中的右移位运算包括逻辑右移和算术右移。逻辑右移在左端补0，算术右移在左端补最高有效位的值。C语言标准并没有规定应该使用哪种类型的右移方式。实际上，对于无符号数据，右移必须是逻辑的。而对于有符号数据，几乎所有的机器都使用算术右移。在Java中对右移有明确定义：运算符<code>&gt;&gt;</code>表示算术右移，运算符<code>&gt;&gt;&gt;</code>表示逻辑右移。</p></li>
+<li><p>一种交换指针所指向的存储位置的方法：</p>
+
+<pre><code>void swap(int *x, int *y) {
+    *y = *x ^ *y;
+    *x = *x ^ *y;
+    *y = *x ^ *y;
+}
+</code></pre></li>
+</ul>
+
+
+<h3>数据类型及转换</h3>
+
+<ul>
+<li><p>整数数据类型的取值范围</p></li>
+<li><p>确定大小的整数类型</p>
+
+<p>由于每种数据类型在不同的机器上可能有不同的取值范围，而c语言标准只是规定了每种数据类型的最小范围，而不是确定的范围，ISO C99在stdint.h中定义了形如intN_t和uintN_t，指定了N位有符号和无符号整数。N一般取值8，16，32，64，如int32_t，可以在所有机器上无歧义的定义一个32位的整型变量。
+Java中没有long long数据类型，单字节数据类型位byte，而不是char。</p></li>
+<li><p>类型转换以及有符号数和无符号数之间的转换</p>
+
+<p>当执行一个运算时，如果一个运算数是有符号的而另一个是无符号的，那么C语言会隐式的将有符号的运算数强制转换为无符号数，并假设这两个数都是非负的。<br/>
+比如在一个32位机器上计算<code>-1&lt;0U</code>，-1的二进制位模式表示为FFFFFFFF，那么有符号数-1会被隐式转换为无符号数——以无符号数来解释位模式FFFFFFFF，那么就变成了计算<code>4294967295U &lt; 0U</code>，而得出来的答案显然是错的。<br/>
+无符号数和有符号数之间的这种隐式转换很容易导致隐藏的bug，使用无符号数一定要谨慎。</p>
+
+<p>类型转换的时机：</p>
+
+<ol>
+<li> 显示的强制转换</li>
+<li> 当一种类型的表达式被赋值给另外一种类型的变量时，发生隐式转换。</li>
+</ol>
+
+
+<p>C语言允许不同数据类型之间的强制转换。这种转换的一般规则是：<strong>转换的数底层的存储位模式不会改变，只是改变了解释这些位的方式。</strong><br/>
+当转换既涉及到大小变化（如int&mdash;>short）又涉及到符号改变时，会先进行大小的转换，再以有符号或者无符号的方式去解释转换后的位模式。如：</p>
+
+<pre><code>  short  sx = 0xcfc7;
+  unsigned uy = sx;
+  printf("uy = %u\n", uy);
+</code></pre>
+
+<p>输出：uy = 4294954951</p>
+
+<p>转换的过程是：<br/>
+先转换大小：short&mdash;>int，进行位扩展，0xcfc7&mdash;>0xffffcfc7<br/>
+再完成有符号到无符号的转换：以无符号的方式解释0xffffcfc7，得到4294954951。</p></li>
+</ul>
+
+
+<h3>Reference</h3>
+
+<p><a href="http://www.ruanyifeng.com/blog/2009/08/twos_complement.html">关于补码</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/05/interesting-c-code-snippets/">一些有趣的C程序</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-05T00:00:00+08:00" pubdate data-updated="true">Apr 5<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/05/interesting-c-code-snippets/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/05/interesting-c-code-snippets/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><pre><code>#include &lt;stdio.h&gt;
+
+int n[]={0x48,0x65,0x6C,0x6C, 
+0x6F,0x2C,0x20, 
+0x77,0x6F,0x72, 
+0x6C,0x64,0x21, 
+0x0A,0x00},\*m=n;
+
+main(n){ 
+    if(putchar (\*m)!='\0') main(m++);
+}
+</code></pre>
+
+<p>输出<code>Hello, world!</code></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/04/04/kindle-related-resources/">Kindle Keyboard 资源索引</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-04T00:00:00+08:00" pubdate data-updated="true">Apr 4<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/04/04/kindle-related-resources/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/04/kindle-related-resources/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="/images/amazon_kindle_wifi_3rd_generation.jpg"><img src="/images/amazon_kindle_wifi_3rd_generation.jpg" alt="/images/amazon_kindle_wifi_3rd_generation.jpg" /></a></p>
+
+<h3>越狱</h3>
+
+<p>下载 <a href="http://www.mobileread.com/forums/showthread.php?t=88004">update-jailbreak-*.zip</a>，并解压出对应你的机器的版本的 update_jailbreak_*_install.bin 文件，放到 Kindle 的根目录中，然后在 Kindle 的 Settings 页面中，按 Menu，选择 Update your Kindle，等待两分钟左右，即可完成越狱，并且由于已经重启了，这时 Kindle 的根目录中应该已经多出了 linkjail 这个目录了。在 Kindle 的内部文件系统中，相应的目录已经被换成了符号链接，目标就是这个 linkjail，我们可以通过修改 linkjail 中的文件来达到修改 Kindle 内部文件系统文件的目的。</p>
+
+<h3>中文字体优化</h3>
+
+<ul>
+<li><a href="http://wzyboy.im/post/736.html">Kindle 中文阅读终极优化指南</a></li>
+<li><a href="http://www.kdolphin.com/1204">Kindle 3的字体、行距、边距</a></li>
+<li><a href="http://irising.me/2011/06/4986/">Kindle 3 安装中文输入法</a></li>
+</ul>
+
+
+<h3>电子书资源</h3>
+
+<ul>
+<li><a href="http://www.douban.com/group/topic/22560203/">http://www.douban.com/group/topic/22560203/</a></li>
+<li><a href="http://book.zi5.me/">子乌书简</a></li>
+<li><a href="http://ikindle.mobi/book/">ikindle万卷书</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/5/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/blog/page/3/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

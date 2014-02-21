@@ -1,0 +1,1510 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="使用dumpsys 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+shell@android:/ # dumpsys meminfo com.android. &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<script src="/javascripts/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  // Revert jQuery's '$' alias, to avoid clashes with ender.js. NOTE: Use
+  // jQuery(...), instead of $(...) from here on.
+  jQuery.noConflict();
+</script>
+<script src="/javascripts/generate-toc.js" type="text/javascript" charset="utf-8"></script>
+
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-20T22:41:00+08:00" pubdate data-updated="true">Feb 20<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/02/20/analyzing-android-memory-usage/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2014/02/20/analyzing-android-memory-usage/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>使用dumpsys</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>shell@android:/ <span class="c"># dumpsys meminfo com.android.systemui</span>
+</span><span class='line'>Applications Memory Usage <span class="o">(</span>kB<span class="o">)</span>:
+</span><span class='line'>Uptime: 296724 Realtime: 296723
+</span><span class='line'>** MEMINFO in pid 2786 <span class="o">[</span>com.android.systemui<span class="o">]</span> **
+</span><span class='line'>                         Shared  Private     Heap     Heap     Heap
+</span><span class='line'>                   Pss    Dirty    Dirty     Size    Alloc     Free
+</span><span class='line'>                ------   ------   ------   ------   ------   ------
+</span><span class='line'>       Native        0        0        0    12540    12384       83
+</span><span class='line'>       Dalvik     8256     5128     8088    13192     8327     4865
+</span><span class='line'>       Cursor        0        0        0
+</span><span class='line'>       Ashmem        0        0        0
+</span><span class='line'>    Other dev        4       24        0
+</span><span class='line'>     .so mmap     1704     1996     1256
+</span><span class='line'>    .jar mmap        0        0        0
+</span><span class='line'>    .apk mmap      750        0        0
+</span><span class='line'>    .ttf mmap        4        0        0
+</span><span class='line'>    .dex mmap     1284        0        0
+</span><span class='line'>   Other mmap       83       20       32
+</span><span class='line'>      Unknown     5692      652     5676
+</span><span class='line'>        TOTAL    17777     7820    15052    25732    20711     4948
+</span><span class='line'>
+</span><span class='line'> Objects
+</span><span class='line'>               Views:      155         ViewRootImpl:        7
+</span><span class='line'>         AppContexts:       12           Activities:        0
+</span><span class='line'>              Assets:        3        AssetManagers:        3
+</span><span class='line'>       Local Binders:       38        Proxy Binders:       38
+</span><span class='line'>    Death Recipients:        3
+</span><span class='line'>     OpenSSL Sockets:        0
+</span><span class='line'>
+</span><span class='line'> SQL
+</span><span class='line'>         MEMORY_USED:        0
+</span><span class='line'>  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有价值的两个值：</p>
+
+<ul>
+<li>PSS（Proportional Set Size ）<br/>
+应用本身所占的物理内存 + 和其他应用share的内存。这个值会被系统作为这个应用的phisical memory footprint</li>
+<li>Private Dirty<br/>
+应用本身所占的物理内存，如果把该应用杀掉，那么就会释放这些内存
+通过AppContexts和Activities可以判断应用是否有activity内存泄漏（如果这个值一直在增长）。</li>
+</ul>
+
+
+<h2>Tips for memory usage</h2>
+
+<blockquote><p><a href="http://developer.android.com/training/articles/memory.html">http://developer.android.com/training/articles/memory.html</a></p></blockquote>
+
+<ol>
+<li>Service会阻止进程被系统杀掉，不要让service一直运行，最好使用IntentService，运行完一个job就退出。</li>
+<li>在onTrimMemory回调中释放UI资源（注意：这里不同于onStop）</li>
+<li>使用getMemoryClass()获得应用的heap大小。app也可以使用android:largeHeap选项请求大的heap（慎用！）。</li>
+<li>使用优化过的数据结构： SparseArray, SparseBooleanArray, and LongSparseArray.</li>
+<li>除非有必要，否则不要抽象代码</li>
+<li>使用nano protocol buffer来取代xml序列化数据</li>
+<li>谨慎使用第三方库，因为这些库并不适合移动设备的运行环境。也不要为了使用so库中一两个功能，而引入整个库。</li>
+<li>使用ProGuard来压缩代码：去除无用的代码，同时混淆代码</li>
+<li>涉及到UI资源的进程很占内存。所以如果需要后台运行的service，如音乐播放，可以将这个service配置到另外的进程里，这样系统可以不用为了保持这个service服务的运行，而必须保留占内存的UI进程。</li>
+</ol>
+
+
+<h2>其他工具</h2>
+
+<p>adb shell procrank<br/>
+adb shell cat /proc/meminfo</p>
+
+<h2>Reference</h2>
+
+<p><a href="http://developer.android.com/tools/debugging/debugging-memory.html">http://developer.android.com/tools/debugging/debugging-memory.html</a>
+<a href="http://elinux.org/Android_Memory_Usage">http://elinux.org/Android_Memory_Usage</a>
+<a href="http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/">http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-20T22:37:00+08:00" pubdate data-updated="true">Feb 20<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/02/20/managing-bitmap-memory/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2014/02/20/managing-bitmap-memory/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-11T18:36:00+08:00" pubdate data-updated="true">Nov 11<span>th</span>, 2013</time>
+        
+           | <a href="/blog/2013/11/11/introducing-pmap/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2013/11/11/introducing-pmap/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>pmap用来打印进程地址空间占用。通常也可以通过如下命令来查看：</p>
+
+<pre><code>cat /proc/self/maps 
+</code></pre>
+
+<p>但用pmap包含更多的信息，显示结果也更直观:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ pmap -d 4827
+</span><span class='line'>    4827:   bash
+</span><span class='line'>    Address           Kbytes Mode  Offset           Device    Mapping
+</span><span class='line'>    0000000000400000     896 r-x-- 0000000000000000 008:00005 bash
+</span><span class='line'>    00000000006e0000       4 r---- 00000000000e0000 008:00005 bash
+</span><span class='line'>    00000000006e1000      36 rw--- 00000000000e1000 008:00005 bash
+</span><span class='line'>    00000000006ea000      24 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    0000000001a8d000    5388 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    00007f1c6c5cd000      48 r-x-- 0000000000000000 008:00005 libnss_files-2.15.so
+</span><span class='line'>    00007f1c6c5d9000    2044 ----- 000000000000c000 008:00005 libnss_files-2.15.so
+</span><span class='line'>    00007f1c6c7d8000       4 r---- 000000000000b000 008:00005 libnss_files-2.15.so
+</span><span class='line'>    00007f1c6c7d9000       4 rw--- 000000000000c000 008:00005 libnss_files-2.15.so
+</span><span class='line'>    00007f1c6c7da000      40 r-x-- 0000000000000000 008:00005 libnss_nis-2.15.so
+</span><span class='line'>    00007f1c6c7e4000    2048 ----- 000000000000a000 008:00005 libnss_nis-2.15.so
+</span><span class='line'>    00007f1c6c9e4000       4 r---- 000000000000a000 008:00005 libnss_nis-2.15.so
+</span><span class='line'>    00007f1c6c9e5000       4 rw--- 000000000000b000 008:00005 libnss_nis-2.15.so
+</span><span class='line'>    00007f1c6c9e6000      92 r-x-- 0000000000000000 008:00005 libnsl-2.15.so
+</span><span class='line'>    00007f1c6c9fd000    2044 ----- 0000000000017000 008:00005 libnsl-2.15.so
+</span><span class='line'>    00007f1c6cbfc000       4 r---- 0000000000016000 008:00005 libnsl-2.15.so
+</span><span class='line'>    00007f1c6cbfd000       4 rw--- 0000000000017000 008:00005 libnsl-2.15.so
+</span><span class='line'>    00007f1c6cbfe000       8 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    00007f1c6cc00000      32 r-x-- 0000000000000000 008:00005 libnss_compat-2.15.so
+</span><span class='line'>    00007f1c6cc08000    2044 ----- 0000000000008000 008:00005 libnss_compat-2.15.so
+</span><span class='line'>    00007f1c6ce07000       4 r---- 0000000000007000 008:00005 libnss_compat-2.15.so
+</span><span class='line'>    00007f1c6ce08000       4 rw--- 0000000000008000 008:00005 libnss_compat-2.15.so
+</span><span class='line'>    00007f1c6ce09000    7052 r---- 0000000000000000 008:00005 locale-archive
+</span><span class='line'>    00007f1c6d4ec000    1748 r-x-- 0000000000000000 008:00005 libc-2.15.so
+</span><span class='line'>    00007f1c6d6a1000    2048 ----- 00000000001b5000 008:00005 libc-2.15.so
+</span><span class='line'>    00007f1c6d8a1000      16 r---- 00000000001b5000 008:00005 libc-2.15.so
+</span><span class='line'>    00007f1c6d8a5000       8 rw--- 00000000001b9000 008:00005 libc-2.15.so
+</span><span class='line'>    00007f1c6d8a7000      20 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    00007f1c6d8ac000       8 r-x-- 0000000000000000 008:00005 libdl-2.15.so
+</span><span class='line'>    00007f1c6d8ae000    2048 ----- 0000000000002000 008:00005 libdl-2.15.so
+</span><span class='line'>    00007f1c6daae000       4 r---- 0000000000002000 008:00005 libdl-2.15.so
+</span><span class='line'>    00007f1c6daaf000       4 rw--- 0000000000003000 008:00005 libdl-2.15.so
+</span><span class='line'>    00007f1c6dab0000     136 r-x-- 0000000000000000 008:00005 libtinfo.so.5.9
+</span><span class='line'>    00007f1c6dad2000    2048 ----- 0000000000022000 008:00005 libtinfo.so.5.9
+</span><span class='line'>    00007f1c6dcd2000      16 r---- 0000000000022000 008:00005 libtinfo.so.5.9
+</span><span class='line'>    00007f1c6dcd6000       4 rw--- 0000000000026000 008:00005 libtinfo.so.5.9
+</span><span class='line'>    00007f1c6dcd7000     136 r-x-- 0000000000000000 008:00005 ld-2.15.so
+</span><span class='line'>    00007f1c6ded7000      12 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    00007f1c6def0000      28 r--s- 0000000000000000 008:00005 gconv-modules.cache
+</span><span class='line'>    00007f1c6def7000       8 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    00007f1c6def9000       4 r---- 0000000000022000 008:00005 ld-2.15.so
+</span><span class='line'>    00007f1c6defa000       8 rw--- 0000000000023000 008:00005 ld-2.15.so
+</span><span class='line'>    00007fffe147d000     132 rw--- 0000000000000000 000:00000   [ stack ]
+</span><span class='line'>    00007fffe15ff000       4 r-x-- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    ffffffffff600000       4 r-x-- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>    mapped: 30276K    writeable/private: 5668K    shared: 28K</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看出，这个进程的虚拟地址空间大小微30276k，实际占用的物理内存微5668k。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-07T18:10:00+08:00" pubdate data-updated="true">Nov 7<span>th</span>, 2013</time>
+        
+           | <a href="/blog/2013/11/07/awesome-bind-mount/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2013/11/07/awesome-bind-mount/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>如果你需要暂时修改一个配置文件用来测试，但是这个配置文件是read only的，你不想大费周折，怎么办？这时bind mount就可以派上用场。</p>
+
+<p>mount命令的常规用法是将一个<em>块设备</em>上的文件系统挂载一个指定的路径。而bind选项可以将一个目录挂载到一个指定的路径。</p>
+
+<p>假设我们需要临时修改一下config文件，但是当前用户没有权限修改这个文件：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls /tmp/etc/
+</span><span class='line'>total 0
+</span><span class='line'>-rw-r----- 1 root root 0 Nov 12 10:38 config
+</span><span class='line'>$ sudo cat /tmp/etc/config 
+</span><span class='line'>sky=0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在我们将/tmp/bind_dir挂载到/tmp/etc：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo mount --bind /tmp/bind_dir /tmp/etc
+</span><span class='line'>    $ ls /tmp/bind_dir/
+</span><span class='line'>    total 0
+</span><span class='line'>    $ ls /tmp/etc/
+</span><span class='line'>    total 0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在/tmp/bind_dir被挂载到了/tmp/etc，也就是说访问/tmp/etc实际上是访问的是/etc/bind_dir目录。现在我们可以往/tmp/etc目录写入我们想要的修改：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ touch /tmp/etc/config
+</span><span class='line'>    $ echo "tmp=1" >> /tmp/etc/config
+</span><span class='line'>    $ cat /tmp/etc/config
+</span><span class='line'>    tmp=1</span></code></pre></td></tr></table></div></figure>
+
+
+<p>现在就达到了修改/tmp/etc/config的目的，可以执行测试。测试完毕后，执行umount：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo umount /tmp/etc/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>/tmp/etc目录下的内容没有变化：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo umount /tmp/etc/
+</span><span class='line'>$ ls /tmp/etc/
+</span><span class='line'>total 4.0K
+</span><span class='line'>-rw-r----- 1 root root 6 Nov 12 10:41 config
+</span><span class='line'>$ sudo cat /tmp/etc/config
+</span><span class='line'>sky=0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>mount的过程实际上是inode被替换的过程，这里我们将/tmp/bind_dir挂载到/tmp/etc上，实际上的实现过程是将/tmp/etc的dentry目录项所指向的inode重定向到/tmp/bind_dir的inode索引节点，也就是说让/tmp/bind_dir和/tmp/etc指向同一个inode节点：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -lid /tmp/bind\_dir/ /tmp/etc/
+</span><span class='line'>1094756 drwxrwxr-x 2 calvin calvin 4.0K Nov 12 10:47 /tmp/bind\_dir/
+</span><span class='line'>1094756 drwxrwxr-x 2 calvin calvin 4.0K Nov 12 10:47 /tmp/etc/</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可见两个路径都指向了1094756的inode索引节点。</p>
+
+<p>另外几个应用bind mount的例子：<br/>
+* <a href="http://docs.1h.com/Bind_mounts">http://docs.1h.com/Bind_mounts</a><br/>
+* <a href="http://backdrift.org/how-to-use-bind-mounts-in-linux">http://backdrift.org/how-to-use-bind-mounts-in-linux</a></p>
+
+<h1>Reference</h1>
+
+<p><a href="http://alanwu.blog.51cto.com/3652632/1105681">ext3 mount过程</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-04T00:00:00+08:00" pubdate data-updated="true">Nov 4<span>th</span>, 2013</time>
+        
+           | <a href="/blog/2013/11/04/disable-kernel-random-address/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2013/11/04/disable-kernel-random-address/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>今天接触了Linux下的VDSO（Virtual Dynamically-linked Shared Object)，用来使系统调用更加快速和高效，但在查看进程vdso.so在进程地址空间的分布时，发现每次打印出来的进程地址都不一样：</p>
+
+<pre><code>$ ldd /bin/ls
+    linux-vdso.so.1 =&gt;  (0x00007ffff7ffe000)
+    libselinux.so.1 =&gt; /lib/x86\_64-linux-gnu/libselinux.so.1 (0x00007ffff7dc0000)
+    librt.so.1 =&gt; /lib/x86\_64-linux-gnu/librt.so.1 (0x00007ffff7bb8000)
+    libacl.so.1 =&gt; /lib/x86\_64-linux-gnu/libacl.so.1 (0x00007ffff79af000)
+    libc.so.6 =&gt; /lib/x86\_64-linux-gnu/libc.so.6 (0x00007ffff75ef000)
+    libdl.so.2 =&gt; /lib/x86\_64-linux-gnu/libdl.so.2 (0x00007ffff73eb000)
+    /lib64/ld-linux-x86-64.so.2 (0x0000555555554000)
+    libpthread.so.0 =&gt; /lib/x86\_64-linux-gnu/libpthread.so.0 (0x00007ffff71cd000)
+    libattr.so.1 =&gt; /lib/x86\_64-linux-gnu/libattr.so.1 (0x00007ffff6fc8000)
+$ cat /proc/self/maps 
+00400000-0040b000 r-xp 00000000 08:05 1438995                            /bin/cat
+0060a000-0060b000 r--p 0000a000 08:05 1438995                            /bin/cat
+0060b000-0060c000 rw-p 0000b000 08:05 1438995                            /bin/cat
+0060c000-0062d000 rw-p 00000000 00:00 0                                  [heap]
+7ffff7337000-7ffff7a1a000 r--p 00000000 08:05 137790                     /usr/lib/locale/locale-archive
+7ffff7a1a000-7ffff7bcf000 r-xp 00000000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7bcf000-7ffff7dcf000 ---p 001b5000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7dcf000-7ffff7dd3000 r--p 001b5000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7dd3000-7ffff7dd5000 rw-p 001b9000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7dd5000-7ffff7dda000 rw-p 00000000 00:00 0 
+7ffff7dda000-7ffff7dfc000 r-xp 00000000 08:05 407692                     /lib/x86\_64-linux-gnu/ld-2.15.so
+7ffff7fd9000-7ffff7fdc000 rw-p 00000000 00:00 0 
+7ffff7ff9000-7ffff7ffb000 rw-p 00000000 00:00 0 
+7ffff7ffb000-7ffff7ffc000 r-xp 00000000 00:00 0                          [vdso]
+7ffff7ffc000-7ffff7ffd000 r--p 00022000 08:05 407692                     /lib/x86\_64-linux-gnu/ld-2.15.so
+7ffff7ffd000-7ffff7fff000 rw-p 00023000 08:05 407692                     /lib/x86\_64-linux-gnu/ld-2.15.so
+7ffffffde000-7ffffffff000 rw-p 00000000 00:00 0                          [stack]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+</code></pre>
+
+<p>原来在现代Linux内核中，为了安全起见，会对每个进程的进程地址进行随机化。用以下命令即可禁用这个功能：</p>
+
+<pre><code>echo "0" &gt; /proc/sys/kernel/randomize_va_space
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/09/26/Chrominum-base-code-introduction/">Chromium Base库介绍</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-09-26T00:00:00+08:00" pubdate data-updated="true">Sep 26<span>th</span>, 2013</time>
+        
+           | <a href="/blog/2013/09/26/Chrominum-base-code-introduction/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2013/09/26/Chrominum-base-code-introduction/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Chromium的base库包含了一些常用的基础代码，包括:</p>
+
+<pre><code>* 文件操作
+* json读写
+* 字符串操作
+* 时间操作
+* 智能指针
+</code></pre>
+
+<p>在线代码浏览：
+<a href="https://code.google.com/p/chromium/codesearch#chromium/src/base/">https://code.google.com/p/chromium/codesearch#chromium/src/base/</a></p>
+
+<h3>常用宏</h3>
+
+<ol>
+<li>DISALLOW_COPY/DISALLOW_ASSIGN/DISALLOW_COPY_AND_ASSIGN
+位于base/basictyps.h，它通过将拷贝构造函数和=运算符重载设置为private来禁用类对象的拷贝和赋值操作。
+示例用法：sql/transaction.h</li>
+</ol>
+
+
+<h3>智能指针</h3>
+
+<p>scoped_ptr: base/memory/scoped_ptr.h
+经过scoped_ptr封装的指针在出作用域后自动被释放, 该指针的ownership只能传递，不能拷贝。使用方法见头文件的注释。</p>
+
+<h3>文件操作</h3>
+
+<p>base/platform_file.h
+base/file_util.h
+base/files/file_path.h
+base/path_service.h</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-25T00:00:00+08:00" pubdate data-updated="true">Feb 25<span>th</span>, 2013</time>
+        
+           | <a href="/blog/2013/02/25/strcpy-memcpy/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2013/02/25/strcpy-memcpy/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>今天被问到strcpy和memcpy的区别，一时语塞，于是研究一下记录下来。</p>
+
+<h3>strcpy</h3>
+
+<pre><code>   #include &lt;string.h&gt;
+   char *strcpy(char *dest, const char *src);
+</code></pre>
+
+<p>它的作用是将src指向的字符串，包括最后的&#8217;\0&#8217;，拷贝到dest指向的字符串。它的一个简单实现如下：</p>
+
+<pre><code>       char*
+       strncpy(char *dest, const char *src, size_t n){
+           size_t i;
+
+           for (i = 0 ; i &lt; n &amp;&amp; src[i] != '\0' ; i++)
+               dest[i] = src[i];
+           for ( ; i &lt; n ; i++)
+               dest[i] = '\0';
+
+           return dest;
+       }
+</code></pre>
+
+<p>也就是说，strcpy会从头开始依次拷贝每个字符，但是一旦遇到了空字符NULL（&#8217;\0&#8217;），strcpy就会停止拷贝。</p>
+
+<h3>memcpy</h3>
+
+<pre><code>   #include &lt;string.h&gt;
+   void *memcpy(void *dest, const void *src, size_t n);
+</code></pre>
+
+<p>memcpy用来进行内存拷贝，它将src指向的地址后的n个字节拷贝到dest开始的内存里，可以用它拷贝任何内型的数据对象。</p>
+
+<hr />
+
+<p>以下是stackoverflow上的一个demo，它清楚的显示了这两个函数的区别：</p>
+
+<pre><code>void dump5(char *str);
+
+int main()
+{
+    char s[5]={'s','a','\0','c','h'};
+
+    char membuff[5]; 
+    char strbuff[5];
+    memset(membuff, 0, 5); // init both buffers to nulls
+    memset(strbuff, 0, 5);
+
+    strcpy(strbuff,s);
+    memcpy(membuff,s,5);
+
+    dump5(membuff); // show what happened
+    dump5(strbuff);
+
+    return 0;
+}
+
+void dump5(char *str)
+{
+    char *p = str;
+    for (int n = 0; n &lt; 5; ++n)
+    {
+        printf("%2.2x ", *p);
+        ++p;
+    }
+
+    printf("\t");
+
+    p = str;
+    for (int n = 0; n &lt; 5; ++n)
+    {
+        printf("%c", *p ? *p : ' ');
+        ++p;
+    }
+
+    printf("\n", str);
+}
+</code></pre>
+
+<p>结果输出：</p>
+
+<pre><code>73 61 00 63 68  sa ch
+73 61 00 00 00  sa
+</code></pre>
+
+<p>可见用strcpy拷贝时，ch被忽略了，但是memcpy也将它拷贝过来了。</p>
+
+<p>详细讨论在<a href="http://stackoverflow.com/questions/2898364/strcpy-v-s-memcpy">这里</a>。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/01/28/eclipse-debug-break-points/">Eclipse 调试中的五种断点</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-28T00:00:00+08:00" pubdate data-updated="true">Jan 28<span>th</span>, 2013</time>
+        
+           | <a href="/blog/2013/01/28/eclipse-debug-break-points/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2013/01/28/eclipse-debug-break-points/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Eclipse调试支持五种不同的断点，这些断点都可以通过Run主菜单下的选项来添加或者删除。</p>
+
+<h3>Line breakpoints</h3>
+
+<p>Line breakpoints就是我们平时使用最多的一种断点类型，它以代码行为单位，代码执行到这一行时就会被suspend。有两个比较有用的属性：</p>
+
+<ul>
+<li>Condition breakpoint
+为该断点添加一个条件，只有当这个条件成立时才会suspend</li>
+<li>Hit count
+指定一个整数值N，只有当这个断点被执行过的次数达到N次时才会suspend。</li>
+</ul>
+
+
+<h3>Watchpoint</h3>
+
+<p>Watchpoint针对的是变量。如果我们对程序运行的过程不关心，而对某个关键变量的值的变化比较关心，那么我们可以对这个变量设置一个Watchpoint, 同时指定它的Access和Modification属性用来执行这个变量被访问时suspend还是被修改时suspend。</p>
+
+<p>注意：<br/>
+Android的Dalvik虚拟机目前还不支持这种breakpoint。</p>
+
+<h3>Method breakpoints</h3>
+
+<p>Method breakpoints用来指定针对一个方法的断点。他有两个属性：</p>
+
+<ul>
+<li>Entry：当进入该方法时suspend</li>
+<li>Exit：当执行玩该方法时suspend</li>
+</ul>
+
+
+<h3>Exception breakpoints</h3>
+
+<p>指定当某个exception发生时suspend当前线程。</p>
+
+<h3>Class Load breakpoints</h3>
+
+<p>指定当某个类被虚拟机加载时suspend当前线程。</p>
+
+<p>以上五种断点都可以在Breakpoints 视图中查看，可以通过右上角的菜单，Group by，选择Breakpoint types，这样可以按照这五种类型来对当前所有的Breakpoint进行分类查看，比较方便。</p>
+
+<p><a href="/images/eclipse-debug.png"><img src="/images/eclipse-debug.png" alt="/images/eclipse-debug.png" /></a></p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://www.vogella.com/articles/EclipseDebugging/article.htm">http://www.vogella.com/articles/EclipseDebugging/article.htm</a></li>
+<li><a href="http://developer.51cto.com/art/201111/302928.htm">http://developer.51cto.com/art/201111/302928.htm</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/01/28/eclipse-content-assist/">Eclipse Content Assist失效解决</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-28T00:00:00+08:00" pubdate data-updated="true">Jan 28<span>th</span>, 2013</time>
+        
+           | <a href="/blog/2013/01/28/eclipse-content-assist/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2013/01/28/eclipse-content-assist/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>今天发现eclipse的conent assist的默认键Ctrl + Space与系统输入法冲突，于是打开Window &ndash;> Preference &ndash;> Keys，将content assist改为Alt + /，然而发现还是不起作用，最后找到解决方法：<br/>
+Window &ndash;> Preference &ndash;> Keys &ndash;> Word Completion &ndash;> Unbind Command<br/>
+然后apply。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/01/20/android-handler-looper-message/">Android消息处理机制理解</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-01-20T00:00:00+08:00" pubdate data-updated="true">Jan 20<span>th</span>, 2013</time>
+        
+           | <a href="/blog/2013/01/20/android-handler-looper-message/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2013/01/20/android-handler-looper-message/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Android的消息处理机制是很多功能实现的基础，如UI绘制，键盘事件传递等等。在实现上，涉及到的类有Handler, Message, Looper等等，本篇研究Android消息处理机制的内部实现细节。</p>
+
+<h1>UI线程消息循环的启动</h1>
+
+<p>Android所谓UI线程的启动位于ActivityThread.java，在其main方法中会启动这个消息循环：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Looper</span><span class="o">.</span><span class="na">prepareMainLooper</span><span class="o">();</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">sMainThreadHandler</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">sMainThreadHandler</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Handler</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">ActivityThread</span> <span class="n">thread</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ActivityThread</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">thread</span><span class="o">.</span><span class="na">attach</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">Looper</span><span class="o">.</span><span class="na">loop</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>首先调用<code>Looper.prepareMainLooper()</code>方法：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'>    <span class="cm">/**</span>
+</span><span class='line'><span class="cm">     * Initialize the current thread as a looper, marking it as an</span>
+</span><span class='line'><span class="cm">     * application&#39;s main looper. The main looper for your application</span>
+</span><span class='line'><span class="cm">     * is created by the Android environment, so you should never need</span>
+</span><span class='line'><span class="cm">     * to call this function yourself.  See also: {@link #prepare()}</span>
+</span><span class='line'><span class="cm">     */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">prepareMainLooper</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">prepare</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">setMainLooper</span><span class="o">(</span><span class="n">myLooper</span><span class="o">());</span>
+</span><span class='line'>        <span class="c1">// main looper是不允许退出的，否则应用程序就没得玩了</span>
+</span><span class='line'>        <span class="n">myLooper</span><span class="o">().</span><span class="na">mQueue</span><span class="o">.</span><span class="na">mQuitAllowed</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>     <span class="cm">/** Initialize the current thread as a looper.</span>
+</span><span class='line'><span class="cm">      * This gives you a chance to create handlers that then reference</span>
+</span><span class='line'><span class="cm">      * this looper, before actually starting the loop. Be sure to call</span>
+</span><span class='line'><span class="cm">      * {@link #loop()} after calling this method, and end it by calling</span>
+</span><span class='line'><span class="cm">      * {@link #quit()}.</span>
+</span><span class='line'><span class="cm">      * </span>
+</span><span class='line'><span class="cm">      * prepare方法将实例化一个Looper对象，并保存到一个ThreadLocal变量里, 这个</span>
+</span><span class='line'><span class="cm">      * looper稍后可以通过myLooper()方法取出</span>
+</span><span class='line'><span class="cm">      */</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">prepare</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">sThreadLocal</span><span class="o">.</span><span class="na">get</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">&quot;Only one Looper may be created per thread&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="n">sThreadLocal</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="k">new</span> <span class="n">Looper</span><span class="o">());</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">private</span> <span class="nf">Looper</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">// 初始化一个消息队列，其实现稍后解释</span>
+</span><span class='line'>        <span class="n">mQueue</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MessageQueue</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">mRun</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">mThread</span> <span class="o">=</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>接下来调用Looper.loop()启动消息循环：</p>
+
+<pre><code>/**
+ * Run the message queue in this thread. Be sure to call
+ * {@link #quit()} to end the loop.
+ */
+public static void loop() {
+    // 取得当前线程关联的looper对象
+    Looper me = myLooper();
+    if (me == null) {
+        throw new RuntimeException("No Looper; Looper.prepare() wasn't called on this thread.");
+    }
+    MessageQueue queue = me.mQueue;
+    ...
+    while (true) {
+        // 从消息队列中取出下一个需要处理的消息，这里可能会阻塞
+        Message msg = queue.next(); // might block
+        if (msg != null) {
+            if (msg.target == null) {
+                // No target is a magic identifier for the quit message.
+                return;
+            }
+            ...
+            msg.target.dispatchMessage(msg);
+            ...
+            msg.recycle();
+        }
+    }
+}
+</code></pre>
+
+<h1>消息队列的建立</h1>
+
+<p>每一个looper对象对应一个MessageQueue对象，Looper对象在这个消息队列上loop。每个消息是一个Message对象，而对这个消息队列的引用也是一个Message对象：</p>
+
+<pre><code>Message mMessages;
+</code></pre>
+
+<p>每个Message对象内部也有一个Message对象的引用，指向队列中的下一个message对象，这些message形成了一个单向队列。<strong>这个队列是按照message.when的大小顺序排列的</strong>。队首的消息是最先发生的。</p>
+
+<p>MessageQueue另外还有一个重要的变量：</p>
+
+<pre><code>private int mPtr; // used by native code
+</code></pre>
+
+<p>每个MessageQueue在native层对应有一个C++的实现NativeMessageQueue，位于android_os_MessageQueue.cpp，Java层的MessageQueue的mPtr保存的就是这个对象的指针。</p>
+
+<p>MessageQueue的构造方法为：</p>
+
+<pre><code>MessageQueue() {
+    nativeInit();
+}
+</code></pre>
+
+<p>nativeInit()方法在android_os_MessageQueue.cpp中实现：</p>
+
+<pre><code>static void android_os_MessageQueue_nativeInit(JNIEnv* env, jobject obj) {
+    NativeMessageQueue* nativeMessageQueue = new NativeMessageQueue();
+    if (! nativeMessageQueue) {
+        jniThrowRuntimeException(env, "Unable to allocate native queue");
+        return;
+    }
+
+    // 将指针值设置给Java层MessageQueue的mPtr变量
+    android_os_MessageQueue_setNativeMessageQueue(env, obj, nativeMessageQueue);
+}
+</code></pre>
+
+<p>NativeMessageQueue没有太多逻辑实现，它作为C++层的Looper对象的包装类。</p>
+
+<p>C++层的Looper对象实现为framework/base/libs/utils/Looper.cpp:</p>
+
+<pre><code>Looper::Looper(bool allowNonCallbacks) :
+       mAllowNonCallbacks(allowNonCallbacks), mSendingMessage(false),
+       mResponseIndex(0), mNextMessageUptime(LLONG_MAX) {
+   int wakeFds[2];
+   int result = pipe(wakeFds);
+   LOG_ALWAYS_FATAL_IF(result != 0, "Could not create wake pipe.  errno=%d", errno);
+
+   mWakeReadPipeFd = wakeFds[0];
+   mWakeWritePipeFd = wakeFds[1];
+
+   result = fcntl(mWakeReadPipeFd, F_SETFL, O_NONBLOCK);
+   LOG_ALWAYS_FATAL_IF(result != 0, "Could not make wake read pipe non-blocking.  errno=%d",
+           errno);
+
+   result = fcntl(mWakeWritePipeFd, F_SETFL, O_NONBLOCK);
+   LOG_ALWAYS_FATAL_IF(result != 0, "Could not make wake write pipe non-blocking.  errno=%d",
+           errno);
+
+   // Allocate the epoll instance and register the wake pipe.
+   mEpollFd = epoll_create(EPOLL_SIZE_HINT);
+   LOG_ALWAYS_FATAL_IF(mEpollFd &lt; 0, "Could not create epoll instance.  errno=%d", errno);
+
+   struct epoll_event eventItem;
+   memset(&amp; eventItem, 0, sizeof(epoll_event)); // zero out unused members of data field union
+   eventItem.events = EPOLLIN;
+   eventItem.data.fd = mWakeReadPipeFd;
+   result = epoll_ctl(mEpollFd, EPOLL_CTL_ADD, mWakeReadPipeFd, &amp; eventItem);
+   LOG_ALWAYS_FATAL_IF(result != 0, "Could not add wake read pipe to epoll instance.  errno=%d",
+           errno);
+}
+</code></pre>
+
+<p>这里先通过pipe系统调用创建了一个管道，这个管道非常重要：<br/>
+当当前线程没有新的消息需要处理时，它会睡眠在管道的读端文件描述符上，直到有新消息到来为止；另一方面，当其他线程向这个线程的消息队列发送一个消息后，其他线程会在这个管道的写端文件描述符上写入数据，这样导致等待在读端文件描述符的looper唤醒，然后对消息队列中的消息进行处理。但是，它对其他线程写入写端文件描述符的数据是什么并不关心，因为这些数据仅仅是为了唤醒它而已。</p>
+
+<h1>开启消息循环</h1>
+
+<p>调用Looper.loop()开启消息循环，前面看到，loop()方法从next()#MessageQueue获取下一个待处理的消息：</p>
+
+<pre><code>final Message next() {
+    int pendingIdleHandlerCount = -1; // -1 only during first iteration
+    int nextPollTimeoutMillis = 0;
+
+    for (;;) {
+        if (nextPollTimeoutMillis != 0) {
+            Binder.flushPendingCommands();
+        }
+
+        // 这个方法可能会阻塞，一旦返回，说明有新的message可以处理了，第一次进来nextPollTimeoutMillis为0，表示不作等待，立即返回。
+        nativePollOnce(mPtr, nextPollTimeoutMillis);
+
+        synchronized (this) {
+            // Try to retrieve the next message.  Return if found.
+            final long now = SystemClock.uptimeMillis();
+            final Message msg = mMessages;
+            if (msg != null) {
+                final long when = msg.when;
+                // 如果队首的消息的when小于当前时间，说明这个消息已经过期了，需要马上处理。
+                if (now &gt;= when) {
+                    mBlocked = false;
+                    mMessages = msg.next;
+                    msg.next = null;
+                    if (false) Log.v("MessageQueue", "Returning message: " + msg);
+                    msg.markInUse();
+                    return msg;
+                } else {
+                    // 计算出还要睡眠多长时间以后再取出下一个消息
+                    nextPollTimeoutMillis = (int) Math.min(when - now, Integer.MAX_VALUE);
+                }
+            } else {
+                nextPollTimeoutMillis = -1;
+            }
+
+            ...
+
+        // While calling an idle handler, a new message could have been delivered
+        // so go back and look again for a pending message without waiting.
+        nextPollTimeoutMillis = 0;
+    }
+}
+</code></pre>
+
+<p><code>nativePollOnce(mPtr, nextPollTimeoutMillis);</code> 方法用来检查当前线程的消息队列是否有新的消息需要处理, nextPollTimeoutMillis表示如果没有发现新的消息，当前线程需要睡眠的时间，如果等于-1，表示它需要进入无限睡眠，直到被其他线程唤醒为止。</p>
+
+<p>nativePollOnce函数在C++层的Looper对象的实现为pollOnce()，进而调用pollInner():</p>
+
+<pre><code>int Looper::pollInner(int timeoutMillis) {
+    // Poll.
+    int result = ALOOPER_POLL_WAKE;
+    mResponses.clear();
+    mResponseIndex = 0;
+
+    int eventCount = epoll_wait(mEpollFd, eventItems, EPOLL_MAX_EVENTS, timeoutMillis);
+    ...
+    // 检查是哪个文件描述符上发生了IO事件
+    for (int i = 0; i &lt; eventCount; i++) {
+        int fd = eventItems[i].data.fd;
+        uint32_t epollEvents = eventItems[i].events;
+        if (fd == mWakeReadPipeFd) {
+            if (epollEvents &amp; EPOLLIN) {
+                awoken();
+            } else {
+                LOGW("Ignoring unexpected epoll events 0x%x on wake read pipe.", epollEvents);
+            }
+        } else {
+        ...
+        }
+    }
+    return result;
+}
+</code></pre>
+
+<p>如果是mWakeReadPipeFd上发生了IO事件，说明有其它线程在mWakeWritePipeFd上写入了数据，接下来在awoken()函数中读取这些数据，这样在后续有线程写入数据时可以被再次唤醒：</p>
+
+<pre><code>void Looper::awoken() {
+    ... 
+    char buffer[16];
+    ssize_t nRead;
+    do {
+        nRead = read(mWakeReadPipeFd, buffer, sizeof(buffer));
+    } while ((nRead == -1 &amp;&amp; errno == EINTR) || nRead == sizeof(buffer));
+}
+</code></pre>
+
+<p>这里只是将数据读出，它并不关心这些数据是什么。</p>
+
+<h1>消息发送过程</h1>
+
+<p>发送消息最常见的方法就是使用sendMessage()#Handler, 这个方法最终会调用enqueueMessage()#MessageQueue.java:</p>
+
+<pre><code>final boolean enqueueMessage(Message msg, long when) {
+
+        msg.when = when;
+        //Log.d("MessageQueue", "Enqueing: " + msg);
+        Message p = mMessages;
+        if (p == null || when == 0 || when &lt; p.when) {
+            msg.next = p;
+            mMessages = msg;
+            needWake = mBlocked; // new head, might need to wake up
+        } else {
+            Message prev = null;
+            while (p != null &amp;&amp; p.when &lt;= when) {
+                prev = p;
+                p = p.next;
+            }
+            msg.next = prev.next;
+            prev.next = msg;
+            needWake = false; // still waiting on head, no need to wake up
+        }
+    }
+    if (needWake) {
+        nativeWake(mPtr);
+    }
+    return true;
+}
+</code></pre>
+
+<p>这个方法将新的message插入到消息队列中，并根据需要唤醒native的looper线程。消息的插入分为四种情况：</p>
+
+<ul>
+<li>消息队列是一个空队列；</li>
+<li>新消息的when等于0，表示需要立即处理；</li>
+<li>新消息的when小于队首消息的when；</li>
+<li>新消息的when大于或者等于队首消息的when；</li>
+</ul>
+
+
+<p>前三种情况只需要将新消息插入到队首即可，并需要立即唤醒looper对这个新消息进行处理。第四种情况需要插入到队列中的合适位置，并且不需要唤醒looper。<br/>
+唤醒looper通过nativeWake()方法实现：
+looper.cpp:</p>
+
+<pre><code>void Looper::wake() {
+    ssize_t nWrite;
+    do {
+        nWrite = write(mWakeWritePipeFd, "W", 1);
+    } while (nWrite == -1 &amp;&amp; errno == EINTR);
+
+    if (nWrite != 1) {
+        if (errno != EAGAIN) {
+            LOGW("Could not write wake signal, errno=%d", errno);
+        }
+    }
+}
+</code></pre>
+
+<p>唤醒的过程就是望管道的写文件描述符mWakeWritePipeFd写入一些数据即可，这里写入了一个&#8221;W&#8221;字符，这样等待在管道另一端的正在睡眠的线程就会被唤醒，从而导致队首的消息被取出进行处理。</p>
+
+<h1>HanderThread</h1>
+
+<p>HandlerThread最重要的特点是它的looper是在一个子线程中loop的，从而不会阻塞UI线程。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/2/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

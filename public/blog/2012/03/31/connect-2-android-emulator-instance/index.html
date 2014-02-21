@@ -1,0 +1,453 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Android模拟器与host主机以及模拟器之间进行TCP通信 - 且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="QEMU Networking Android 模拟器基于QEMU虚拟机构建，虚拟机（guest）与所在的PC主机（host）之间的网络通信有几种方式： NAT方式 Android模拟器的网络连接使用NAT方式。 这种方式通过host机器的网络接口访问网络，优点是方便设置，不用创建额外的网络接口。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/2012/03/31/connect-2-android-emulator-instance">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<script src="/javascripts/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  // Revert jQuery's '$' alias, to avoid clashes with ender.js. NOTE: Use
+  // jQuery(...), instead of $(...) from here on.
+  jQuery.noConflict();
+</script>
+<script src="/javascripts/generate-toc.js" type="text/javascript" charset="utf-8"></script>
+
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Android模拟器与host主机以及模拟器之间进行TCP通信</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-31T00:00:00+08:00" pubdate data-updated="true">Mar 31<span>st</span>, 2012</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h3>QEMU Networking</h3>
+
+<p>Android 模拟器基于QEMU虚拟机构建，虚拟机（guest）与所在的PC主机（host）之间的网络通信有几种方式：</p>
+
+<ol>
+<li><p>NAT方式<br/>
+  Android模拟器的网络连接使用NAT方式。<br/>
+ 这种方式通过host机器的网络接口访问网络，优点是方便设置，不用创建额外的网络接口。缺点是guest可以访问外部网络，但是反过来host不能访问到guest。Android通过端口转发解决这一问题。<br/>
+ NAT网络结构如下所示(图片来自<a href="http://wiki.qemu.org/Documentation/Networking">qumu wiki</a>)：</p>
+
+<p> <a href="/images/qemu_Slirp_concept.png"><img src="/images/qemu_Slirp_concept.png" alt="/images/qemu_Slirp_concept.png" /></a></p>
+
+<p> 由此可见，guest与host不在同一个网段，guest通过10.0.2.2访问host机器.</p></li>
+<li>Bridge方式</li>
+</ol>
+
+
+<h3>模拟器与host通信</h3>
+
+<p>启动模拟器，adb server会在5554端口上监听来自adb client的连接，我们可以通过这个端口与模拟器通信。<br/>
+在模拟器上运行如下服务器程序，在<strong>模拟器</strong>的8000端口上监听客户端连接，接收到客户端连接后，发送一段echo字符串，然后关闭连接：</p>
+
+<pre><code>public class EmulatorServerActivity extends Activity {
+    private ServerSocket serverSocket = null;
+
+    public static final int SERVERPORT = 8000;
+
+    private boolean keepRunning = false;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        keepRunning = true;
+        new Thread(new ServerThread()).start();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        try {
+            keepRunning = false;
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    class ServerThread implements Runnable {
+        public void run() {
+            try {
+                serverSocket = new ServerSocket(SERVERPORT);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            while (keepRunning) {
+                try {
+                    Log.d("Server", "Wating for connection...");
+                    Socket s = serverSocket.accept();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(
+                            s.getInputStream()));
+                    String msg = reader.readLine();
+                    Log.d("Server", "Received message from client:" + msg);
+                    String echo = "You are telling me: " + msg + ", bye\n";
+                    s.getOutputStream().write(echo.getBytes());
+                    s.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+</code></pre>
+
+<p>在host机器上通过telnet连接到模拟器：</p>
+
+<pre><code>telnet localhost 5554
+</code></pre>
+
+<p>然后设置端口转发：</p>
+
+<pre><code>redir add tcp:7777:8000
+redir list // 显示已添加的端口转发
+exit
+</code></pre>
+
+<p>添加端口转发命令格式为：</p>
+
+<pre><code>redir add &lt;protocol&gt;:&lt;host-port&gt;:&lt;guest-port&gt;
+</code></pre>
+
+<p>其中，protocol必须是tcp或udp，host-port是主机上开启的端口号，guest-port 是模拟器的监听端口号。</p>
+
+<p>这条端口转发命令表示将发送到host机器的7777端口的所有tcp数据转发到guest机器的8000端口，也就是我们的server程序监听的端口，这个过程对client来说是完全透明的，它只知道它把数据发送到host的7777端口，它对数据如何转发一无所知。这时在host机器上可以看到7777端口已经处于监听状态：</p>
+
+<pre><code>$ netstat -tln
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State      
+tcp        0      0 127.0.0.1:7777          0.0.0.0:*               LISTEN 
+</code></pre>
+
+<p>通过设置端口转发，host机器就可以通过这个7777端口连接guest机器上的服务程序了：</p>
+
+<pre><code>$ telnet localhost 7777
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+hello
+You are telling me: hello, bye
+Connection closed by foreign host.
+</code></pre>
+
+<h3>模拟器之间通信</h3>
+
+<p>启动另一个模拟器，运行客户端程序：</p>
+
+<pre><code>public class EmulatorClientActivity extends Activity {
+    private String serverIpAddress = "10.0.2.2";
+
+    // 注意：我们需要连接host机器的7777端口
+    private static final int REDIRECTED_SERVERPORT = 7777;
+
+    private Socket socket;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        new Thread(new CommsThread()).start();
+    }
+
+    class CommsThread implements Runnable {
+        public void run() {
+            try {
+                InetAddress serverAddr = InetAddress.getByName(serverIpAddress);
+                socket = new Socket(serverAddr, REDIRECTED_SERVERPORT);
+                socket.getOutputStream().write(new String("Hello\n").getBytes());
+                Log.d("Client", "Message sent to server");
+                socket.close();
+            } catch (UnknownHostException e1) {
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
+    }
+}
+</code></pre>
+
+<p>注意：在这个客户端程序里，我们需要连接的socket为10.0.2.2:7777,其中，10.0.2.2是host机器的ip地址，发送到host机器的7777端口的数据会被透明的转发到另一个模拟器的8000端口上，这样，连接就建立起来了。</p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://wiki.qemu.org/Documentation/Networking">http://wiki.qemu.org/Documentation/Networking</a></li>
+<li><a href="http://www.virtualbox.org/manual/ch06.html#nat-limitations">http://www.virtualbox.org/manual/ch06.html#nat-limitations</a></li>
+<li><a href="http://felipec.wordpress.com/2009/12/27/setting-up-qemu-with-a-nat/">http://felipec.wordpress.com/2009/12/27/setting-up-qemu-with-a-nat/</a></li>
+<li><a href="http://www.cnblogs.com/yangnas/archive/2010/05/28/1745917.html">http://www.cnblogs.com/yangnas/archive/2010/05/28/1745917.html</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Calvin Lee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-31T00:00:00+08:00" pubdate data-updated="true">Mar 31<span>st</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>Android</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/03/26/git-tips/" title="Previous Post: Git Tips">&laquo; Git Tips</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/04/04/kindle-related-resources/" title="Next Post: Kindle keyboard 资源索引">Kindle keyboard 资源索引 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

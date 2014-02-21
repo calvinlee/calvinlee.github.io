@@ -1,0 +1,1420 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="Vold(Volume Daemon) 主要负责管理和控制外部存储设备，这些控制包括SD卡设备插拔，挂载，格式化等等.
+Vold在Android 平台上的作用相当于udev在Linux平台上的功能。 Vold的架构 Vold的架构大致如图： Kernel：detect device hot- &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/page/6">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<script src="/javascripts/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  // Revert jQuery's '$' alias, to avoid clashes with ender.js. NOTE: Use
+  // jQuery(...), instead of $(...) from here on.
+  jQuery.noConflict();
+</script>
+<script src="/javascripts/generate-toc.js" type="text/javascript" charset="utf-8"></script>
+
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/02/android-vold/">Android Vold 分析</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-02T00:00:00+08:00" pubdate data-updated="true">Mar 2<span>nd</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/02/android-vold/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/02/android-vold/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Vold(Volume Daemon) 主要负责管理和控制外部存储设备，这些控制包括SD卡设备插拔，挂载，格式化等等.
+Vold在Android 平台上的作用相当于udev在Linux平台上的功能。</p>
+
+<h3>Vold的架构</h3>
+
+<p>Vold的架构大致如图：</p>
+
+<p><a href="/images/vold-architecture.png"><img src="/images/vold-architecture.png" alt="/images/vold-architecture.png" /></a></p>
+
+<ul>
+<li>Kernel：detect device hot-plug, load drivers</li>
+<li>Sysfs: generate events and send it to user space</li>
+<li>NetlinkManager: establish connection to sysfs, listen to uevents and process it</li>
+<li>VolumeManager: disk volume operation</li>
+<li>CommandListener:  wait for commands from MountService</li>
+<li>NativeDaemonConnector:establish connection between MountService and vold daemon</li>
+</ul>
+
+
+<p>其中，一张SD卡对应一个DirectVolume对象。</p>
+
+<p>Vold模块的类图如下：</p>
+
+<p><a href="/images/vold-class-diagram.png"><img src="/images/vold-class-diagram.png" alt="/images/vold-class-diagram.png" /></a></p>
+
+<h3>Vold startup</h3>
+
+<p>vold的启动分为两个过程，一是vold daemon的启动，二是Java层MountService的启动。</p>
+
+<h4>启动Vold daemon</h4>
+
+<p>Vold daemon由init进程启动，参见init.rc片段：</p>
+
+<p><a href="/images/vold-initrc.png"><img src="/images/vold-initrc.png" alt="/images/vold-initrc.png" /></a></p>
+
+<p>vold入口函数位于/system/vold/mail.cpp，启动后处理流程如下：</p>
+
+<p><a href="/images/vold-startup-sequence.png"><img src="/images/vold-startup-sequence.png" alt="/images/vold-startup-sequence.png" /></a></p>
+
+<p>1.Create directory /dev/block/vold
+1.Create singleton instance of VolumeManager , NetlinkManager  andCommandListener
+1.Process configuration file /system/etc/vold.fstab
+1.NetlinkManager creates connection between kernel and vold
+1.Manually trigger uevents by writing “add\n” to file in /sys/block
+1.CommandListener  starts listening commands from framework</p>
+
+<h4>启动MountService</h4>
+
+<p>1.MountService initialized by SystemServer on device starts up
+1.Create connection to vold</p>
+
+<p>After MountService is up, the vold system is ready.</p>
+
+<h3>Send commands from framework</h3>
+
+<p>以App层通过MountService 挂载一个volume为例，说明从上层向下层的调用流程。</p>
+
+<p><a href="/images/vold-send-commands-from-framework.png"><img src="/images/vold-send-commands-from-framework.png" alt="/images/vold-send-commands-from-framework.png" /></a></p>
+
+<ol>
+<li>NativeDaemonConnector::sendCommand()</li>
+<li>SocketListener::runListener() <code>&lt;</code>&mdash;vold accepting connections here</li>
+<li>FrameworkListener::onDataAvailable()</li>
+<li>FrameworkListener::dispatchCommand()</li>
+<li>FrameworkCommand::runCommand()&mdash;-CommandListener::VolumeCmd::runCommand()</li>
+<li>VolumeManager::mountVolume()</li>
+<li>Volume::mountVol()</li>
+</ol>
+
+
+<h3>Process events from kernel</h3>
+
+<p>处理kernel发出的挂载事件：</p>
+
+<p><a href="/images/vold-process-events-from-kernel.png"><img src="/images/vold-process-events-from-kernel.png" alt="/images/vold-process-events-from-kernel.png" /></a></p>
+
+<ol>
+<li>SocketListener::runListener <code>&lt;</code>&mdash;listening events from kernel</li>
+<li>NetlinkListener::onDataAvailable()</li>
+<li>NetlinkHandler::onEvent()</li>
+<li>VolumeManager::handleBlockEvent , VolumeManager::handleSwitchEvent , VolumeManager::handleUsbCompositeEvent</li>
+<li>DirectVolume::handleBlockEvent()</li>
+<li>DirectVolume::handleDiskAdded, DirectVolume::handlePartitionAdded, DirectVolume::handleDiskRemoved, DirectVolume::handlePartitionRemoved,DirectVolume::handleDiskChanged, DirectVolume::handlePartitionChanged,or ignore non add/remove/change event</li>
+</ol>
+
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://blog.csdn.net/qianjin0703/article/details/6362389">http://blog.csdn.net/qianjin0703/article/details/6362389</a></li>
+<li><a href="http://www.cnblogs.com/iceocean/articles/1594195.html">http://www.cnblogs.com/iceocean/articles/1594195.html</a></li>
+<li><a href="http://www.chinaunix.net/jh/4/822500.html">http://www.chinaunix.net/jh/4/822500.html</a></li>
+<li><a href="http://blog.csdn.net/fudan_abc/article/details/1768277">http://blog.csdn.net/fudan_abc/article/details/1768277</a></li>
+<li><a href="http://dongyulong.blog.51cto.com/1451604/389159">http://dongyulong.blog.51cto.com/1451604/389159</a></li>
+<li><a href="http://blog.csdn.net/datangsoc/article/details/5928132">http://blog.csdn.net/datangsoc/article/details/5928132</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/">Ubuntu10.04安装无线网卡ath9k_htc驱动</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-10-18T00:00:00+08:00" pubdate data-updated="true">Oct 18<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2011/10/18/install-wireless-driver-on-ubuntu-1004/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>我的USB无线网卡型号为TL_WN721N，插在Ubuntu10.04上没有反应。据说10.10以后插上就可以用了，没有测试。</p>
+
+<p>第一步 确定ath9k_htc驱动支持你的网卡型号<br/>
+<a href="http://linuxwireless.org/en/users/Drivers/ath9k_htc/devices">这里</a> 列出了支持的型号列表，你可以通过lsusb查看自己的网卡型号是否在列表当中。</p>
+
+<p>第二步 安装firmwire<br/>
+从<a href="http://wireless.kernel.org/download/htc_fw/">这里</a>下载htc_9271.fw，拷贝到/lib/firmwire下</p>
+
+<p>第三步 安装compact wireless<br/>
+安装compact wireless有打包好的deb包，从这里下载GUI Program to install ath9k_htc，安装完后直接运行，等待安装完成重启机器就可以了。
+爱折腾的也可以到<a href="http://wireless.kernel.org/download/">这里</a>下载
+最新的compact wireless驱动，然后编译安装：</p>
+
+<pre><code>sudo make
+sudo make install
+sudo make unload
+sudo make load ath9k_htc
+</code></pre>
+
+<p>重启机器即可。</p>
+
+<p>Reference
+* <a href="http://forum.ubuntu.com.cn/viewtopic.php?f=116&amp;t=326568&amp;p=2388841">http://forum.ubuntu.com.cn/viewtopic.php?f=116&amp;t=326568&amp;p=2388841</a>
+* <a href="http://blog.chinaunix.net/space.php?uid=20620288&amp;do=blog&amp;id=2691282">http://blog.chinaunix.net/space.php?uid=20620288&amp;do=blog&amp;id=2691282</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/09/06/compile-cyanogenmod-for-htc-desire/">Compile CyanogenMod (Linux) for HTC Desire</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-09-06T00:00:00+08:00" pubdate data-updated="true">Sep 6<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/09/06/compile-cyanogenmod-for-htc-desire/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2011/09/06/compile-cyanogenmod-for-htc-desire/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>出现如下问题：<br/>
+1.repo init时报错：</p>
+
+<pre><code>......
+object 30d452905f166b316152f236422f85c8aa75a2d0
+type commit
+tag v1.7.5
+tagger Shawn O. Pearce &lt;sop@google.com&gt; 1307663540 -0700
+
+repo 1.7.5
+
+gpg: Signature made Fri 10 Jun 2011 07:52:20 AM CST using DSA key ID 920F5C65
+gpg: Can't check signature: public key not found
+error: could not verify the tag 'v1.7.5'
+</code></pre>
+
+<p>出错原因是曾使用repo sync从其它库sync过代码，删掉~/.repoconfig即可：</p>
+
+<pre><code>$ rm -rf ~/.repoconfig
+$ ./repo init -u git://github.com/CyanogenMod/android.git -b gingerbread
+gpg: keyring `/home/calvin/.repoconfig/gnupg/secring.gpg' created
+gpg: keyring `/home/calvin/.repoconfig/gnupg/pubring.gpg' created
+gpg: /home/calvin/.repoconfig/gnupg/trustdb.gpg: trustdb created
+gpg: key 920F5C65: public key "Repo Maintainer &lt;repo@android.kernel.org&gt;" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+
+Getting repo ...
+   from http://android.git.kernel.org/tools/repo.git
+。。。。
+</code></pre>
+
+<p>2.repo sync时报错：</p>
+
+<pre><code>......
+Fetching projects:   1% (3/285) 
+Initializing project platform/bootable/bootloader/legacy ...
+android.git.kernel.org[0: 130.239.17.13]: errno=Connection refused
+android.git.kernel.org[0: 149.20.4.77]: errno=Connection timed out
+android.git.kernel.org[0: 199.6.1.173]: errno=Connection refused
+android.git.kernel.org[0: 2001:4f8:8:10:1972:112:1:0]: errno=Network is unreachable
+android.git.kernel.org[0: 2001:500:60:10:1972:112:1:0]: errno=Network is unreachable
+android.git.kernel.org[0: 2001:6b0:e:4017:1972:112:1:0]: errno=Network is unreachable
+android.git.kernel.org[0: 2001:4f8:1:10:1972:112:1:0]: errno=Network is unreachable
+fatal: unable to connect a socket (Network is unreachable)
+error: Cannot fetch platform/bootable/bootloader/legacy
+</code></pre>
+
+<p>连接服务器时的问题，解决：<br/>
+修改.repo/manifest.xml中</p>
+
+<pre><code>  &lt;remote  name="korg"
+           fetch="git://android.git.kernel.org/"
+           review="review.source.android.com" /&gt;
+</code></pre>
+
+<p>为</p>
+
+<pre><code>  &lt;remote  name="korg"
+           fetch="http://android.git.kernel.org/"
+           review="review.source.android.com" /&gt;
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/05/07/android-monkey-jni-issues/">Android Monkey & Jni相关</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-05-07T00:00:00+08:00" pubdate data-updated="true">May 7<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/05/07/android-monkey-jni-issues/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2011/05/07/android-monkey-jni-issues/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>首先，android平台应用程序可能产生以下四种crash：
+* App层： Force close crash 和 ANR crash
+* Native层： Tombstone crash
+* Kernel层： Kernel panic 比较难定位，可以查看/proc/last_kmsg来辅助定位。</p>
+
+<p>最近需要通过monkey工具测试Tombstone类型的crash，抓取log并分析。通过monkey测试，如果要抓取native类型的crash，需要加上&mdash;monitor-native-crash参数：</p>
+
+<pre><code>seed=$(date +%Y%m%d%H%m%S)
+monkey -s $seed --pkg-whitelist-file ${your-package-list} --monitor-native-crashes --kill-process-after-error -v -v -v 2000000000
+</code></pre>
+
+<p>这样，monkey在跑出crash后，在/data/system/dropbox 和 /data/tombstones目录下会生成相关日志，moneky会停止发送事件流并退出测试.值得注意的是，/data/tombstones文件夹下只会保存10个日志，超过10个后，最早创建的会被替换。而monkey是通过监视这个文件夹下的文件数量变化来判断是否有tombtone类型的crash产生的。因此，当/data/tombstones文件夹下超过10个文件后，如果再有tombstone crash产生的话，monkey是不能检测到的，它会继续发送事件流。为了避免这个问题，可以在每次运行monkey之前先清空一下这个文件夹。</p>
+
+<p>另外，在settings.db中的secure表中有三个字段：dropbox:data_app_wtf,dropbox:data_app_anr,dropbox:data_app_crash。如果设置为enabled，每当有app crash之后，在/data/system/dropbox这个文件夹下都会产生相关的日志信息，这对于分析调试问题都是第一手的信息。</p>
+
+<h3>如何制造tombstone类型的crash？</h3>
+
+<p>这需要通过jni调用一个native的so文件，在本地代码中抛出异常即可。
+可以编写如下代码tombstone_gen.cpp:</p>
+
+<pre><code>int main(int argc, char **argv) {
+  int *p=0;
+  *p=1;    //will seg fault
+  return 0;
+}
+</code></pre>
+
+<p>参照development/samples/SimpleJNI的示例，运行build出的apk即可。</p>
+
+<p>关于jni调用，也有几个问题：</p>
+
+<p>1.FindClass,RegisterNatives等找不到：</p>
+
+<pre><code>    target thumb C: libtombstonec &lt;= development/samples/AndroidDemos/jni/tombstone_gen.c
+    development/samples/AndroidDemos/jni/tombstone_gen.c: In function 'registerNativeMethods':
+    development/samples/AndroidDemos/jni/tombstone_gen.c:48: error: request for member 'FindClass' in something not a structure or union
+    development/samples/AndroidDemos/jni/tombstone_gen.c:53: error: request for member 'RegisterNatives' in something not a structure or union
+    development/samples/AndroidDemos/jni/tombstone_gen.c: In function 'JNI_OnLoad':
+    development/samples/AndroidDemos/jni/tombstone_gen.c:97: error: request for member 'GetEnv' in something not a structure or union
+    make: *** [out/target/product/generic/obj/SHARED_LIBRARIES/libtombstonec_intermediates/tombstone_gen.o] Error 1
+
+问题原因在于：  
+如果是C程序，要用`(*env)-&gt;`  
+如果是C++要用 `env-&gt;`  
+因此有两种解决方法：  
+* 将 (*env)-&gt; 改为 env-&gt;  
+* 将c文件改为cpp文件，改为c++的方式编译。  
+</code></pre>
+
+<p>2.运行时异常java.lang.UnsatisfiedLinkError</p>
+
+<pre><code>tombstone_gen.cpp中
+
+    static const char *classPathName = "com/android/demo/AndroidDemos";
+
+类名有误，导致类链接错误。
+</code></pre>
+
+<p>最后，关于jni中JNINativeMethod相关解释：<br/>
+<a href="http://hi.baidu.com/zhlg_hzh/blog/item/f0d782081f2f45d963d986f5.html">http://hi.baidu.com/zhlg_hzh/blog/item/f0d782081f2f45d963d986f5.html</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2011/04/28/vim-tips/">Vim Tips</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-04-28T00:00:00+08:00" pubdate data-updated="true">Apr 28<span>th</span>, 2011</time>
+        
+           | <a href="/blog/2011/04/28/vim-tips/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2011/04/28/vim-tips/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>移动</h2>
+
+<p><code>0</code> 移动到行首<br/>
+<code>$</code> 移动到行末<br/>
+<code>CTRL+ o</code> 回到上一视图<br/>
+<code>CTRL+ i</code> 前进到下一视图<br/>
+<code>ZZ</code> 保存更改并退出</p>
+
+<p><code>fx</code>  在当前行向前移动光标到下一个字符x (很明显, x可以是任意你想要移动到的字符). 这是一个超级有用的命令. 你可以输入;来重复前一个f命令.
+<code>tx</code>  和上面的命令基本相同, 除了移动光标到字符x之前而不是x字符本身. (这个真的很有用)<br/>
+<code>Fx</code>  在当前行向后移动光标到上一个字符x.</p>
+
+<p><code>zz</code> 将当前行置于屏幕中间<br/>
+<code>zt</code> 将当前行置于屏幕顶端<br/>
+<code>zb</code> 将当前行置于屏幕底端<br/>
+<code>CTRL+e</code> 移动光标所在行的位置，比如我光标在第10行，我想光标不动，但是所在行向上移<br/>
+<code>CTRL+y</code> 同上，但是向下移<br/>
+<code>%</code> match of next brace, bracket, comment</p>
+
+<p>在长句子内移动  <br/>
+在你编辑电子邮件或其他段落式文本的时候, 你可能注意到移动方向跳的行数比你料想的多. 这是因为你的段落对vim来说在很长的同一个行里. 用h, j, k, l移动前输入g可以让移动相对于屏幕看上去的行数而不是vim内部的行数.</p>
+
+<h2>复制-粘贴</h2>
+
+<p>1.选定文本块，使用v进入可视模式；移动光标键选定内容<br/>
+1.复制选定块到缓冲区，用y；<br/>
+复制整行，用yy;<br/>
+复制到系统剪切板 &ldquo;+y<br/>
+剪切到系统剪切板 &rdquo;+x<br/>
+1.剪切选定块到缓冲区，用d；剪切整行用dd<br/>
+1.粘贴缓冲区中的内容，用p</p>
+
+<p>vim文件间复制粘贴  <br/>
+<a href="http://www.cnblogs.com/jianyungsun/archive/2011/03/19/1988855.html">http://www.cnblogs.com/jianyungsun/archive/2011/03/19/1988855.html</a>  <br/>
+使用 yaw  命令复制当前光标所在单词</p>
+
+<p>用vi 复制第5行到第10行并粘贴到第12行之后？  <br/>
+：5,10 co 12</p>
+
+<h2>删除插入（s与c）</h2>
+
+<p>s删除光标当前字符，进入插入模式，等同于 x i  <br/>
+S删除当前行 进入插入模式，等同于 dd i  <br/>
+c change 同样是替代插入，不过c要与其他指令配合使用  <br/>
+如 cw 删除一个单词后i ，  <br/>
+c$ =C = D i  删除光标位置到行末后i  <br/>
+cc= S  <br/>
+d$= D  <br/>
+使用 yaw  命令复制当前光标所在单词</p>
+
+<p>删除<br/>
+向后删除一个词 dw 两个词 d2w<br/>
+向后删除到行尾 d$<br/>
+删除整行 dd<br/>
+df c 向后删至字符c出现的位置(包括该字符)<br/>
+dt c 向后删至字符c出现的位置(不包括该字符)<br/>
+d /text 向后删至内容text出现的位置(不包括该text内容)</p>
+
+<p>如果你在一个单词的中间而又想删掉这个单词，在你用 &ldquo;dw&rdquo; 前，你必须先移到这个单词  <br/>
+的开始处。这里还有一个更简单的方法：&#8221;daw&#8221;。  <br/>
+&ldquo;daw&rdquo; 的 &ldquo;d&rdquo; 是删除操作符。&#8221;aw&#8221; 是一个文本对象。提示：&#8221;aw&#8221; 表示 &ldquo;A Word&rdquo; (一个  <br/>
+单词)，这样，&#8221;daw&#8221; 就是 &ldquo;Delete A Word&rdquo; (删除一个单词)。确切地说，该单词后的空  <br/>
+格字符也被删除掉了。  <br/>
+diw     删除光标上的单词 (不包括空白字符)  <br/>
+daw     删除光标上的单词 (包括空白字符)</p>
+
+<p>还有句子的 is 也是一个文本对象 对句子进行操作。  <br/>
+另外还可以 ciw diw viw</p>
+
+<p>如果光标位于&#8221;&ldquo;,[],()之间，还可以  <br/>
+vi&rdquo;  <br/>
+ci&#8221;  <br/>
+参考 :help object-select</p>
+
+<h2>编辑</h2>
+
+<p>打开新文件 :e filename<br/>
+i 在游標所在字元前開始輸入文字(insert)。<br/>
+a 在游標所在字元後開始輸入文字(append)。<br/>
+o 在游標所在行下開一新行來輸入文字(open)。<br/>
+I 在行首開始輸入文字。此之行首指第一個非空白字元處，要從真正的第一個字<br/>
+元處開始輸人文字，可使用 0i 或 gI(Vim 才有)。<br/>
+A 在行尾開始輸入文字。這個好用，您不必管游標在此行的什麼地方，只要按 A<br/>
+就會在行尾等著您輸入文字。<br/>
+O 在游標所在行上開一新行來輸入文字。<br/>
+J 將下一行整行接至本行(Joint)。<br/>
+撤销 u<br/>
+在一行上撤销 U<br/>
+重做 CTRL r<br/>
+替换字母 rx(x为要替换的字母)<br/>
+改动单词直到单词末尾 ce<br/>
+将光标移到某一个字母上，输入ce，然后敲入正确的单词<br/>
+与此类推，还有cw，c$<br/>
+Typing a capital  R  enters Replace mode until ESC is pressed.</p>
+
+<p>. 重复前次的编辑动作<br/>
+`. 回到上次编辑的位置</p>
+
+<p>快速选中括号里的文本<br/>
+vi{ 选中｛｝中间的内容,不包括｛｝<br/>
+v<strong>a</strong>{ 选中｛｝中间内容，包括{}<br/>
+vi( 选中（）中间内容<br/>
+vi[ 选中[]中间内容<br/>
+vit 选中<tag></tag>中间的内容，编辑XML文件时特别有用<br/>
+vi&#8221; 选中&#8221;&ldquo;中间内容<br/>
+vi&#8217; 选中&#8217;&lsquo;中间的内容</p>
+
+<p>vis 选中一个句子<br/>
+viw 选中一个单词<br/>
+vip 选中一个段落<br/>
+&hellip;</p>
+
+<p>同时适用于c，y，d等motion。<br/>
+参考:h text-objects</p>
+
+<p>编辑二进制文件<br/>
+打开文件：vim -b file<br/>
+用vim -b datafile打开文件，用:%!xxd把二进制文件转换<br/>
+编辑完后用:%!xxd -r命令把编辑状态的文本转换成二进制数据<br/>
+具体描述可用:help 23.4察看帮助文档</p>
+
+<p>切换最近编辑的两个buffer<br/>
+CTRL-6 或 CTRL-^ 或 :e #</p>
+
+<p>大小写转换：<br/>
+gu或者gU或者~</p>
+
+<p>行编辑<br/>
+<code>:3,.d</code>            从3行删除到当前行<br/>
+<code>:.,3d</code>            从当前行删除到3行<br/>
+<code>:3,.+3d</code>          从3行删除到当前行后第三行<br/>
+<code>:3,.-1d</code>          从3行删除到当前行前一行<br/>
+<code>:.,3s/adb/def/g</code>  将当前行到第三行之间的abc替换为def<br/>
+<code>:345w file</code>       将第 345 行写入 file 文件<br/>
+<code>3,5w file</code>        将第 3 行至第 5 行写入 file 文件<br/>
+<code>:r file</code>          读取 file 文件的内容，插入当前光标所在行的后面<br/>
+<code>:e file</code>          编辑新文件 file 代替原有内容<br/>
+<code>:f file</code>          将当前文件重命名为 file<br/>
+<code>:f</code>               打印当前文件名称和状态，如文件的行数、光标所在的行号等</p>
+
+<h2>命令补全</h2>
+
+<p>When typing a  :  command, press CTRL-D to see possible completions.<br/>
+Press TAB to use one completion.</p>
+
+<p>使用关键字自动完成(补全)<br/>
+vim 有个非常好的关键字自动完成系统. 就是说你可以只输入很长的词的一部分, 按一个键, vim帮你把这个词自动补全. 比如说在你的代码中有一个变量叫iAmALongAndAwkwardVarName, 你可能不愿意每次用这个变量都把整个词打一遍, 这时候就可以用自动完成功能.<br/>
+要使用关键字自动完成, 只要输入一个字串的前几个字母 (比如 iAmAL) 然后按 <code>Ctrl-N</code>或者<code>Ctrl-P</code>. 如果vim没有选择你需要的字串, 继续按<code>Ctrl-N</code>或者<code>Ctrl-P</code> – vim会遍历所有和你输入的前几个字母匹配的字串.</p>
+
+<h2>搜索替换</h2>
+
+<ol>
+<li><p> CTRL-G  displays your location in the file and the file status.<br/>
+         G  moves to the end of the file.<br/>
+ number  G  moves to that line number.<br/>
+        gg  moves to the first line.</p></li>
+<li><p> Typing  /  followed by a phrase searches FORWARD for the phrase.<br/>
+ Typing  ?  followed by a phrase searches BACKWARD for the phrase.<br/>
+ After a search type  n  to find the next occurrence in the same direction<br/>
+ or  N  to search in the opposite direction.<br/>
+ CTRL-O takes you back to older positions, CTRL-I to newer positions.</p></li>
+<li><p> Typing  %  while the cursor is on a (,),[,],{, or } goes to its match.</p></li>
+<li><p> To substitute new for the first old in a line type    :s/old/new  这个命令只替换当前行的内容<br/>
+ To substitute new for all &lsquo;old&rsquo;s on a line type       :s/old/new/g<br/>
+ To substitute phrases between two line #&rsquo;s type       :#,#s/old/new/g<br/>
+ To substitute all occurrences in the file type        :%s/old/new/g<br/>
+ To ask for confirmation each time add &#8216;c&rsquo;             :%s/old/new/gc</p></li>
+</ol>
+
+
+<p>注：<br/>
+%代表当前编辑的内容<br/>
+#代表前一个编辑的内容<br/>
+如:<br/>
+:%!xxd 表示将当前所有内容用xxd命令处理</p>
+
+<p>搜索精确匹配<br/>
+如xxx是要查找的内容，输入<br/>
+<code>/\&lt;xxx\&gt;</code>，<br/>
+要在<code>&lt;&gt;</code> 前加\进行转义，告诉Vim <code>&lt;&gt;</code> 这个不是要查找的内容。<br/>
+<code>\&lt;</code> 表示只匹配单词的开头，<code>\&gt;</code>表示只匹配单词末尾，点<code>.</code>表示匹配任何字符。<br/>
+*搜索游标所在出的单词（精确匹配）<br/>
+#反向搜索游标所在出的单词（精确匹配）</p>
+
+<p>快速替换游标处的单词  <br/>
+把光标置于thisisaverylongword之上, 然后</p>
+
+<pre><code>:%s/&lt;CTRL+R&gt;&lt;CTRL+W&gt;/ABCD/g .  
+</code></pre>
+
+<p>在命令格式下, CTRL+R代表插入寄存器, CTRL+W代表当前单词.<br/>
+也可以通过寄存器的方式来使用.<br/>
+使用v选择一个区域, 然后 &ldquo;ay  , 存取寄存器a，然后</p>
+
+<pre><code>:%s/&lt;CTRL+R&gt;a/ABCD/g  
+</code></pre>
+
+<p>ABCD 可以用同样的方法,使用寄存器.</p>
+
+<p>重复修改：<br/>
+&ldquo;.&rdquo; 是 Vim 中一个非常简单而有用的命令。它重复最后一次的修改操作。</p>
+
+<pre><code>    /four&lt;Enter&gt;    找到第一个 "four"  
+    cwfive&lt;Esc&gt;     修改成 "five"  
+    n               找下一个 "four"  
+    .               重复修改操作  
+    n               找下一个 "four"  
+    .               重复修改  
+                    如此类推......  
+</code></pre>
+
+<p>搜索完毕后取消高亮<br/>
+:noh 或者 :nohlsearch</p>
+
+<h2>窗口和标签</h2>
+
+<p><code>CTRL+w w</code> 切换窗口<br/>
+<code>:tabedit file</code> 在新tab中打开文件<br/>
+<code>:tab split</code>  将当前窗口缓冲区内容在新tab中打开<br/>
+<code>:tabonly</code> 关闭其他所有标签<br/>
+<code>:tabc</code> 关闭当前标签页<br/>
+<code>:tabc 3</code> 关闭第三个标签页<br/>
+<code>gt</code> 切换tab显示<br/>
+<code>2gt</code> 显示第二个tab</p>
+
+<p>更改窗口宽度和高度<br/>
+<code>Crtl+w &gt;</code> 将当前窗口向右边扩展一行，将 <code>&gt;</code> 换成 <code>&lt;</code> 就是向左边扩展一行。也可以在之前使用数字代表扩展的行数<br/>
+<code>5 Ctrl+w &gt;</code> ,向右边扩展5行。<br/>
+<code>Ctrl+w +</code> 更改窗口高度。+ 增加高度，- 减小高度。</p>
+
+<p><code>:close</code> 关闭窗口<br/>
+实际上，任何退出编辑的命令都可以关闭窗口，象 &ldquo;:quit&rdquo; 和 &ldquo;ZZ&rdquo; 等。但 &ldquo;close&#8221;可以避免你在剩下一个窗口的时候不小心退出 Vim 了。</p>
+
+<p><code>:only</code> 关闭所有其它窗口<br/>
+如果你已经打开了一整套窗口，但现在只想编辑其中一个，可以使用这个命令。<br/>
+这个命令关闭除当前窗口外的所有窗口。如果要关闭的窗口中有一个没有存盘，Vim 会<br/>
+显示一个错误信息，并且那个窗口不会被关闭。</p>
+
+<h2>注释python代码</h2>
+
+<p>1.Ctrl + V 进入 VIM 的块操作模式<br/>
+1.使用 j, k 键上下移动，选中这三行，需要确保每行的首列包含在选中块中。<br/>
+1.键入 r ，即在替换行首字符。 输入 Python 的注释符 ‘＃’。<br/>
+1.按下 ESC 键。</p>
+
+<h2>删除重复行</h2>
+
+<p><code>:sort u</code>
+参见<code>:help sort</code></p>
+
+<h2>格式化文本</h2>
+
+<p>参见:h formatoptions, :h textwidth
+gq 对行内长文本进行换行
+gq{ 对一个段落进行自动换行</p>
+
+<h2>其他</h2>
+
+<p>K 显示游标所在的单词相关的man page<br/>
+：r!command 在游标处插入command的执行输出结果，如date命令将插入当前时间</p>
+
+<p>对齐文本<br/>
+以某一个分隔符为界在垂直方向上对齐文本，如：</p>
+
+<pre><code>name|age|sex  
+Alice|23|female  
+BobBobBobBob|25|male  
+</code></pre>
+
+<p>对齐后：</p>
+
+<pre><code>name         | age | sex  
+Alice        | 23  | female  
+BobBobBobBob | 25  | male  
+</code></pre>
+
+<p>这个功能在写代码时对齐变量十分有用，通过Align和Tabular两个插件可以轻松完成。<br/>
+<code>:%Align |</code>  将全文对齐 <br/>
+<code>:'&lt;,'&gt;Align = + - = |</code>  将选中的文本按+，-，=或者|对齐 <br/>
+更多选项参考<code>:help align</code></p>
+
+<p>另外，通过外部命令column也可以实现：<br/>
+<code>:%!column -t -s '|'</code></p>
+
+<p>VIM中按w时光标移动总要停顿一会儿才会响应<br/>
+原因是我map了一个以w开头的按键，导致每次按w后，vim都要等待一下判断是执行w还是继续接收输入。去掉这个map就好了。</p>
+
+<p>在线的colorscheme配色网站<br/>
+<a href="http://bytefluent.com/vivify/">http://bytefluent.com/vivify/</a></p>
+
+<h2>一些plugin：</h2>
+
+<ul>
+<li><a href="http://www.mirecle.com/2009/07/29/vim-python-indentation-and-inspection.html">http://www.mirecle.com/2009/07/29/vim-python-indentation-and-inspection.html</a></li>
+<li><a href="http://www.vimer.cn/2011/02/%E8%AE%A9vimgvim%E6%9B%B4%E5%A5%BD%E7%9A%84%E6%94%AF%E6%8C%81python%E8%AF%AD%E6%B3%95%E7%BC%A9%E8%BF%9B%E5%BC%BA%E7%83%88%E6%8E%A8%E8%8D%90.html">http://www.vimer.cn/2011/02/%E8%AE%A9vimgvim%E6%9B%B4%E5%A5%BD%E7%9A%84%E6%94%AF%E6%8C%81python%E8%AF%AD%E6%B3%95%E7%BC%A9%E8%BF%9B%E5%BC%BA%E7%83%88%E6%8E%A8%E8%8D%90.html</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/11/22/the-use-of-onuserleavehint/">利用onUserLeaveHint发送后台运行通知</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-11-22T00:00:00+08:00" pubdate data-updated="true">Nov 22<span>nd</span>, 2010</time>
+        
+           | <a href="/blog/2010/11/22/the-use-of-onuserleavehint/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/11/22/the-use-of-onuserleavehint/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>背景</h3>
+
+<p>用户按下Home键将程序置于后台运行或者应用启动其他activity，比如系统浏览器，短信等，需要向系统发送通知，用户做完别的操作后，点击通知栏，回到应用。</p>
+
+<h3>问题</h3>
+
+<p>在什么时机发送通知？
+用户按下Home的事件在应用层时捕捉不到的，因此只能从activity生命周期方法着手。</p>
+
+<h3>方法一</h3>
+
+<p>系统所有activity继承一个BaseActivity，在BaseActivity中维护一个当前可见的activity数组：</p>
+
+<pre><code>protected static ArrayList sVisibleActivities = new ArrayList();
+</code></pre>
+
+<p>在onResume中，将当前activity保存，同时清除所有通知：</p>
+
+<pre><code>protected void onResume()
+{
+if (!sVisibleActivities.contains(this))
+{
+sVisibleActivities.add(this);
+}
+
+// 清除系统消息
+mNotificationManager.cancel(R.id.notify);
+}
+
+在onStop中，清除保存的当前activity：
+protected void onStop()
+{
+if (sVisibleActivities.contains(this))
+{
+sVisibleActivities.remove(this);
+}
+
+// 如果当前没有可见的activity，则发送系统通知
+if (sVisibleActivities.isEmpty())
+{
+sendBackgroundNotify();
+}
+
+super.onStop();
+}
+</code></pre>
+
+<p>这种方式在大多数情况下工作良好，可以达到需求，但是问题时，当前台的activity被至于后台时，onStop()方法<strong>不一定</strong>会被调用，因此通知有可能不会被发出！</p>
+
+<h3>方法二</h3>
+
+<p>几经周折，发现activity有一个生命周期方法可以达到目的：</p>
+
+<pre><code>protected void onUserLeaveHint ()
+
+Since: API Level 3
+Called as part of the activity lifecycle when an activity is about to go into the background as the result of user choice.
+For example, when the user presses the Home key, onUserLeaveHint() will be called, but when an incoming phone call causes the in-call Activity to be automatically brought to the foreground,
+ onUserLeaveHint() will not be called on the activity being interrupted. In cases when it is invoked, this method is called right before the activity's onPause() callback.
+This callback and onUserInteraction() are intended to help activities manage status bar notifications intelligently; specifically, for helping activities determine the proper time to cancel a notfication.
+</code></pre>
+
+<p>从文档来看，这个方法似乎就是为了按下Home键时这样的场景设计的。<br/>
+这样，在onUserLeaveHint里发出系统通知即可。<br/>
+但是问题又来了，如果启动应用，从一个activity依次调用startActivity，finish关闭自己，启动一个新的activity时，onUserLeaveHint也会被调用&hellip;.</p>
+
+<p>再次翻阅文档，发现Intent中的一个Flag：</p>
+
+<pre><code>    public static final int FLAG_ACTIVITY_NO_USER_ACTION
+
+    Since: API Level 3
+    If set, this flag will prevent the normal onUserLeaveHint() callback from occurring on the current frontmost activity before it is paused as the newly-started activity is brought to the front.
+
+    Typically, an activity can rely on that callback to indicate that an explicit user action has caused their activity to be moved out of the foreground.
+    The callback marks an appropriate point in the activity's lifecycle for it to dismiss any notifications that it intends to display "until the user has seen them," such as a blinking LED.
+    If an activity is ever started via any non-user-driven events such as phone-call receipt or an alarm handler, this flag should be passed to Context.startActivity, ensuring that the pausing activity does not think the user has acknowledged its notification.
+</code></pre>
+
+<p>这正是我想要的，这样，在启动activity时，往intent中加上这个flag，onUserLeaveHint就不会再被调用了，hoory&hellip;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/10/25/debugging-android-source-from-eclipse/">在eclipse中调试Android源代码</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-25T00:00:00+08:00" pubdate data-updated="true">Oct 25<span>th</span>, 2010</time>
+        
+           | <a href="/blog/2010/10/25/debugging-android-source-from-eclipse/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/10/25/debugging-android-source-from-eclipse/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>1.编译android 代码树，编译sdk</p>
+
+<pre><code>编译注意：  
+1.gcc的版本过高，由于android源码编译要求为4.3，如果gcc版本为4.4，那么编译可能会失败，我的系统是ubuntu 10.04,默认的gcc版本为4.4，gcc-4.4太严格，那么怎样从gcc-4.4降到gcc- 4.3呢？  
+    1.安装gcc-4.3  
+          `$ sudo apt-get install gcc-4.3 g++-4.3`  
+    2.修复gcc相关链接  
+
+        $ cd /usr/bin
+        $sudo ln -snf gcc-4.3 gcc
+        $sudo ln -snf g++-4.3 g++
+        $sudo ln -snf cpp-4.3 cpp
+
+    将gcc,g++链接至4.3版本即可。  
+
+2.JDK 5.0, update 12 or higher.Java 6 is not supported, because of incompatibilities with @Override.  
+3.安装编译必须的软件包  
+
+    $ sudo apt-get install git-core gnupg flex bison gperf build-essential zip curl sun-java5-jdk zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev ia32-libs x11proto-core-dev libx11-dev lib32readline5-dev lib32z-dev
+参见http://source.android.com/source/download.html
+</code></pre>
+
+<p>2、拷贝development/ide/eclipse/.classpath到.classpath.</p>
+
+<p>3、启动 eclipse ，按照这个步骤 File->New->Java Project (不是 Android Project) &ndash;>Create project from existing source 选到代码树根目录 .</p>
+
+<p>4、在经过长时间等待之后， source code将被导入project，正常情况下应该没有error。</p>
+
+<p>5启动模拟器</p>
+
+<pre><code>[calvin@calvin-desktop ~/android/source-code/android_1.5_Sourcecode 10:28:03 ] $ . build/envsetup.sh
+[calvin@calvin-desktop ~/android/source-code/android_1.5_Sourcecode 10:28:18 ] $ lunch 1
+[calvin@calvin-desktop ~/android/source-code/android_1.5_Sourcecode 10:30:31 ] $ ./out/host/linux-x86/bin/emulator
+</code></pre>
+
+<p>6、在ddms中选中要调试的进程</p>
+
+<p>7、在source code中设置断点</p>
+
+<p>8、在eclipse里, Run->Debug Configuration->Remote Java Application->New, 设置 Connection port to 8700 (DDMS’s 默认端口),即可正常调试了</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/10/23/data-connection-during-apn-switches/">APN切换后数据连接过程</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-23T00:00:00+08:00" pubdate data-updated="true">Oct 23<span>rd</span>, 2010</time>
+        
+           | <a href="/blog/2010/10/23/data-connection-during-apn-switches/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/10/23/data-connection-during-apn-switches/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>注册观察者回调</h3>
+
+<p>GsmDataConnectionTracker在实例化时，会注册一个观察者，监视apn数据库的变化。</p>
+
+<pre><code>p.getContext().getContentResolver().registerContentObserver(
+            Telephony.Carriers.CONTENT_URI, true, apnObserver);
+</code></pre>
+
+<p>当用户通过UI改变apn并保存后，Settings app将更新后的数据写入apn数据库。</p>
+
+<h3>GsmDataConnectionTracker切换APN</h3>
+
+<p>Settings app更新apn数据库后，GsmDataConnectionTracker注册的ApnChangeObserver的onChange被调用，发送<code>EVENT_APN_CHANGED</code>消息：</p>
+
+<pre><code>sendMessage(obtainMessage(EVENT_APN_CHANGED));
+</code></pre>
+
+<p>接着onApnChanged()@GsmDataConnectionTracker.java被调用</p>
+
+<pre><code>  -trySetupData(Phone.REASON_APN_CHANGED)@GsmDataConnectionTracker.java
+    --setupData(String reason)@GsmDataConnectionTracker.java
+
+    private boolean setupData(String reason) {
+    ApnSetting apn;
+    GsmDataConnection pdp;
+
+    apn = getNextApn();
+    if (apn == null) return false;
+
+    //获取一个状态为inactive的pdp连接对象
+    pdp = findFreePdp();
+    if (pdp == null) {
+        if (DBG) log("setupData: No free GsmDataConnection found!");
+        return false;
+    }
+    mActiveApn = apn;
+    mActivePdp = pdp;
+
+    Message msg = obtainMessage();
+    msg.what = EVENT_DATA_SETUP_COMPLETE;
+    msg.obj = reason;
+
+    //开始激活这个pdp
+    //在android2.0.1版本时，有一个PdpConnection.java来进行连接，2.2时这个类被删掉了，connect的功能合并到GsmDataConnection里面
+    pdp.connect(msg, apn);
+
+    //设置这个pdp连接状态为INITING
+    setState(State.INITING);
+    if (DBG) log("setupData for reason: "+reason);
+
+    //通知上层应用数据连接状态改变
+    phone.notifyDataConnection(reason);
+    return true;
+}
+</code></pre>
+
+<p>其中，在这一层，数据连接共七个状态：</p>
+
+<pre><code>    IDLE,
+    INITING,
+    CONNECTING,
+    SCANNING,
+    CONNECTED,
+    DISCONNECTING,
+    FAILED
+</code></pre>
+
+<p>对上层应用来说，这七个状态划分为四种状态（getDataConnectionState()@GSMPhone.java）：</p>
+
+<pre><code>CONNECTED, CONNECTING, DISCONNECTED, SUSPENDED;
+</code></pre>
+
+<p>分别对应TelephonyManager的四种连接状态。</p>
+
+<h3>激活PDP连接</h3>
+
+<p>开始激活PDP连接时，设置状态为State.INITING，调用phone.notifyDataConnection(reason)发出通知，后续调用过程为：</p>
+
+<pre><code>    notifyDataConnection(String reason)@PhoneBase.java
+      --notifyDataConnection(Phone sender, String reason)@DefaultPhoneNotifier.java
+        .
+        .   这里需要经过IPC调用
+        .
+        notifyDataConnection()@TelephonyRegistry.java
+          --onDataConnectionStateChanged()
+</code></pre>
+
+<p>当连接成功后，onDataSetupComplete（）@GsmDataConnectionTracker.java被调用
+通过phone.notifyDataConnection(reason);回调应用层的onDataConnectionStateChanged()方法。</p>
+
+<p>ps:可以通过adb logcat -b radio查看激活数据连接时，radio层的log输出。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/10/02/code-snippets-for-global-actions-dialog/">Android关机界面代码</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-02T00:00:00+08:00" pubdate data-updated="true">Oct 2<span>nd</span>, 2010</time>
+        
+           | <a href="/blog/2010/10/02/code-snippets-for-global-actions-dialog/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/10/02/code-snippets-for-global-actions-dialog/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Android中长按Power键默认会弹出对话框让用户选择“飞行模式”，“静音”，“关机”等功能,弹出对话框的代码位于：
+<code>frameworks\policies\base\phone\com\android\internal\policy\impl\PhoneWindowManager.java</code></p>
+
+<pre><code>private final Runnable mPowerLongPress = new Runnable() {
+    public void run() {
+        // The context isn't read
+        if (mLongPressOnPowerBehavior &lt; 0) {
+            mLongPressOnPowerBehavior = mContext.getResources().getInteger(
+                    com.android.internal.R.integer.config_longPressOnPowerBehavior);
+        }
+        switch (mLongPressOnPowerBehavior) {
+        case LONG_PRESS_POWER_NOTHING:
+            break;
+        case LONG_PRESS_POWER_GLOBAL_ACTIONS:
+            mPowerKeyHandled = true;
+            performHapticFeedbackLw(null, HapticFeedbackConstants.LONG_PRESS, false);
+            sendCloseSystemWindows(SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
+            showGlobalActionsDialog();
+            break;
+        case LONG_PRESS_POWER_SHUT_OFF:
+            mPowerKeyHandled = true;
+            performHapticFeedbackLw(null, HapticFeedbackConstants.LONG_PRESS, false);
+            sendCloseSystemWindows(SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS);
+            ShutdownThread.shutdown(mContext, true);
+            break;
+        }
+    }
+};
+
+void showGlobalActionsDialog() {
+    if (mGlobalActions == null) {
+        mGlobalActions = new GlobalActions(mContext);
+    }
+    final boolean keyguardShowing = mKeyguardMediator.isShowingAndNotHidden();
+    mGlobalActions.showDialog(keyguardShowing, isDeviceProvisioned());
+    if (keyguardShowing) {
+        // since it took two seconds of long press to bring this up,
+        // poke the wake lock so they have some time to see the dialog.
+        mKeyguardMediator.pokeWakelock();
+    }
+}
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2010/09/09/understanding-on-http-11-cache-control/">HTTP/1.1 Cache-Control的理解</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-09-09T00:00:00+08:00" pubdate data-updated="true">Sep 9<span>th</span>, 2010</time>
+        
+           | <a href="/blog/2010/09/09/understanding-on-http-11-cache-control/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2010/09/09/understanding-on-http-11-cache-control/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>网页的缓存是由HTTP消息头中的“Cache-control”来控制的，常见的取值有
+* private
+* no-cache
+* max-age
+* must-revalidate</p>
+
+<p>等，默认为private。其作用根据不同的重新浏览方式分为以下几种情况：</p>
+
+<p>（1） 打开新窗口<br/>
+如果指定cache-control的值为private、no-cache、must-revalidate，那么打开新窗口访问时都会重新访问服务器。而如果指定了max-age值，那么在此值内的时间里就不会重新访问服务器，例如：</p>
+
+<pre><code>Cache-control: max-age=5
+</code></pre>
+
+<p>表示当访问此网页后的5秒内再次访问不会向服务器发起请求</p>
+
+<p>（2） 在地址栏输入地址回车<br/>
+如果值为private或must-revalidate，则只有第一次访问时会访问服务器，以后就不再访问。如果值为no-cache，那么每次都会访问。如果值为max-age，则在过期之前不会重复访问。</p>
+
+<p>（3） 按后退按扭<br/>
+如果值为private、must-revalidate、max-age，则不会重访问，而如果为no-cache，则每次都重复访问</p>
+
+<p>（4） 按刷新按扭<br/>
+无论为何值，都会重复访问</p>
+
+<p>cache-control字段取值含义：
+<a href="/images/http_cache_control.jpg"><img src="/images/http_cache_control.jpg" alt="/images/http_cache_control.jpg" /></a></p>
+
+<p>Reference:<br/>
+<a href="http://www.blogjava.net/dashi99/archive/2008/12/30/249207.html">http://www.blogjava.net/dashi99/archive/2008/12/30/249207.html</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/7/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/blog/page/5/">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

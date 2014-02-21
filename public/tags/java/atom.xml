@@ -1,0 +1,635 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: java | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/tags/java/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2014-02-21T21:53:33+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Java 字符串的==和equals]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/10/16/string-interning/"/>
+    <updated>2012-10-16T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/10/16/string-interning</id>
+    <content type="html"><![CDATA[<h3>实例</h3>
+
+<p>问题起源于这段代码：</p>
+
+<pre><code>if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
+    Log.d(TAG, "mounted");
+} else {
+    Log.d(TAG, "umounted");
+}
+</code></pre>
+
+<p>在SD卡处于mounted的状态下，这个case打印出umounted.</p>
+
+<h3>问题</h3>
+
+<p>现在SD卡处于mounted的状态，所以Environment.getExternalStorageState()方法会返回"mounted"。<br/>
+跟踪Environment.getExternalStorageState方法的实现，如果SD卡处于mounted的状态，该方法返回Environment.MEDIA_MOUNTED这个字符串常量。
+那么问题是，Environment.MEDIA_MOUNTED是一个字符串常量，一个字符串常量在JVM中只有一份，== 符号比较的是两边的对象是否是同一个引用，这样来说这里应该输出"mounted"才对，为什么会输出"umounted"呢？也就是说等号两边的两个字符串不是同一个引用。</p>
+
+<p>原因在于只有在编译期确定的字符串常量才会被放进常量池，这个常量池会被保存在class文件中，稍后被JVM加载。而对于运行时才生成的字符串是不会放入常量池的。Environment.getExternalStorageState()方法返回的字符串虽然是一个字符串常量，但是这个常量在编译期并未确定，所以该方法返回的字符串不是从常量池中取得的。</p>
+
+<p><code>String.intern()</code>方法用于在运行时将一个字符串加入常量池中，所以对这个例子，<code>Environment.getExternalStorageState().intern() == Environment.MEDIA\_MOUNTED</code>才会返回true。</p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/String_interning">http://en.wikipedia.org/wiki/String_interning</a></li>
+<li><a href="http://blog.csdn.net/jcc3120/article/details/2118870">http://blog.csdn.net/jcc3120/article/details/2118870</a></li>
+<li><a href="http://stackoverflow.com/questions/767372/java-string-equals-versus">http://stackoverflow.com/questions/767372/java-string-equals-versus</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java动态代理]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/29/dynamic-proxy/"/>
+    <updated>2012-05-29T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/29/dynamic-proxy</id>
+    <content type="html"><![CDATA[<h3>概念</h3>
+
+<p>Java动态代理是代理模式的延伸，之所以称为”动态“，是因为我们不用去设计代理类，代理类的字节码在运行时被动态生成后由classloader加载进JVM后运行。<br/>
+动态代理相关类有：</p>
+
+<pre><code>java.lang.reflect.Proxy  
+这个类的主要作用是在运行时生成代理类的字节码，并通过这个字节码生成代理类对象供客户端使用。  
+
+java.lang.reflect.InvocationHandler  
+这个接口只定义了一个invoke方法，它是调用真实的被代理对象的地方，我们可以在这个方法里加上额外的代理逻辑，如果日志记录，访问鉴权等。  
+
+Object invoke(Object proxy, Method method, Object[] args);
+
+proxy参数是生成的代理类对象的引用，就像后面分析的，它的类型是$Proxy0，继承了Proxy类并实现了和被代理对象公共的业务接口。  
+method是当前被调用的被代理方法。  
+args是当前被调用的被代理方法的参数列表。
+</code></pre>
+
+<p><a href="/images/dynamic_proxy.png"><img src="/images/dynamic_proxy.png" alt="/images/dynamic_proxy.png" /></a></p>
+
+<p>利用动态代理的机制，我们可以实现典型的AOP(Aspect-oriented programming)编程模式，实际上，这也是Spring AOP的实现原理。</p>
+
+<h3>举例</h3>
+
+<p>首先是被代理类和代理类公共的业务接口：</p>
+
+<pre><code>public interface Subject {
+    void request();
+}
+</code></pre>
+
+<p>AOP业务接口：</p>
+
+<pre><code>public interface AopLogger {
+    void logBefore();
+
+    void logAfter();
+}
+</code></pre>
+
+<p>被代理类：</p>
+
+<pre><code>public class RealSubject implements Subject {
+    public void request() {
+        System.out
+                .println("Processing request in real subject...");
+    }
+}
+</code></pre>
+
+<p>委托对象类：</p>
+
+<pre><code>import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+
+public class RequestInvocationHandler implements InvocationHandler {
+    private Subject originalObj;
+
+    private AopLogger logger;
+
+    public RequestInvocationHandler(Subject originalObj) {
+        super();
+        this.originalObj = originalObj;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        // do some processing before the method invocation
+        System.out.println("Before requesting real subject...");
+        logger.logBefore();
+        // TODO:
+        // how to use this proxy object?
+
+        // invoke the method
+        Object result = method.invoke(originalObj, args);
+
+        // do some processing after the method invocation
+        logger.logAfter();
+        System.out.println("After requesting real subject...");
+        return result;
+    }
+
+    public AopLogger getLogger() {
+        return logger;
+    }
+
+    public void setLogger(AopLogger logger) {
+        this.logger = logger;
+    }
+}
+</code></pre>
+
+<p>客户端测试代码：</p>
+
+<pre><code>import java.lang.reflect.Field;
+import java.lang.reflect.Proxy;
+import java.util.Properties;
+
+public class Client {
+
+    public static void main(String[] args) throws Exception {
+        // ***** save proxy class into file *******
+        Field field = System.class.getDeclaredField("props");
+        field.setAccessible(true);
+        Properties props = (Properties) field.get(null);
+        props.put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
+        // ****************************************
+
+        // TODO:
+        // 怎样防止客户端绕过proxy直接调用RealSubject的方法？
+        Subject origObj = new RealSubject();
+        Subject proxy = (Subject) getProxy(origObj);
+
+        proxy.request();
+    }
+
+    private static Object getProxy(Subject origObj) {
+        RequestInvocationHandler handler = new RequestInvocationHandler(origObj);
+        handler.setLogger(new AopLogger() {
+
+            @Override
+            public void logBefore() {
+                System.out.println("AOP logger working before...");
+            }
+
+            @Override
+            public void logAfter() {
+                System.out.println("AOP logger working after...");
+            }
+
+        });
+
+        // 这里会通过ProxyGenerator类生成代理类的字节码，并由origObj所在的classloader加载进JVM，然后通过反射实例化出一个代理对象
+        return Proxy.newProxyInstance(origObj.getClass().getClassLoader(), origObj.getClass()
+                .getInterfaces(), handler);
+    }
+
+}
+</code></pre>
+
+<p>在Client测试代码中加上如下代码后可以将生成的代理类字节码保存到本地文件中：</p>
+
+<pre><code>  Field field = System.class.getDeclaredField("props");
+  field.setAccessible(true);
+  Properties props = (Properties) field.get(null);
+  props.put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
+</code></pre>
+
+<p>反编译这个class文件后察看可以更清楚幕后究竟做了什么：</p>
+
+<pre><code>import com.java.demo.dynamic_proxy.Subject;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.lang.reflect.UndeclaredThrowableException;
+
+public final class $Proxy0 extends Proxy
+  implements Subject {
+  private static Method m1;
+  private static Method m3;
+  private static Method m0;
+  private static Method m2;
+
+  public $Proxy0(InvocationHandler paramInvocationHandler)
+    throws {
+    super(paramInvocationHandler);
+  }
+
+  public final boolean equals(Object paramObject)
+    throws {
+    try {
+      return ((Boolean)this.h.invoke(this, m1, new Object[] { paramObject })).booleanValue();
+    }
+    catch (Error localError) {
+      throw localError;
+    }
+    catch (Throwable localThrowable) {
+    }
+    throw new UndeclaredThrowableException(localThrowable);
+  }
+
+  public final void request()
+    throws {
+    try {
+      // 转发给InvocationHanlder对象处理
+      this.h.invoke(this, m3, null);
+      return;
+    }
+    catch (Error localError) {
+      throw localError;
+    }
+    catch (Throwable localThrowable) {
+    }
+    throw new UndeclaredThrowableException(localThrowable);
+  }
+
+  public final int hashCode()
+    throws {
+    try {
+      return ((Integer)this.h.invoke(this, m0, null)).intValue();
+    }
+    catch (Error localError) {
+      throw localError;
+    }
+    catch (Throwable localThrowable) {
+    }
+    throw new UndeclaredThrowableException(localThrowable);
+  }
+
+  public final String toString()
+    throws {
+    try {
+      return (String)this.h.invoke(this, m2, null);
+    }
+    catch (Error localError) {
+      throw localError;
+    }
+    catch (Throwable localThrowable) {
+    }
+    throw new UndeclaredThrowableException(localThrowable);
+  }
+
+  static {
+    try {
+      m1 = Class.forName("java.lang.Object").getMethod("equals", new Class[] { Class.forName("java.lang.Object") });
+      m3 = Class.forName("com.java.demo.dynamic_proxy.Subject").getMethod("request", new Class[0]);
+      m0 = Class.forName("java.lang.Object").getMethod("hashCode", new Class[0]);
+      m2 = Class.forName("java.lang.Object").getMethod("toString", new Class[0]);
+      return;
+    }
+    catch (NoSuchMethodException localNoSuchMethodException) {
+      throw new NoSuchMethodError(localNoSuchMethodException.getMessage());
+    }
+    catch (ClassNotFoundException localClassNotFoundException) {
+    }
+    throw new NoClassDefFoundError(localClassNotFoundException.getMessage());
+  }
+}
+</code></pre>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://chjl2020.iteye.com/blog/517835">http://chjl2020.iteye.com/blog/517835</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[为什么要使用static内部类]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/04/Why-prefer-static-inner-class/"/>
+    <updated>2012-05-04T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/04/Why-prefer-static-inner-class</id>
+    <content type="html"><![CDATA[<p>看一个例子：</p>
+
+<pre><code>public class OuterClass {
+    class NonStaticInner {
+    }
+    static class StaticInner {
+    }
+    public void foo() {
+        NonStaticInner nonStaticInner = new NonStaticInner();
+        StaticInner staticInner = new StaticInner();
+    }
+}
+</code></pre>
+
+<p>编译后生成三个class文件：</p>
+
+<pre><code>$ tree
+.
+└── com
+    └── java
+        └── demo
+            ├── OuterClass.class
+            ├── OuterClass$NonStaticInner.class
+            ├── OuterClass$StaticInner.class
+</code></pre>
+
+<p>使用javap反编译class文件：</p>
+
+<pre><code>$ javap -classpath . -private -c com.java.demo.OuterClass\$StaticInner
+Compiled from "OuterClass.java"
+class com.java.demo.OuterClass$StaticInner extends java.lang.Object{
+com.java.demo.OuterClass$StaticInner();
+  Code:
+   0:   aload_0
+   1:   invokespecial   #8; //Method java/lang/Object."&lt;init&gt;":()V
+   4:   return
+}
+
+$ javap -classpath . -private -c com.java.demo.OuterClass\$NonStaticInner
+Compiled from "OuterClass.java"
+class com.java.demo.OuterClass$NonStaticInner extends java.lang.Object{
+final com.java.demo.OuterClass this$0;
+
+com.java.demo.OuterClass$NonStaticInner(com.java.demo.OuterClass);
+  Code:
+   0:   aload_0
+   1:   aload_1
+   2:   putfield    #10; //Field this$0:Lcom/java/demo/OuterClass;
+   5:   aload_0
+   6:   invokespecial   #12; //Method java/lang/Object."&lt;init&gt;":()V
+   9:   return
+}
+</code></pre>
+
+<p>从反编译的结果可以看出static内部类和non-static内部类的区别：<br/>
+<strong>对non-static内部类来说，它会持有一个外部类的引用.</strong>编译器会生成一个构造方法，并传入外部类的引用，像这样：</p>
+
+<pre><code>class NonStaticInner {
+    private final OuterClass this$0;
+
+    OuterClass$NonStaticInner(OuterClass outer) {
+        this$0 = outer;
+    }
+}
+</code></pre>
+
+<p>这样的话，每生成一个内部类，都会增加一个对外部类的引用，从而阻止GC来回收外部类。在Android中，如果这个外部类是一个activity类，从而会间接引用更多的图片等资源，不小心的话可能会造成内存泄漏。<br/>
+而对static的内部类则不会持有所在外部类的引用。<br/>
+所以，从GC的角度考虑，应该尽可能使用static的内部类.</p>
+
+<h3>Reference：</h3>
+
+<ul>
+<li><a href="http://stackoverflow.com/questions/3106912/why-does-android-prefer-static-classes">http://stackoverflow.com/questions/3106912/why-does-android-prefer-static-classes</a></li>
+<li><a href="http://www.techrepublic.com/article/examine-class-files-with-the-javap-command/5815354">http://www.techrepublic.com/article/examine-class-files-with-the-javap-command/5815354</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java的四种引用类型]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/03/17/different-reference-types-in-java/"/>
+    <updated>2012-03-17T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/03/17/different-reference-types-in-java</id>
+    <content type="html"><![CDATA[<p>Java中有四种引用类型，按其引用强度由强到弱依次为：</p>
+
+<pre><code>Strong reference &gt; Soft reference &gt; Weak reference &gt; Phantom reference
+</code></pre>
+
+<h3>Strong reference</h3>
+
+<p>最常用的为strong reference，就是说只要某个对象还被一个强引用引用着，那么GC就不会回收它。使用强引用的一个弊端就是有可能引起内存泄漏。比如有一个hashmap集合，用来存储对象引用，如果你忘了在某个时机把这些元素remove掉，那么这些对象就会在这个hashmap的生命周期内被一直引用而不能被GC回收，更糟糕的是，如果这个对象体积很大，而又如果这个hashmap被声明为static的，那么随着程序的运行，内存总有被撑爆的那一刻。</p>
+
+<h3>Soft reference</h3>
+
+<p>而soft reference 就不同了，在内存资源极度紧张的情况下，GC会将被Soft reference 引用的对象回收以释放内存空间。这个特性非常适合用来做cache：在内存资源充裕的情况下，它和强引用一样，GC不会回收它，而在内存紧张的情况下，GC实在找不到更多可用的空间的情况下，Soft reference的对象会被回收掉。<br/>
+以下代码展示了基于Soft reference的缓存类的使用：</p>
+
+<pre><code>/*
+ * Copyright (C) 2009 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
+package com.android.providers.contacts;
+
+import com.android.providers.contacts.ContactsDatabaseHelper.NicknameLookupColumns;
+import com.android.providers.contacts.ContactsDatabaseHelper.Tables;
+import com.google.android.collect.Maps;
+
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+import java.lang.ref.SoftReference;
+import java.util.BitSet;
+import java.util.HashMap;
+
+
+/**
+ * Cache for common nicknames.
+ */
+public class CommonNicknameCache  {
+
+    // We will use this much memory (in bits) to optimize the nickname cluster lookup
+    private static final int NICKNAME_BLOOM_FILTER_SIZE = 0x1FFF;   // =long[128]
+    private BitSet mNicknameBloomFilter;
+
+    private HashMap&lt;String, SoftReference&lt;String[]&gt;&gt; mNicknameClusterCache = Maps.newHashMap();
+
+    private final SQLiteDatabase mDb;
+
+    public CommonNicknameCache(SQLiteDatabase db) {
+        mDb = db;
+    }
+
+    private final static class NicknameLookupPreloadQuery {
+        public final static String TABLE = Tables.NICKNAME_LOOKUP;
+
+        public final static String[] COLUMNS = new String[] {
+            NicknameLookupColumns.NAME
+        };
+
+        public final static int NAME = 0;
+    }
+
+    /**
+     * Read all known common nicknames from the database and populate a Bloom
+     * filter using the corresponding hash codes. The idea is to eliminate most
+     * of unnecessary database lookups for nicknames. Given a name, we will take
+     * its hash code and see if it is set in the Bloom filter. If not, we will know
+     * that the name is not in the database. If it is, we still need to run a
+     * query.
+     * &lt;p&gt;
+     * Given the size of the filter and the expected size of the nickname table,
+     * we should expect the combination of the Bloom filter and cache will
+     * prevent around 98-99% of unnecessary queries from running.
+     */
+    private void preloadNicknameBloomFilter() {
+        // 这个filter被设计成一个简化的hash表（没有处理hash冲突的情况，实际上也没有必要）
+        mNicknameBloomFilter = new BitSet(NICKNAME_BLOOM_FILTER_SIZE + 1);
+        Cursor cursor = mDb.query(NicknameLookupPreloadQuery.TABLE,
+                NicknameLookupPreloadQuery.COLUMNS,
+                null, null, null, null, null);
+        try {
+            int count = cursor.getCount();
+            for (int i = 0; i &lt; count; i++) {
+                cursor.moveToNext();
+                String normalizedName = cursor.getString(NicknameLookupPreloadQuery.NAME);
+                int hashCode = normalizedName.hashCode();
+                // 将元素put进hash表（有可能冲突），参见HashMap的put实现
+                // 和hashcode做与运算的这个值必须是“hash表长度-1”
+                mNicknameBloomFilter.set(hashCode &amp; NICKNAME_BLOOM_FILTER_SIZE);
+            }
+        } finally {
+            cursor.close();
+        }
+    }
+
+    /**
+     * Returns nickname cluster IDs or null. Maintains cache.
+     */
+    protected String[] getCommonNicknameClusters(String normalizedName) {
+        if (mNicknameBloomFilter == null) {
+            preloadNicknameBloomFilter();
+        }
+
+        int hashCode = normalizedName.hashCode();
+
+        // 如果没有找到，说明cache中**一定**不存在这个key所对应的值;
+        // 如果找到了，说明cache中**可能**存在这个key对应的值，需要进一步到cache中查找
+        if (!mNicknameBloomFilter.get(hashCode &amp; NICKNAME_BLOOM_FILTER_SIZE)) {
+            return null;
+        }
+
+        SoftReference&lt;String[]&gt; ref;
+        String[] clusters = null;
+
+        // 注意：这里需要同步对cache的访问
+        synchronized (mNicknameClusterCache) {
+            if (mNicknameClusterCache.containsKey(normalizedName)) {
+                ref = mNicknameClusterCache.get(normalizedName);
+                if (ref == null) {
+                    return null;
+                }
+                clusters = ref.get();
+            }
+        }
+
+        // 没有命中，这时才需要到DB中加载，并加入cache
+        if (clusters == null) {
+            clusters = loadNicknameClusters(normalizedName);
+            ref = clusters == null ? null : new SoftReference&lt;String[]&gt;(clusters);
+            synchronized (mNicknameClusterCache) {
+                mNicknameClusterCache.put(normalizedName, ref);
+            }
+        }
+        return clusters;
+    }
+
+    private interface NicknameLookupQuery {
+        String TABLE = Tables.NICKNAME_LOOKUP;
+
+        String[] COLUMNS = new String[] {
+            NicknameLookupColumns.CLUSTER
+        };
+
+        int CLUSTER = 0;
+    }
+
+    protected String[] loadNicknameClusters(String normalizedName) {
+        String[] clusters = null;
+        Cursor cursor = mDb.query(NicknameLookupQuery.TABLE, NicknameLookupQuery.COLUMNS,
+                NicknameLookupColumns.NAME + "=?", new String[] { normalizedName },
+                null, null, null);
+        try {
+            int count = cursor.getCount();
+            if (count &gt; 0) {
+                clusters = new String[count];
+                for (int i = 0; i &lt; count; i++) {
+                    cursor.moveToNext();
+                    clusters[i] = cursor.getString(NicknameLookupQuery.CLUSTER);
+                }
+            }
+        } finally {
+            cursor.close();
+        }
+        return clusters;
+    }
+}
+</code></pre>
+
+<p>这个缓存类实现的实际上是一个二级缓存：</p>
+
+<ol>
+<li>第一级是一个BitSet，实现为一个hash表，它充当了一个过滤器的作用。第一次加载时会从db中查找所有的数据，并通过hash算法插入到表中的适当位置，这个过程和HashMap的实现是一样的，只不过没有处理hash冲突的情况，当出现hash冲突时，会覆盖表中原有的值。</li>
+<li>第二级是一个HashMap，是真正的cache。其中的元素通过SoftReference引用。</li>
+</ol>
+
+
+<h3>Weak reference</h3>
+
+<p>Weak reference和Soft reference类似，区别在于一旦GC启动，被Weak reference引用的对象就会被回收，而不管当前内存资源是否充裕，因此，被Weak reference引用的对象具有更短的生命周期。但是，由于gc是一个优先级比较低的进程，Weak reference的对象不会像你想象中那么快就被回收了。</p>
+
+<h3>Phantom reference</h3>
+
+<p>Phantom reference 和以上几种引用都不同。它的<code>get()</code>方法永远都会返回null。那么它究竟有什么作用呢？<br/>
+TODO&hellip;</p>
+
+<h3>References</h3>
+
+<ul>
+<li><a href="http://weblogs.java.net/blog/enicholas/archive/2006/05/understanding_w.html">http://weblogs.java.net/blog/enicholas/archive/2006/05/understanding_w.html</a></li>
+<li><a href="http://improving.iteye.com/blog/436311">http://improving.iteye.com/blog/436311</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[NoClassDefFoundError 和 ClassNotFoundException 的区别]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/"/>
+    <updated>2012-03-12T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception</id>
+    <content type="html"><![CDATA[<p>先看API解释：<br/>
+For ClassNotFoundException:</p>
+
+<pre><code>Thrown when an application tries to load in a class through its string name using:
+
+    * The forName method in class Class.
+    * The findSystemClass method in class ClassLoader.
+    * The loadClass method in class ClassLoader.
+
+but no definition for the class with the specified name could be found.
+</code></pre>
+
+<p>For NoClassDefFoundError:</p>
+
+<pre><code>Thrown if the Java Virtual Machine or a ClassLoader instance tries to load in the definition of a class (as part of a normal method call or as part of creating a new instance using the new expression) and no definition of the class could be found.
+
+The searched-for class definition existed when the currently executing class was compiled, but the definition can no longer be found.
+</code></pre>
+
+<p>简单的说，就是如果使用new SomeClass()的方式创建对象的，而这时ClassLoader装载SomeClass失败（可能因为权限不够，JNI错误,etc），就会抛出NoClassDefFoundError。<br/>
+而如果使用反射来装载一个对象，但是SomeClass不在CLASSPATH中，这时就会抛出ClassNotFoundException。</p>
+
+<p>Reference:<br/>
+<a href="http://stackoverflow.com/questions/1457863/what-is-the-difference-between-noclassdeffounderror-and-classnotfoundexception">http://stackoverflow.com/questions/1457863/what-is-the-difference-between-noclassdeffounderror-and-classnotfoundexception</a></p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,545 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Git Tips - 且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="配置 git alias git config &mdash;global alias.co checkout git config &mdash;global alias.br branch git config &mdash;global alias.ci commit git config &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/2012/03/26/git-tips">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<script src="/javascripts/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  // Revert jQuery's '$' alias, to avoid clashes with ender.js. NOTE: Use
+  // jQuery(...), instead of $(...) from here on.
+  jQuery.noConflict();
+</script>
+<script src="/javascripts/generate-toc.js" type="text/javascript" charset="utf-8"></script>
+
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Git Tips</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-26T00:00:00+08:00" pubdate data-updated="true">Mar 26<span>th</span>, 2012</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h3>配置</h3>
+
+<ul>
+<li><p>git alias</p>
+
+<p>  git config &mdash;global alias.co checkout<br/>
+  git config &mdash;global alias.br branch<br/>
+  git config &mdash;global alias.ci commit<br/>
+  git config &mdash;global alias.st status<br/>
+  &hellip; &hellip;</p></li>
+</ul>
+
+
+<h3>查看历史</h3>
+
+<ul>
+<li><p>git log</p>
+
+<p>-N                 只显示最近N次提交<br/>
+-p                 按补丁格式显示每个更新之间的差异。<br/>
+&mdash;stat             显示每次更新的文件修改统计信息。<br/>
+&mdash;shortstat        只显示&mdash;stat中最后的行数修改添加移除统计。<br/>
+&mdash;name-only        仅在提交信息后显示已修改的文件清单。<br/>
+&mdash;name-status      显示新增、修改、删除的文件清单。<br/>
+&mdash;relative-date    使用较短的相对时间显示（比如，“2 weeks ago”）。<br/>
+&mdash;graph            显示 ASCII 图形表示的分支合并历史。<br/>
+&mdash;pretty           使用其他格式显示历史提交信息。可用的选项包括oneline，short，full，fuller和format（后跟指定格式）。<br/>
+&mdash;since,&mdash;after    仅显示指定时间之后的提交。<br/>
+&mdash;until,&mdash;before   仅显示指定时间之前的提交。<br/>
+&mdash;author           仅显示指定作者相关的提交。<br/>
+&mdash;committer        仅显示指定提交者相关的提交。</p>
+
+<p><code>git log --stat</code><br/>
+查看每次提交修改的代码行数</p>
+
+<p><code>git log --name-status  --author=bob --pretty=format:</code> // 注意format为空
+统计bob改动的文件列表，可以将结果保存为文本文件，用vim打开，使用<code>:sort u</code>删去重复的行</p>
+
+<p><code>git instaweb</code> 以web的方式查看仓库<br/>
+<code>git instaweb --stop</code> 停止服务器</p></li>
+</ul>
+
+
+<h3>撤销回滚</h3>
+
+<ul>
+<li><p>git reset</p>
+
+<ol>
+<li> git reset &mdash;soft 只撤销 commit,保留 working tree 和 index file。</li>
+<li> git reset &mdash;hard 撤销 commit、index file 和 working tree,即彻底销毁最近一次的 commit</li>
+<li> git reset &mdash;mixed 撤销 commit 和 index file,保留 working tree</li>
+<li> git reset 和 git reset &mdash;mixed 完全一样</li>
+<li> git reset &mdash;用于删除登记在 index file 里的某个文件。</li>
+</ol>
+
+
+<p>  git reset的第二种用法: <br/>
+  <code>git reset [-q] [&lt;commit&gt;] [--] &lt;paths&gt;...</code>
+  将指定路径的文件在commit的内容拷贝到暂存区。git reset path和git add path效果相反。</p></li>
+<li><p>回退版本(参考<a href="http://hi.baidu.com/talltwintowers/blog/item/36c931bf7685360119d81fc6.html">这里</a>)</p>
+
+<p>回退版本很简单，<code>git checkout sha1</code> 即可。<br/>
+现在你不在任何一个branch（no branch），执行git status显示：</p>
+
+<pre><code>  $ git status
+  # Not currently on any branch.
+  nothing to commit (working directory clean)
+</code></pre>
+
+<p>  这个操作会将HEAD指向指定commit,并重置index和working tree到此commit的状态. 但由于此commit不是任何branch的头(&ldquo;head&rdquo; or &ldquo;tip&rdquo;),所以git会给出警告.这种情况称为&#8221;HEAD is detached&#8221;.参考<a href="http://www.kernel.org/pub/software/scm/git/docs/user-manual.html#detached-head">这里</a><br/>
+  虽然警告,但并没有什么危险,只要别做commit,最后checkout回(某个branch)来就行了.<br/>
+  如果此时做commit呢?&mdash;那也没有什么,只是这个新的commit以后只能通过SHA1来引用了(当然,还可以用git reflog看到),好比一个野指针;或者你赋个tag给它.不过这没有意义,如果你真的想从这儿发展下去,那么应该新建一个branch,比如<code>git checkout -b &lt;new_branch&gt; &lt;start_point&gt;</code><br/>
+  但是注意,做此操作时working tree和index应该是&#8221;干净的&#8221;,就是和HEAD(所指的commit)完全一致,没有任何改动,否则git会报错不执行;你可能会看到类似这样的error:</p>
+
+<pre><code>  error: You have local changes to 'somefile'; cannot switch branches.或
+  error: Entry 'somefile' would be overwritten by merge. Cannot merge.
+</code></pre>
+
+<p>  (不过,你可以用&mdash;merge选项强制执行,此时git会做一个three-way merge)</p>
+
+<p>  要切换回HEAD commit,执行<code>git checkout branch-name</code></p></li>
+</ul>
+
+
+<h3>Diff &amp; Patch</h3>
+
+<ul>
+<li><p>git diff</p>
+
+<pre><code>git diff 查看 working tree 与 index file 的差别。  
+git diff --cached/--staged 查看 index file 与最后一次提交的commit之间的差别的。  
+git diff HEAD 是查看 working tree 和最后一次提交的commit之间的差别的。  
+</code></pre></li>
+<li><pre><code>git format-patch -1    生成最后一个提交对应的patch文件
+git am &lt; diff.patch    把一个patch文件应用到当前分支
+</code></pre></li>
+</ul>
+
+
+<h3>Branch</h3>
+
+<ul>
+<li>所谓Branch，本质上是一个指针（一串SHA号），指向某个commit。特别的，HEAD是当前分支的最后一个commit的别名。</li>
+<li><p>git merge
+  多个分支进行merge时可能存在两种方式：</p>
+
+<ol>
+<li> Fast-forward</li>
+<li> 两个分支（A，B）的末端和这两个分支的共同祖先（C）进行三方合并（可能出现冲突），合并后将产生一个新的commit，这个commit有两个祖先（A和B）。</li>
+</ol>
+
+
+<p>  <code>git branch --merged</code> 查看有哪些分支已经合并进当前分支了，这些分支可以删掉了，因为这些分支的更改已经包含再当前分支里面了<br/>
+  <code>git branch --no-merged</code> 查看尚未合并的分支</p></li>
+<li><p>git rebase
+                   A&mdash;-B&mdash;-C topic
+                  /
+             D&mdash;-E&mdash;-F&mdash;-G master
+当前分支为topic，<code>git rebase master</code>，rebase的过程是：</p>
+
+<ol>
+<li>把从topic和master共同的祖先E开始在当前分支上的提交生成一个patch文件</li>
+<li>将A、B、C砍掉，相当与执行<code>git reset --hard master</code></li>
+<li>将生成的patch文件一个一个应用到G上</li>
+</ol>
+
+
+<p>结果变成这样：
+                           A&#8217;&mdash;B&#8217;&mdash;C&#8217; topic
+                          /
+             D&mdash;-E&mdash;-F&mdash;-G master
+topic的提交历史被改写了，成了master分支的直接下游，这时在master分支上做一次fast-forward的merge就好了。</p>
+
+<p>可见，相比于merge，rebase不会产生一个新的commit，合并后的主线更加干净。如果希望在执行git pull时自动使用git rebase取代默认的git merge操作，可以执行</p>
+
+<pre><code>git pull --rebase
+</code></pre>
+
+<p>参见<a href="http://www.worldhello.net/gotgithub/04-work-with-others/020-shared-repo.html#rebase-and-push">这里</a></p></li>
+<li><p>git pull</p>
+
+<p>  git pull = git fetch + git merge<br/>
+  git pull origin next = git fetch origin/next + git merge origin/next  // 将远程分支next合并到当前分支上</p>
+
+<p><code>git pull</code>会把所有正在跟踪远端仓库的分支的本地分支进行数据拉取。
+执行git pull, git merge, git reset之前的HEAD会被保存到ORIG_HEAD,所以如果要回滚刚才的pull动作，那么执行<code>git reset --hard ORIG_HEAD</code>。查看pull下来的内容，执行<code>git diff ORIG_HEAD</code></p></li>
+<li><p>git push</p>
+
+<p><code>git push origin featureA</code> 将本地的featureA分支推送到远程仓库<br/>
+<code>git push origin local_branch:remote_branch</code> 将本地的local_branch的内容推送到origin远程仓库的remote_branch分支上去，所以执行 <code>git push origin :remote_branch</code> 将删除远程版本库的 remote_branch 分支。</p></li>
+<li><p>git fetch</p>
+
+<pre><code>$ git remote add rc git@github.com:calvinlee/git-sandbox.git
+$ git remote -v
+origin    git@github.com:calvinlee/git-sandbox.git (fetch)
+origin    git@github.com:calvinlee/git-sandbox.git (push)
+rc    git@github.com:calvinlee/git-sandbox.git (fetch)
+rc    git@github.com:calvinlee/git-sandbox.git (push)
+$ git fetch rc
+ * [new branch]      experimental -&gt; rc/experimental
+ * [new branch]      master     -&gt; rc/master
+</code></pre>
+
+<p>运行git fetch后，本地多了从rc这个库fetch下来的分支：</p>
+
+<pre><code>$ git branch -r
+origin/HEAD -&gt; origin/master
+origin/experimental
+origin/master
+rc/experimental
+rc/master
+</code></pre>
+
+<p>现在可以切换到这个分支查看，或者选择merge到本地分支。（远程分支以这样的形式命名：远程仓库名/分支名）</p></li>
+</ul>
+
+
+<h3>git reset与git checkout</h3>
+
+<p><code>git reset</code>用来修改refs的指向:修改的是.git/refs/heads/master的值，HEAD本身一直指向refs/heads/master, 并没有在reset过程中改变。
+<code>git checkout</code>用来修改HEAD的指向: 修改的是.git/HEAD的文件内容, checkout不影响.git/refs/heads/下文件的内容。</p>
+
+<p>什么叫detached HEAD？<br/>
+这个状态下.git/HEAD指向了一个具体的commit ID，而不是一个分支的名称。</p>
+
+<h3>符号</h3>
+
+<ul>
+<li><p>branchA..branchB</p>
+
+<p>用来获取在branchB上但是不在branchA上的提交。如：<br/>
+<code>git log --pretty=format:"%h %s" HEAD~3..HEAD</code> 显示最近三次提交的log<br/>
+<code>git log origin/master..HEAD</code> 显示所有在当前分支上但不在远程分支上的提交。如果当前分支正在track远程分支，那么下次运行<code>git push</code>将推送这些提交到远程分支上。</p>
+
+<p>这种表示法与下列语法等价：</p>
+
+<pre><code> ^branchA branchB
+ branchB --not branchA
+</code></pre></li>
+<li><p>branchA&hellip;branchB</p>
+
+<p>获取被两个分支之一包含但不被这两个分支同时包含的提交。</p></li>
+<li><p>^[N] 和 ~[N]</p>
+
+<p>两个分支合并后，你合并时所在分支称为first parent，你所合并的分支称为second parent<br/>
+HEAD^[N]表示HEAD的第N个second parent<br/>
+HEAD~[N]表示HEAD的第N个first parent</p></li>
+<li><p>获取某一次特定提交对应的文件内容
+e43fef:path/to/file<br/>
+获取暂存区中的文件对象：<br/>
+:path/to/file</p></li>
+</ul>
+
+
+<h3>其它</h3>
+
+<ul>
+<li><p>将多个commit合成一个commit后提交</p>
+
+<p>场景：<br/>
+packages/apps/Email 已经提交了多个commit在branchA上，现在要把这些commit压成一个commit合并到merge_fix分支上。</p>
+
+<pre><code> $ cd packages/apps/Email
+ $ repo sync .
+ $ git log --pretty=oneline // 假如需要squash commit1 和 commit2
+   e8949d30bcb568b32a12338a28fb9d7a13e8b086 commit1
+   6d7eef22cd2634bd0da8de8e38635dd92b3e5a48 commit2
+   0130c5a03756b01ec4a39422ab08474625153a81 commit3
+ $ git rebase -i 0130c5a03756b01ec4a39422ab08474625153a81 //注意这里是想要squash的commit的前一个commit(commit3), 更改commit message后继续
+ $ git log -2 //找到squash后的commit，假如squash后的commit号为bed1b4fa7ae3f9a4a546f2aa367a8f2e7ba4b7b1
+ $ git checkout merge_fix
+ $ git cherry-pick bed1b4fa7ae3f9a4a546f2aa367a8f2e7ba4b7b1
+</code></pre>
+
+<p>  完毕</p></li>
+<li><p>一个图片文件 index.jpeg 冲突了，如何取出他人的版本?</p>
+
+<pre><code>git show :3:./index.jpeg &gt; index.jpeg-theirs
+</code></pre>
+
+<p>可以先使用git ls-files查看：</p>
+
+<pre><code>$ git ls-files -s
+100644 a97de6ee1b2352f4e33d09196fa478ffaae0b024 0 README
+100644 04c14c2023f69123e719fae7c4242537c943b726 0 file1
+100644 2f08be9a02925b5c016904e19fbd5e8d057ae756 0 hello.c
+100644 eb651d4b863843d3ad12c446b541075f2839d7d2 2 index.jpeg
+100644 099df17855c924472b1809d99389d8eee7582d9f 3 index.jpeg
+</code></pre>
+
+<p>第三栏称为stage number，stage number为2的存储着合并前的版本，stage number为3的存储着合并过来的版本。参见<a href="http://book.git-scm.com/7_the_git_index.html">这里</a></p></li>
+<li><p>漂亮的git前端工具 &ndash; <a href="http://jonas.nitro.dk/tig/">tig</a></p></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Calvin Lee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-26T00:00:00+08:00" pubdate data-updated="true">Mar 26<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/git/'>Git</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/03/24/notes-on-the-c-programming-language/" title="Previous Post: C程序设计语言读书笔记">&laquo; C程序设计语言读书笔记</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/03/31/connect-2-android-emulator-instance/" title="Next Post: Android模拟器与host主机以及模拟器之间进行TCP通信">Android模拟器与host主机以及模拟器之间进行TCP通信 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

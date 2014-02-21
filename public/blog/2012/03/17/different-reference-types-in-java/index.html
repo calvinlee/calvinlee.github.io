@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Java的四种引用类型 - 且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="Java中有四种引用类型，按其引用强度由强到弱依次为： Strong reference &gt; Soft reference &gt; Weak reference &gt; Phantom reference Strong reference 最常用的为strong reference， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/2012/03/17/different-reference-types-in-java">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<script src="/javascripts/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  // Revert jQuery's '$' alias, to avoid clashes with ender.js. NOTE: Use
+  // jQuery(...), instead of $(...) from here on.
+  jQuery.noConflict();
+</script>
+<script src="/javascripts/generate-toc.js" type="text/javascript" charset="utf-8"></script>
+
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Java的四种引用类型</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Java中有四种引用类型，按其引用强度由强到弱依次为：</p>
+
+<pre><code>Strong reference &gt; Soft reference &gt; Weak reference &gt; Phantom reference
+</code></pre>
+
+<h3>Strong reference</h3>
+
+<p>最常用的为strong reference，就是说只要某个对象还被一个强引用引用着，那么GC就不会回收它。使用强引用的一个弊端就是有可能引起内存泄漏。比如有一个hashmap集合，用来存储对象引用，如果你忘了在某个时机把这些元素remove掉，那么这些对象就会在这个hashmap的生命周期内被一直引用而不能被GC回收，更糟糕的是，如果这个对象体积很大，而又如果这个hashmap被声明为static的，那么随着程序的运行，内存总有被撑爆的那一刻。</p>
+
+<h3>Soft reference</h3>
+
+<p>而soft reference 就不同了，在内存资源极度紧张的情况下，GC会将被Soft reference 引用的对象回收以释放内存空间。这个特性非常适合用来做cache：在内存资源充裕的情况下，它和强引用一样，GC不会回收它，而在内存紧张的情况下，GC实在找不到更多可用的空间的情况下，Soft reference的对象会被回收掉。<br/>
+以下代码展示了基于Soft reference的缓存类的使用：</p>
+
+<pre><code>/*
+ * Copyright (C) 2009 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
+package com.android.providers.contacts;
+
+import com.android.providers.contacts.ContactsDatabaseHelper.NicknameLookupColumns;
+import com.android.providers.contacts.ContactsDatabaseHelper.Tables;
+import com.google.android.collect.Maps;
+
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+import java.lang.ref.SoftReference;
+import java.util.BitSet;
+import java.util.HashMap;
+
+
+/**
+ * Cache for common nicknames.
+ */
+public class CommonNicknameCache  {
+
+    // We will use this much memory (in bits) to optimize the nickname cluster lookup
+    private static final int NICKNAME_BLOOM_FILTER_SIZE = 0x1FFF;   // =long[128]
+    private BitSet mNicknameBloomFilter;
+
+    private HashMap&lt;String, SoftReference&lt;String[]&gt;&gt; mNicknameClusterCache = Maps.newHashMap();
+
+    private final SQLiteDatabase mDb;
+
+    public CommonNicknameCache(SQLiteDatabase db) {
+        mDb = db;
+    }
+
+    private final static class NicknameLookupPreloadQuery {
+        public final static String TABLE = Tables.NICKNAME_LOOKUP;
+
+        public final static String[] COLUMNS = new String[] {
+            NicknameLookupColumns.NAME
+        };
+
+        public final static int NAME = 0;
+    }
+
+    /**
+     * Read all known common nicknames from the database and populate a Bloom
+     * filter using the corresponding hash codes. The idea is to eliminate most
+     * of unnecessary database lookups for nicknames. Given a name, we will take
+     * its hash code and see if it is set in the Bloom filter. If not, we will know
+     * that the name is not in the database. If it is, we still need to run a
+     * query.
+     * &lt;p&gt;
+     * Given the size of the filter and the expected size of the nickname table,
+     * we should expect the combination of the Bloom filter and cache will
+     * prevent around 98-99% of unnecessary queries from running.
+     */
+    private void preloadNicknameBloomFilter() {
+        // 这个filter被设计成一个简化的hash表（没有处理hash冲突的情况，实际上也没有必要）
+        mNicknameBloomFilter = new BitSet(NICKNAME_BLOOM_FILTER_SIZE + 1);
+        Cursor cursor = mDb.query(NicknameLookupPreloadQuery.TABLE,
+                NicknameLookupPreloadQuery.COLUMNS,
+                null, null, null, null, null);
+        try {
+            int count = cursor.getCount();
+            for (int i = 0; i &lt; count; i++) {
+                cursor.moveToNext();
+                String normalizedName = cursor.getString(NicknameLookupPreloadQuery.NAME);
+                int hashCode = normalizedName.hashCode();
+                // 将元素put进hash表（有可能冲突），参见HashMap的put实现
+                // 和hashcode做与运算的这个值必须是“hash表长度-1”
+                mNicknameBloomFilter.set(hashCode &amp; NICKNAME_BLOOM_FILTER_SIZE);
+            }
+        } finally {
+            cursor.close();
+        }
+    }
+
+    /**
+     * Returns nickname cluster IDs or null. Maintains cache.
+     */
+    protected String[] getCommonNicknameClusters(String normalizedName) {
+        if (mNicknameBloomFilter == null) {
+            preloadNicknameBloomFilter();
+        }
+
+        int hashCode = normalizedName.hashCode();
+
+        // 如果没有找到，说明cache中**一定**不存在这个key所对应的值;
+        // 如果找到了，说明cache中**可能**存在这个key对应的值，需要进一步到cache中查找
+        if (!mNicknameBloomFilter.get(hashCode &amp; NICKNAME_BLOOM_FILTER_SIZE)) {
+            return null;
+        }
+
+        SoftReference&lt;String[]&gt; ref;
+        String[] clusters = null;
+
+        // 注意：这里需要同步对cache的访问
+        synchronized (mNicknameClusterCache) {
+            if (mNicknameClusterCache.containsKey(normalizedName)) {
+                ref = mNicknameClusterCache.get(normalizedName);
+                if (ref == null) {
+                    return null;
+                }
+                clusters = ref.get();
+            }
+        }
+
+        // 没有命中，这时才需要到DB中加载，并加入cache
+        if (clusters == null) {
+            clusters = loadNicknameClusters(normalizedName);
+            ref = clusters == null ? null : new SoftReference&lt;String[]&gt;(clusters);
+            synchronized (mNicknameClusterCache) {
+                mNicknameClusterCache.put(normalizedName, ref);
+            }
+        }
+        return clusters;
+    }
+
+    private interface NicknameLookupQuery {
+        String TABLE = Tables.NICKNAME_LOOKUP;
+
+        String[] COLUMNS = new String[] {
+            NicknameLookupColumns.CLUSTER
+        };
+
+        int CLUSTER = 0;
+    }
+
+    protected String[] loadNicknameClusters(String normalizedName) {
+        String[] clusters = null;
+        Cursor cursor = mDb.query(NicknameLookupQuery.TABLE, NicknameLookupQuery.COLUMNS,
+                NicknameLookupColumns.NAME + "=?", new String[] { normalizedName },
+                null, null, null);
+        try {
+            int count = cursor.getCount();
+            if (count &gt; 0) {
+                clusters = new String[count];
+                for (int i = 0; i &lt; count; i++) {
+                    cursor.moveToNext();
+                    clusters[i] = cursor.getString(NicknameLookupQuery.CLUSTER);
+                }
+            }
+        } finally {
+            cursor.close();
+        }
+        return clusters;
+    }
+}
+</code></pre>
+
+<p>这个缓存类实现的实际上是一个二级缓存：</p>
+
+<ol>
+<li>第一级是一个BitSet，实现为一个hash表，它充当了一个过滤器的作用。第一次加载时会从db中查找所有的数据，并通过hash算法插入到表中的适当位置，这个过程和HashMap的实现是一样的，只不过没有处理hash冲突的情况，当出现hash冲突时，会覆盖表中原有的值。</li>
+<li>第二级是一个HashMap，是真正的cache。其中的元素通过SoftReference引用。</li>
+</ol>
+
+
+<h3>Weak reference</h3>
+
+<p>Weak reference和Soft reference类似，区别在于一旦GC启动，被Weak reference引用的对象就会被回收，而不管当前内存资源是否充裕，因此，被Weak reference引用的对象具有更短的生命周期。但是，由于gc是一个优先级比较低的进程，Weak reference的对象不会像你想象中那么快就被回收了。</p>
+
+<h3>Phantom reference</h3>
+
+<p>Phantom reference 和以上几种引用都不同。它的<code>get()</code>方法永远都会返回null。那么它究竟有什么作用呢？<br/>
+TODO&hellip;</p>
+
+<h3>References</h3>
+
+<ul>
+<li><a href="http://weblogs.java.net/blog/enicholas/archive/2006/05/understanding_w.html">http://weblogs.java.net/blog/enicholas/archive/2006/05/understanding_w.html</a></li>
+<li><a href="http://improving.iteye.com/blog/436311">http://improving.iteye.com/blog/436311</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Calvin Lee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/java/'>Java</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/" title="Previous Post: NoClassDefFoundError 和 ClassNotFoundException 的区别">&laquo; NoClassDefFoundError 和 ClassNotFoundException 的区别</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/03/17/handy-toolbox/" title="Next Post: Handy Toolbox">Handy Toolbox &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

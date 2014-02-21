@@ -1,0 +1,714 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Android 窗口管理 - 且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="基本概念 Surface Surface就是每个View的画布，View及其子类都要画在surface上。
+Surface都是双缓冲的，back buffer用来绘制，front buffer用来合成。每个surface对象对应surfaceflinger里面的一个layer， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/2012/04/21/android-window-management-architecture">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<script src="/javascripts/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  // Revert jQuery's '$' alias, to avoid clashes with ender.js. NOTE: Use
+  // jQuery(...), instead of $(...) from here on.
+  jQuery.noConflict();
+</script>
+<script src="/javascripts/generate-toc.js" type="text/javascript" charset="utf-8"></script>
+
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Android 窗口管理</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-21T00:00:00+08:00" pubdate data-updated="true">Apr 21<span>st</span>, 2012</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h3>基本概念</h3>
+
+<ul>
+<li><p>Surface</p>
+
+<p>Surface就是每个View的画布，View及其子类都要画在surface上。<br/>
+Surface都是双缓冲的，back buffer用来绘制，front buffer用来合成。每个surface对象对应surfaceflinger里面的一个layer，SurfaceFlinger负责将各个layer的front buffer合成（composite），然后将合成后的数据输出到frame buffer驱动并最终绘制到屏幕上。</p></li>
+<li><p>Window</p>
+
+<p>Window可以看作desktop上的window的概念。Window类定义了顶层视图的一些属性以及对这些属性的方法，包括背景，title，一些按键事件处理（如Volume up和Volump down按键在MediaController所属的Window里面被设置位控制媒体音量大小）以及一些其他的window feature，它含有一个window manager对象用来addView，removeView，updateView等等，window manager通过和运行在system_server进程的window manager service建立联系来实现这些操作。每一个Window都对应一个Surface对象用来渲染添加到window里面的内容。<br/>
+Window的实现为PhoneWindow。</p></li>
+<li><p>View</p>
+
+<p>View是添加到window里面的和用户产生交互的UI控件。View与ViewGroup一起组成了一个树状结构，每一个Window都有一个View的层级树与之关联。这个view的层级树组成了这个window的样式和行为。DecorView作为顶层view被添加到PhoneWindow中。</p></li>
+<li><p>SurfaceView</p>
+
+<p>每个SurfaceView拥有一个独立的Surface对象。</p></li>
+<li><p>ViewRoot:
+每一个view的层级树对应一个ViewRoot，也就是说one viewroot per window。每个ViewRoot对象都有一个对应的Surface对象用来绘制UI，当window需要重绘时（比如一个view调用了invalidate()方法），重绘的操作都是这个ViewRoot对应的Surface上进行的。Surface首先被lock住，然后返回一个可供重绘的Canvas，然后在view层级树中遍历，并把这个Canvas对象依次传递给每个View的onDraw方法。重绘结束后这个surface被unlock，然后交由surface finger进行组合。View层级树中的所有view均在这个Canvas对象上绘制。<br/>
+ViewRoot是GUI管理系统与GUI呈现系统之间的桥梁，主要作用有：</p>
+
+<ol>
+<li> 向DecorView分发从WindowManagerService收到的用户发起的event事件，如按键，触屏，轨迹球等事件；</li>
+<li> 与WindowManagerService交互，完成整个Activity的GUI的绘制。</li>
+</ol>
+</li>
+</ul>
+
+
+<p><a href="/images/android-window-architecture.png"><img src="/images/android-window-architecture.png" alt="/images/android-window-architecture.png" /></a></p>
+
+<ul>
+<li><p>Bitmap</p>
+
+<p>Bitmap可以看作是一块数据存储区域，用来存储像素数据。</p></li>
+<li><p>Canvas
+每个Canvas底层都对应一个Bitmap对象，Canvas提供了一些绘制图形的接口，比如画直线，画圆，这些方法是在这个bitmap上操作的。</p></li>
+<li><p>Paint
+用来描述绘制时使用的颜色，风格等。</p></li>
+<li><p>Drawable:
+绘制的基本对象。</p></li>
+</ul>
+
+
+<p>以上四种对象构成绘制图形的四个基本元素，如图：</p>
+
+<p><a href="/images/android_graphics.png"><img src="/images/android_graphics.png" alt="/images/android_graphics.png" /></a></p>
+
+<h3>窗口类</h3>
+
+<p><a href="/images/android-window-class.png"><img src="/images/android-window-class.png" alt="/images/android-window-class.png" /></a></p>
+
+<h3>Activity.attach</h3>
+
+<ul>
+<li>ActivityManagerService.startActivity
+
+<ul>
+<li>ActivityThread.performLaunchActivity
+
+<ul>
+<li>Activity.attach
+
+<ul>
+<li>PolicyManager.makeNewWindow //实例化一个activity或者dialog或者widget的地方才会make new window</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>ActivityThread.handleResumeActivity
+
+<ul>
+<li>WindowManagerImpl.addView //添加DecorView到WindowManager中
+
+<ul>
+<li>new ViewRootImpl // 实例化一个ViewRoot对象
+
+<ul>
+<li>WindowManagerService.openSession //建立ViewRoot到WMS的通信桥梁</li>
+</ul>
+</li>
+<li>ViewRootImpl.setView
+
+<ul>
+<li>requestLayout</li>
+<li>IWindowSession.add // 将这个ViewRoot的IWindow对象（ViewRootImpl.W）添加到WMS中，作为WMS到ViewRoot的通信桥梁
+
+<ul>
+<li>WindowManagerService.addWindow</li>
+</ul>
+</li>
+<li>ViewRootImpl.performTraversals //负责绘制View hierarchy，绘制的目的地是对应Surface的back buffer。这个方法总是在UI线程中调用
+
+<ul>
+<li>DecorView.dispatchAttachedToWindow
+
+<ul>
+<li>DecorView.measure</li>
+</ul>
+</li>
+<li>ViewRootImpl.relayoutWindow // 通过WMS创建一个Surface对象，赋值给ViewRoot持有的Surface对象
+
+<ul>
+<li>WindowManagerService.relayoutWindow</li>
+</ul>
+</li>
+<li>DecorView.measure</li>
+<li>DecorView.layout</li>
+<li>ViewRootImpl.draw // 根据一个dirty的矩形区域决定重绘范围。这里有两种情况：是否使用GL绘制<br/>
+  // 如果不使用GL绘制
+
+<ul>
+<li>Surface.lockCanvas // 传入drity的区域，获取一个bitmap存储区，与一个Canvas对象绑定并返回</li>
+<li>Canvas.save</li>
+<li>DecorView.draw //绘制View hierarchy tree</li>
+<li>Canvas.restoreToCount</li>
+<li>Surface.unlockCanvasAndPost</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<h3>WindowManagerService.addWindow</h3>
+
+<ul>
+<li>WindowManagerService.addWindow
+
+<ul>
+<li>new WindowState</li>
+<li>WindowState.attach
+
+<ul>
+<li>WindowManagerService.Session.windowAddedLocked
+
+<ul>
+<li>new SurfaceSession() // Create a new connection with the surface flinger
+
+<ul>
+<li>SurfaceSession_init(android_view_Surface.cpp)
+
+<ul>
+<li>new SurfaceComposerClient(android_view_Surface.cpp)
+
+<ul>
+<li>onFirstRef(SurfaceComposerClient.cpp)
+
+<ul>
+<li>getComposerService //ComposerService 用于获取SurfaceFlinger服务，它是一个单例，每个进程一个实例</li>
+<li>BpSurfaceComposer.createConnection(SurfaceComposerClient.cpp)
+
+<ul>
+<li>SurfaceFlinger.createConnection(SurfaceFlinger.cpp)
+
+<ul>
+<li>new BnSurfaceComposerClient // 这个client对象接收来自客户端的请求，并转发给SurfaceFlinger, 主要两个接口：createSurface和destroySurface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>addWindowToListInOrderLocked</li>
+<li>updateFocusedWindowLocked</li>
+<li>assignLayersLocked</li>
+</ul>
+</li>
+</ul>
+
+
+<p>ComposerService</p>
+
+<pre><code>class ComposerService : public Singleton&lt;ComposerService&gt;
+{
+    //实际对象为BpSurfaceComposer,通过它与SurfaceFlinger进行通信，
+    //BnSurfaceComposer是SurfaceFlinger的子类
+    sp&lt;ISurfaceComposer&gt; mComposerService;
+
+    //实际对象为BpMemoryHeap,它在SurfaceFlinger中对应为管理一个4096字节的
+    //一个MemoryHeapBase对象，在SurfaceFlinger::readyToRun中创建
+    sp&lt;IMemoryHeap&gt; mServerCblkMemory;
+
+    //为MemoryHeapBase管理的内存在用户空间的基地址，通过mmap而来，
+    //具体见MemoryHeapBase::mapfd
+    surface_flinger_cblk_t volatile* mServerCblk;
+    ComposerService();
+    friend class Singleton&lt;ComposerService&gt;;
+public:
+    static sp&lt;ISurfaceComposer&gt; getComposerService();
+    static surface_flinger_cblk_t const volatile * getControlBlock();
+};
+
+ComposerService::ComposerService()
+: Singleton&lt;ComposerService&gt;() {
+    const String16 name("SurfaceFlinger");
+    //获取SurfaceFlinger服务，即BpSurfaceComposer对象
+    while (getService(name, &amp;mComposerService) != NO_ERROR) {
+        usleep(250000);
+    }
+    //获取shared control block
+    mServerCblkMemory = mComposerService-&gt;getCblk();
+    //获取shared control block 的基地址
+    mServerCblk = static_cast&lt;surface_flinger_cblk_t volatile *&gt;(
+            mServerCblkMemory-&gt;getBase());
+}
+</code></pre>
+
+<p>这一步的主要作用：<br/>
+将新的Window添加到WMS，并为这个Window对象获取一个SurfaceFlinger的代理对象BpSurfaceComposerClient。</p>
+
+<h3>WindowManagerService.relayoutWindow</h3>
+
+<ul>
+<li>WindowManagerService.relayoutWindow
+
+<ul>
+<li>WindowManagerService.WindowState.createSurfaceLocked
+
+<ul>
+<li>SurfaceComposerClient.createSurface(android_view_Surface.cpp)
+
+<ul>
+<li>BpSurfaceComposerClient.createSurface // 在上一步已经获得了
+
+<ul>
+<li>Client::createSurface(SurfaceFlinger.cpp)
+
+<ul>
+<li>SurfaceFlinger::createSurface
+
+<ul>
+<li>SurfaceFlinger.createNormalSurface
+
+<ul>
+<li>new Layer
+
+<ul>
+<li>onFirstRef > new SurfaceTextureLayer
+
+<ul>
+<li>new SurfaceTexture
+
+<ul>
+<li>SurfaceFlinger::createGraphicBufferAlloc</li>
+</ul>
+</li>
+<li>new LayerBaseClient(LayerBase.cpp)
+
+<ul>
+<li>new LayerBase(LayerBase.cpp)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Layer.setBuffers(Layer.cpp) // 为这个layer分配GraphicBuffers
+
+<ul>
+<li>new SurfaceLayer
+
+<ul>
+<li>new LayerBaseClient::Surface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>SurfaceFlinger.addClientLayer
+
+<ul>
+<li>BnSurfaceComposerClient.attachLayer</li>
+<li>addLayer_l // 将这个layer加入Z轴</li>
+</ul>
+</li>
+<li>Layer.getSurface
+
+<ul>
+<li>Layer::createSurface(Layer.cpp)
+
+<ul>
+<li>new BSurface // BSurface实现了ISurface接口</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>new SurfaceControl</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<p><a href="http://blog.csdn.net/myarrow/article/details/7180561">这篇文章</a>的这张图很好的描述了SurfaceComposerClient对象内的状态：</p>
+
+<p><a href="/images/android-surface-interfaces.jpeg"><img src="/images/android-surface-interfaces.jpeg" alt="/images/android-surface-interfaces.jpeg" /></a></p>
+
+<h3>Surface.lockCanvas</h3>
+
+<ul>
+<li>Surface.lockCanvas
+
+<ul>
+<li>Surface_lockCanvas(android_view_Surface.cpp)
+
+<ul>
+<li>getSurface
+
+<ul>
+<li>SurfaceControl.getSurface
+
+<ul>
+<li>new Surface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Surface.lock(Surface.cpp)
+
+<ul>
+<li>SurfaceTextureClient::lock
+
+<ul>
+<li>dequeueBuffer</li>
+<li>lockBuffer</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>new SkBitmap</li>
+</ul>
+</li>
+</ul>
+
+
+<p>Gralloc</p>
+
+<ol>
+<li>Used to allocate and map graphics memory to app processes</li>
+<li>Facilitates graphics memory export via Binder IPC mechanism</li>
+<li>Provides cache synchronization points</li>
+<li>Also used for framebuffer discovery</li>
+</ol>
+
+
+<h3>Surface.unlockCanvasAndPost</h3>
+
+<ul>
+<li>Surface.lockCanvas
+
+<ul>
+<li>Surface_lockCanvas(android_view_Surface.cpp)
+
+<ul>
+<li>getSurface
+
+<ul>
+<li>SurfaceControl.getSurface
+
+<ul>
+<li>new Surface</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Surface.lock(Surface.cpp)
+
+<ul>
+<li>SurfaceTextureClient::unlockAndPost</li>
+<li>GraphicBuffer.unlock</li>
+<li>queueBuffer</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://www.mail-archive.com/android-framework@googlegroups.com/msg01901.html">http://www.mail-archive.com/android-framework@googlegroups.com/msg01901.html</a></li>
+<li><a href="http://stackoverflow.com/questions/4576909/understanding-canvas-and-surface-concepts">http://stackoverflow.com/questions/4576909/understanding-canvas-and-surface-concepts</a></li>
+<li><a href="http://www.androidenea.com/2010/03/share-memory-using-ashmem-and-binder-in.html">关于MemoryHeapBase</a></li>
+<li><a href="http://blog.csdn.net/myarrow/article/details/7180561">http://blog.csdn.net/myarrow/article/details/7180561</a></li>
+<li><a href="http://blog.csdn.net/droidphone/article/details/5972568">http://blog.csdn.net/droidphone/article/details/5972568</a></li>
+</ul>
+
+
+<h3>待续&hellip;</h3>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Calvin Lee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-21T00:00:00+08:00" pubdate data-updated="true">Apr 21<span>st</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>Android</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/04/20/diff-files-over-ssh/" title="Previous Post: Diff files over SSH">&laquo; Diff files over SSH</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/04/26/android-init-socket/" title="Next Post: android get control socket">android get control socket &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

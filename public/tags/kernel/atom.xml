@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: kernel | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/tags/kernel/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2014-02-21T21:53:33+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[禁用内核进程地址随机]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/11/04/disable-kernel-random-address/"/>
+    <updated>2013-11-04T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/11/04/disable-kernel-random-address</id>
+    <content type="html"><![CDATA[<p>今天接触了Linux下的VDSO（Virtual Dynamically-linked Shared Object)，用来使系统调用更加快速和高效，但在查看进程vdso.so在进程地址空间的分布时，发现每次打印出来的进程地址都不一样：</p>
+
+<pre><code>$ ldd /bin/ls
+    linux-vdso.so.1 =&gt;  (0x00007ffff7ffe000)
+    libselinux.so.1 =&gt; /lib/x86\_64-linux-gnu/libselinux.so.1 (0x00007ffff7dc0000)
+    librt.so.1 =&gt; /lib/x86\_64-linux-gnu/librt.so.1 (0x00007ffff7bb8000)
+    libacl.so.1 =&gt; /lib/x86\_64-linux-gnu/libacl.so.1 (0x00007ffff79af000)
+    libc.so.6 =&gt; /lib/x86\_64-linux-gnu/libc.so.6 (0x00007ffff75ef000)
+    libdl.so.2 =&gt; /lib/x86\_64-linux-gnu/libdl.so.2 (0x00007ffff73eb000)
+    /lib64/ld-linux-x86-64.so.2 (0x0000555555554000)
+    libpthread.so.0 =&gt; /lib/x86\_64-linux-gnu/libpthread.so.0 (0x00007ffff71cd000)
+    libattr.so.1 =&gt; /lib/x86\_64-linux-gnu/libattr.so.1 (0x00007ffff6fc8000)
+$ cat /proc/self/maps 
+00400000-0040b000 r-xp 00000000 08:05 1438995                            /bin/cat
+0060a000-0060b000 r--p 0000a000 08:05 1438995                            /bin/cat
+0060b000-0060c000 rw-p 0000b000 08:05 1438995                            /bin/cat
+0060c000-0062d000 rw-p 00000000 00:00 0                                  [heap]
+7ffff7337000-7ffff7a1a000 r--p 00000000 08:05 137790                     /usr/lib/locale/locale-archive
+7ffff7a1a000-7ffff7bcf000 r-xp 00000000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7bcf000-7ffff7dcf000 ---p 001b5000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7dcf000-7ffff7dd3000 r--p 001b5000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7dd3000-7ffff7dd5000 rw-p 001b9000 08:05 407680                     /lib/x86\_64-linux-gnu/libc-2.15.so
+7ffff7dd5000-7ffff7dda000 rw-p 00000000 00:00 0 
+7ffff7dda000-7ffff7dfc000 r-xp 00000000 08:05 407692                     /lib/x86\_64-linux-gnu/ld-2.15.so
+7ffff7fd9000-7ffff7fdc000 rw-p 00000000 00:00 0 
+7ffff7ff9000-7ffff7ffb000 rw-p 00000000 00:00 0 
+7ffff7ffb000-7ffff7ffc000 r-xp 00000000 00:00 0                          [vdso]
+7ffff7ffc000-7ffff7ffd000 r--p 00022000 08:05 407692                     /lib/x86\_64-linux-gnu/ld-2.15.so
+7ffff7ffd000-7ffff7fff000 rw-p 00023000 08:05 407692                     /lib/x86\_64-linux-gnu/ld-2.15.so
+7ffffffde000-7ffffffff000 rw-p 00000000 00:00 0                          [stack]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+</code></pre>
+
+<p>原来在现代Linux内核中，为了安全起见，会对每个进程的进程地址进行随机化。用以下命令即可禁用这个功能：</p>
+
+<pre><code>echo "0" &gt; /proc/sys/kernel/randomize_va_space
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

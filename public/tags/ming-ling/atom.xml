@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: 命令 | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/tags/ming-ling/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2014-02-21T21:53:33+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[pmap介绍]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/11/11/introducing-pmap/"/>
+    <updated>2013-11-11T18:36:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/11/11/introducing-pmap</id>
+    <content type="html"><![CDATA[<p>pmap用来打印进程地址空间占用。通常也可以通过如下命令来查看：</p>
+
+<pre><code>cat /proc/self/maps 
+</code></pre>
+
+<p>但用pmap包含更多的信息，显示结果也更直观:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>$ pmap -d 4827
+</span><span class='line'>4827:   bash
+</span><span class='line'>Address           Kbytes Mode  Offset           Device    Mapping
+</span><span class='line'>0000000000400000     896 r-x-- 0000000000000000 008:00005 bash
+</span><span class='line'>00000000006e0000       4 r---- 00000000000e0000 008:00005 bash
+</span><span class='line'>00000000006e1000      36 rw--- 00000000000e1000 008:00005 bash
+</span><span class='line'>00000000006ea000      24 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>0000000001a8d000    5388 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>00007f1c6c5cd000      48 r-x-- 0000000000000000 008:00005 libnss_files-2.15.so
+</span><span class='line'>00007f1c6c5d9000    2044 ----- 000000000000c000 008:00005 libnss_files-2.15.so
+</span><span class='line'>00007f1c6c7d8000       4 r---- 000000000000b000 008:00005 libnss_files-2.15.so
+</span><span class='line'>00007f1c6c7d9000       4 rw--- 000000000000c000 008:00005 libnss_files-2.15.so
+</span><span class='line'>00007f1c6c7da000      40 r-x-- 0000000000000000 008:00005 libnss_nis-2.15.so
+</span><span class='line'>00007f1c6c7e4000    2048 ----- 000000000000a000 008:00005 libnss_nis-2.15.so
+</span><span class='line'>00007f1c6c9e4000       4 r---- 000000000000a000 008:00005 libnss_nis-2.15.so
+</span><span class='line'>00007f1c6c9e5000       4 rw--- 000000000000b000 008:00005 libnss_nis-2.15.so
+</span><span class='line'>00007f1c6c9e6000      92 r-x-- 0000000000000000 008:00005 libnsl-2.15.so
+</span><span class='line'>00007f1c6c9fd000    2044 ----- 0000000000017000 008:00005 libnsl-2.15.so
+</span><span class='line'>00007f1c6cbfc000       4 r---- 0000000000016000 008:00005 libnsl-2.15.so
+</span><span class='line'>00007f1c6cbfd000       4 rw--- 0000000000017000 008:00005 libnsl-2.15.so
+</span><span class='line'>00007f1c6cbfe000       8 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>00007f1c6cc00000      32 r-x-- 0000000000000000 008:00005 libnss_compat-2.15.so
+</span><span class='line'>00007f1c6cc08000    2044 ----- 0000000000008000 008:00005 libnss_compat-2.15.so
+</span><span class='line'>00007f1c6ce07000       4 r---- 0000000000007000 008:00005 libnss_compat-2.15.so
+</span><span class='line'>00007f1c6ce08000       4 rw--- 0000000000008000 008:00005 libnss_compat-2.15.so
+</span><span class='line'>00007f1c6ce09000    7052 r---- 0000000000000000 008:00005 locale-archive
+</span><span class='line'>00007f1c6d4ec000    1748 r-x-- 0000000000000000 008:00005 libc-2.15.so
+</span><span class='line'>00007f1c6d6a1000    2048 ----- 00000000001b5000 008:00005 libc-2.15.so
+</span><span class='line'>00007f1c6d8a1000      16 r---- 00000000001b5000 008:00005 libc-2.15.so
+</span><span class='line'>00007f1c6d8a5000       8 rw--- 00000000001b9000 008:00005 libc-2.15.so
+</span><span class='line'>00007f1c6d8a7000      20 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>00007f1c6d8ac000       8 r-x-- 0000000000000000 008:00005 libdl-2.15.so
+</span><span class='line'>00007f1c6d8ae000    2048 ----- 0000000000002000 008:00005 libdl-2.15.so
+</span><span class='line'>00007f1c6daae000       4 r---- 0000000000002000 008:00005 libdl-2.15.so
+</span><span class='line'>00007f1c6daaf000       4 rw--- 0000000000003000 008:00005 libdl-2.15.so
+</span><span class='line'>00007f1c6dab0000     136 r-x-- 0000000000000000 008:00005 libtinfo.so.5.9
+</span><span class='line'>00007f1c6dad2000    2048 ----- 0000000000022000 008:00005 libtinfo.so.5.9
+</span><span class='line'>00007f1c6dcd2000      16 r---- 0000000000022000 008:00005 libtinfo.so.5.9
+</span><span class='line'>00007f1c6dcd6000       4 rw--- 0000000000026000 008:00005 libtinfo.so.5.9
+</span><span class='line'>00007f1c6dcd7000     136 r-x-- 0000000000000000 008:00005 ld-2.15.so
+</span><span class='line'>00007f1c6ded7000      12 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>00007f1c6def0000      28 r--s- 0000000000000000 008:00005 gconv-modules.cache
+</span><span class='line'>00007f1c6def7000       8 rw--- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>00007f1c6def9000       4 r---- 0000000000022000 008:00005 ld-2.15.so
+</span><span class='line'>00007f1c6defa000       8 rw--- 0000000000023000 008:00005 ld-2.15.so
+</span><span class='line'>00007fffe147d000     132 rw--- 0000000000000000 000:00000   [ stack ]
+</span><span class='line'>00007fffe15ff000       4 r-x-- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>ffffffffff600000       4 r-x-- 0000000000000000 000:00000   [ anon ]
+</span><span class='line'>mapped: 30276K    writeable/private: 5668K    shared: 28K
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>可以看出，这个进程的虚拟地址空间大小微30276k，实际占用的物理内存微5668k。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[bind mount的使用]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/11/07/awesome-bind-mount/"/>
+    <updated>2013-11-07T18:10:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/11/07/awesome-bind-mount</id>
+    <content type="html"><![CDATA[<p>如果你需要暂时修改一个配置文件用来测试，但是这个配置文件是read only的，你不想大费周折，怎么办？这时bind mount就可以派上用场。</p>
+
+<p>mount命令的常规用法是将一个<em>块设备</em>上的文件系统挂载一个指定的路径。而bind选项可以将一个目录挂载到一个指定的路径。</p>
+
+<p>假设我们需要临时修改一下config文件，但是当前用户没有权限修改这个文件：
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls /tmp/etc/
+</span><span class='line'>total 0
+</span><span class='line'>-rw-r&mdash;&mdash;&ndash; 1 root root 0 Nov 12 10:38 config
+</span><span class='line'>$ sudo cat /tmp/etc/config
+</span><span class='line'>sky=0</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>现在我们将/tmp/bind_dir挂载到/tmp/etc：
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>$ sudo mount --bind /tmp/bind_dir /tmp/etc
+</span><span class='line'>$ ls /tmp/bind_dir/
+</span><span class='line'>total 0
+</span><span class='line'>$ ls /tmp/etc/
+</span><span class='line'>total 0
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div>
+现在/tmp/bind_dir被挂载到了/tmp/etc，也就是说访问/tmp/etc实际上是访问的是/etc/bind_dir目录。现在我们可以往/tmp/etc目录写入我们想要的修改：</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>$ touch /tmp/etc/config
+</span><span class='line'>$ echo "tmp=1" &gt;&gt; /tmp/etc/config
+</span><span class='line'>$ cat /tmp/etc/config
+</span><span class='line'>tmp=1
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>现在就达到了修改/tmp/etc/config的目的，可以执行测试。测试完毕后，执行umount：
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo umount /tmp/etc/</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>/tmp/etc目录下的内容没有变化：
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ sudo umount /tmp/etc/
+</span><span class='line'>$ ls /tmp/etc/
+</span><span class='line'>total 4.0K
+</span><span class='line'>-rw-r&mdash;&mdash;&ndash; 1 root root 6 Nov 12 10:41 config
+</span><span class='line'>$ sudo cat /tmp/etc/config
+</span><span class='line'>sky=0</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>mount的过程实际上是inode被替换的过程，这里我们将/tmp/bind_dir挂载到/tmp/etc上，实际上的实现过程是将/tmp/etc的dentry目录项所指向的inode重定向到/tmp/bind_dir的inode索引节点，也就是说让/tmp/bind_dir和/tmp/etc指向同一个inode节点：
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>$ ls -lid /tmp/bind_dir/ /tmp/etc/
+</span><span class='line'>1094756 drwxrwxr-x 2 calvin calvin 4.0K Nov 12 10:47 /tmp/bind_dir/
+</span><span class='line'>1094756 drwxrwxr-x 2 calvin calvin 4.0K Nov 12 10:47 /tmp/etc/</span></code></pre></td></tr></table></div></figure></notextile></div>
+可见两个路径都指向了1094756的inode索引节点。</p>
+
+<p>另外几个应用bind mount的例子：<br/>
+* <a href="http://docs.1h.com/Bind_mounts">http://docs.1h.com/Bind_mounts</a><br/>
+* <a href="http://backdrift.org/how-to-use-bind-mounts-in-linux">http://backdrift.org/how-to-use-bind-mounts-in-linux</a></p>
+
+<h1>Reference</h1>
+
+<p><a href="http://alanwu.blog.51cto.com/3652632/1105681">ext3 mount过程</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Unix Epoch 与 时间字符串的转换]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/11/29/convertion-between-epoch-and-regular-time/"/>
+    <updated>2012-11-29T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/11/29/convertion-between-epoch-and-regular-time</id>
+    <content type="html"><![CDATA[<h3>字符串 &mdash;> Epoch</h3>
+
+<pre><code>$ date -d "2012/11/29" +%s
+1354118400
+</code></pre>
+
+<h3>Epoch &mdash;> 字符串</h3>
+
+<pre><code>$ date -d@1354118400
+Thu Nov 29 00:00:00 CST 2012
+</code></pre>
+
+<p>或者加上格式控制：</p>
+
+<pre><code>$ date -d@1354118400 '+%Y-%m-%d %H:%M:%S'
+2012-11-29 00:00:00
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[拉风的vim保存方法]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/06/02/write-file-in-vim-without-sudo/"/>
+    <updated>2012-06-02T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/06/02/write-file-in-vim-without-sudo</id>
+    <content type="html"><![CDATA[<p>用vim编辑root用户的文件时，经常忘了敲sudo，结果保存不了。一个work around是保存为一个临时文件，然后sudo cp回去，不过从现在开始，我们可以这样做，输入：</p>
+
+<pre><code>:w !sudo tee %
+</code></pre>
+
+<p>%代表当前编辑文件的文件路径，<code>tee %</code>表示把stdin的输入输入到stdout，同时保存到一个文件。<br/>
+<code>w !{cmd}</code>意思是说执行一个外部命令cmd，同时把当前缓冲区的内从通过管道连接到cmd的stdin。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[使用iconv和convmv转换文本编码]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/31/convmv-and-iconv/"/>
+    <updated>2012-05-31T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/31/convmv-and-iconv</id>
+    <content type="html"><![CDATA[<h3>文本内容编码转换</h3>
+
+<p>文本显示乱码是因为文件本身的编码格式和编辑器打开文本所使用的编码格式不一致，使用iconv命令可以转换文本编码。如：</p>
+
+<pre><code>$ iconv -f coding1 -t coding2 file1 -o file2
+-f:指定文件原始编码
+-t:指定转换的目标编码
+file1:代转换的文件
+-o:指定输出文件
+</code></pre>
+
+<h3>文件名编码转换</h3>
+
+<p>常常有这样的情况，将一个rar文件解压后中文的文件名显示乱码，显示”invalid encoding“，利用convmv命令可以进行转换：</p>
+
+<pre><code>$ convmv -f gbk -t utf-8 -r --notest path/to/your/file
+-f:指定原始编码
+-t:指定转换的目标编码
+-r:如果目标文件是一个目录，递归处理目录下的文件
+--notest:转换后将文件重命名，默认情况下这个命令不会重命名文件
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

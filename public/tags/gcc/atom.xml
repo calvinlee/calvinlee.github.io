@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: gcc | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/tags/gcc/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2014-02-21T21:53:33+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Ubuntu下gcc编译找不到libc.so]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/04/15/ubuntu-gcc-cannot-find-lc/"/>
+    <updated>2012-04-15T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/04/15/ubuntu-gcc-cannot-find-lc</id>
+    <content type="html"><![CDATA[<p>前几天升级了Ubuntu系统，今天编译时出现如下错误：</p>
+
+<pre><code>$ gcc buffer.c 
+/usr/bin/ld: cannot find -lc
+collect2: ld returned 1 exit status
+</code></pre>
+
+<p>明显是ld找不到libc.so，可能时升级系统引起的。
+查看/etc/ld.so.conf:</p>
+
+<pre><code>$ cat /etc/ld.so.conf
+include /etc/ld.so.conf.d/*.conf
+$ cat /etc/ld.so.conf.d/*.conf
+/usr/lib/mesa
+# Multiarch support
+/lib/i486-linux-gnu
+/usr/lib/i486-linux-gnu
+# Multiarch support
+/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu
+/lib/i686-linux-gnu
+/usr/lib/i686-linux-gnu
+/usr/lib/alsa-lib
+# libc default configuration
+/usr/local/lib
+</code></pre>
+
+<p>刷新ld conf cache：</p>
+
+<pre><code>$ sudo ldconfig
+</code></pre>
+
+<p>还是不能解决问题。
+之后</p>
+
+<pre><code>$ locate libc.so
+/lib/i386-linux-gnu/libc.so.6
+/usr/lib/i386-linux-gnu/libc.so
+$ sudo ln -s /usr/lib/i386-linux-gnu/libc.so /usr/lib/libc.so
+</code></pre>
+
+<p>再编译，成功了，ld.so.conf中已经包含了/usr/lib/i386-linux-gnu目录了，按理说应该可以找到libc.so，不知道为何要在/usr/lib下建个软链接才行。不解，留待日后再研究。</p>
+
+<hr />
+
+<h3>Update</h3>
+
+<h4>编译期链接</h4>
+
+<p>当编译完成生成目标文件（.o）后，ld程序会对目标文件进行链接。(GCC没有调用ld进行链接，它调用一个名为collect2的程序，然后由collect2调用ld来进行链接)<br/>
+默认情况下，GCC在编译阶段搜索头文件的路径为：</p>
+
+<pre><code>1. /usr/local/include/
+2. /usr/include/
+</code></pre>
+
+<p>在链接搜索库文件的路径为：</p>
+
+<pre><code>1. /usr/local/lib/
+2. /usr/lib/
+</code></pre>
+
+<p>通过gcc选项指定搜索路径</p>
+
+<ul>
+<li>头文件的搜索路径可以通过gcc -I选项指定。</li>
+<li>库文件的搜索路径可以通过gcc -L选项指定。</li>
+</ul>
+
+
+<p>通过环境变量指定搜索路径</p>
+
+<ul>
+<li>环境变量C_INCLUDE_PATH(for c)和CPLUS_INCLUDE_PATH(for c++)可以指定头文件搜索路径</li>
+<li>环境变量LIBRARY_PATH可以指定库文件搜索路径</li>
+</ul>
+
+
+<p>搜索顺序为：</p>
+
+<ol>
+<li>-I或者-L指定的路径</li>
+<li>通过环境变量指定的路径</li>
+<li>默认路径</li>
+</ol>
+
+
+<p>参考<a href="http://www.network-theory.co.uk/docs/gccintro/gccintro_21.html">here</a></p>
+
+<h4>运行时进行动态链接</h4>
+
+<p>运行一个程序时，ld.so/ld-linux.so会对程序依赖的共享库进行搜索，然后装载进内存，进行重定位，最后控制权移交给程序开始运行。ld.so搜索依赖的共享库的路径顺序为：</p>
+
+<ol>
+<li>查找环境变量LD_LIBRARY_PATH指定的路径。然而如果这个程序的setuid/setgid为被设置，这个步骤被忽略</li>
+<li>查找/etc/ld.so.cache中的共享库列表</li>
+<li>查找/lib</li>
+<li>查找/usr/lib</li>
+</ol>
+
+
+<p>另外，程序本身也可以通过hard-code的方式在执行文件中通过rpath这个字段指定依赖的啥share library的路径：</p>
+
+<pre><code>readelf -d &lt;binary_file&gt; | grep RPATH
+</code></pre>
+
+<p><strong>/etc/ld.so.conf以及LD_LIBRARY_PATH配置的路径是为runtime-linker（ld.so）用的，不是compile-time(ld)!</strong><br/>
+上述问题是一个编译期问题，所以修改更新/etc/ld.so.conf对解决问题没有帮助，而在/usr/lib下创建一个到libc.so的链接则可以让gcc找到从而正确链接。</p>
+
+<p>参考 man ldd, man ld, man 8 ld.so, man dlopen, man ldconfig</p>
+
+<p>Reference:</p>
+
+<ul>
+<li><a href="http://www.threeway.cc/sitecn/informationInfo.aspx?tid=1382&amp;pid=2445">http://www.threeway.cc/sitecn/informationInfo.aspx?tid=1382&amp;pid=2445</a></li>
+<li><a href="http://askubuntu.com/questions/40416/why-is-lib-libc-so-6-missing">http://askubuntu.com/questions/40416/why-is-lib-libc-so-6-missing</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

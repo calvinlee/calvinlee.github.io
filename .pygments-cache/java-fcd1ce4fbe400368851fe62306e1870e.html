@@ -1,0 +1,36 @@
+<div class="highlight"><pre>    <span class="cm">/**</span>
+<span class="cm">     * Default implementation is a stub that returns false.  You will want</span>
+<span class="cm">     * to override this to do the appropriate unmarshalling of transactions.</span>
+<span class="cm">     *</span>
+<span class="cm">     * &lt;p&gt;If you want to call this, call transact().</span>
+<span class="cm">     */</span>
+    <span class="kd">protected</span> <span class="kt">boolean</span> <span class="nf">onTransact</span><span class="o">(</span><span class="kt">int</span> <span class="n">code</span><span class="o">,</span> <span class="n">Parcel</span> <span class="n">data</span><span class="o">,</span> <span class="n">Parcel</span> <span class="n">reply</span><span class="o">,</span>
+            <span class="kt">int</span> <span class="n">flags</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">RemoteException</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">code</span> <span class="o">==</span> <span class="n">INTERFACE_TRANSACTION</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">reply</span><span class="o">.</span><span class="na">writeString</span><span class="o">(</span><span class="n">getInterfaceDescriptor</span><span class="o">());</span>
+            <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">code</span> <span class="o">==</span> <span class="n">DUMP_TRANSACTION</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">ParcelFileDescriptor</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="na">readFileDescriptor</span><span class="o">();</span>
+            <span class="n">String</span><span class="o">[]</span> <span class="n">args</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="na">readStringArray</span><span class="o">();</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">fd</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">try</span> <span class="o">{</span>
+                    <span class="n">dump</span><span class="o">(</span><span class="n">fd</span><span class="o">.</span><span class="na">getFileDescriptor</span><span class="o">(),</span> <span class="n">args</span><span class="o">);</span>
+                <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+                    <span class="k">try</span> <span class="o">{</span>
+                        <span class="n">fd</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+                    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="c1">// swallowed, not propagated back to the caller</span>
+                    <span class="o">}</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+            <span class="c1">// Write the StrictMode header.</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">reply</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">reply</span><span class="o">.</span><span class="na">writeNoException</span><span class="o">();</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="n">StrictMode</span><span class="o">.</span><span class="na">clearGatheredViolations</span><span class="o">();</span>
+            <span class="o">}</span>
+            <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+    <span class="o">}</span>
+</pre></div>

@@ -1,0 +1,436 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>分析Android App内存占用 - 且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="使用dumpsys 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+shell@android:/ # dumpsys meminfo com.android. &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/2014/02/20/analyzing-android-memory-usage">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<script src="/javascripts/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  // Revert jQuery's '$' alias, to avoid clashes with ender.js. NOTE: Use
+  // jQuery(...), instead of $(...) from here on.
+  jQuery.noConflict();
+</script>
+<script src="/javascripts/generate-toc.js" type="text/javascript" charset="utf-8"></script>
+
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">分析Android App内存占用</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-20T22:41:00+08:00" pubdate data-updated="true">Feb 20<span>th</span>, 2014</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>使用dumpsys</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>shell@android:/ <span class="c"># dumpsys meminfo com.android.systemui</span>
+</span><span class='line'>Applications Memory Usage <span class="o">(</span>kB<span class="o">)</span>:
+</span><span class='line'>Uptime: 296724 Realtime: 296723
+</span><span class='line'>** MEMINFO in pid 2786 <span class="o">[</span>com.android.systemui<span class="o">]</span> **
+</span><span class='line'>                         Shared  Private     Heap     Heap     Heap
+</span><span class='line'>                   Pss    Dirty    Dirty     Size    Alloc     Free
+</span><span class='line'>                ------   ------   ------   ------   ------   ------
+</span><span class='line'>       Native        0        0        0    12540    12384       83
+</span><span class='line'>       Dalvik     8256     5128     8088    13192     8327     4865
+</span><span class='line'>       Cursor        0        0        0
+</span><span class='line'>       Ashmem        0        0        0
+</span><span class='line'>    Other dev        4       24        0
+</span><span class='line'>     .so mmap     1704     1996     1256
+</span><span class='line'>    .jar mmap        0        0        0
+</span><span class='line'>    .apk mmap      750        0        0
+</span><span class='line'>    .ttf mmap        4        0        0
+</span><span class='line'>    .dex mmap     1284        0        0
+</span><span class='line'>   Other mmap       83       20       32
+</span><span class='line'>      Unknown     5692      652     5676
+</span><span class='line'>        TOTAL    17777     7820    15052    25732    20711     4948
+</span><span class='line'>
+</span><span class='line'> Objects
+</span><span class='line'>               Views:      155         ViewRootImpl:        7
+</span><span class='line'>         AppContexts:       12           Activities:        0
+</span><span class='line'>              Assets:        3        AssetManagers:        3
+</span><span class='line'>       Local Binders:       38        Proxy Binders:       38
+</span><span class='line'>    Death Recipients:        3
+</span><span class='line'>     OpenSSL Sockets:        0
+</span><span class='line'>
+</span><span class='line'> SQL
+</span><span class='line'>         MEMORY_USED:        0
+</span><span class='line'>  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有价值的两个值：</p>
+
+<ul>
+<li>PSS（Proportional Set Size ）<br/>
+应用本身所占的物理内存 + 和其他应用share的内存。这个值会被系统作为这个应用的phisical memory footprint</li>
+<li>Private Dirty<br/>
+应用本身所占的物理内存，如果把该应用杀掉，那么就会释放这些内存
+通过AppContexts和Activities可以判断应用是否有activity内存泄漏（如果这个值一直在增长）。</li>
+</ul>
+
+
+<h2>Tips for memory usage</h2>
+
+<blockquote><p><a href="http://developer.android.com/training/articles/memory.html">http://developer.android.com/training/articles/memory.html</a></p></blockquote>
+
+<ol>
+<li>Service会阻止进程被系统杀掉，不要让service一直运行，最好使用IntentService，运行完一个job就退出。</li>
+<li>在onTrimMemory回调中释放UI资源（注意：这里不同于onStop）</li>
+<li>使用getMemoryClass()获得应用的heap大小。app也可以使用android:largeHeap选项请求大的heap（慎用！）。</li>
+<li>使用优化过的数据结构： SparseArray, SparseBooleanArray, and LongSparseArray.</li>
+<li>除非有必要，否则不要抽象代码</li>
+<li>使用nano protocol buffer来取代xml序列化数据</li>
+<li>谨慎使用第三方库，因为这些库并不适合移动设备的运行环境。也不要为了使用so库中一两个功能，而引入整个库。</li>
+<li>使用ProGuard来压缩代码：去除无用的代码，同时混淆代码</li>
+<li>涉及到UI资源的进程很占内存。所以如果需要后台运行的service，如音乐播放，可以将这个service配置到另外的进程里，这样系统可以不用为了保持这个service服务的运行，而必须保留占内存的UI进程。</li>
+</ol>
+
+
+<h2>其他工具</h2>
+
+<p>adb shell procrank<br/>
+adb shell cat /proc/meminfo</p>
+
+<h2>Reference</h2>
+
+<p><a href="http://developer.android.com/tools/debugging/debugging-memory.html">http://developer.android.com/tools/debugging/debugging-memory.html</a>
+<a href="http://elinux.org/Android_Memory_Usage">http://elinux.org/Android_Memory_Usage</a>
+<a href="http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/">http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/</a></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Calvin Lee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-20T22:41:00+08:00" pubdate data-updated="true">Feb 20<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/android/'>Android</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/02/20/managing-bitmap-memory/" title="Previous Post: bitmap内存管理">&laquo; bitmap内存管理</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://calvinlee.github.io/blog/2014/02/20/analyzing-android-memory-usage/';
+        var disqus_url = 'http://calvinlee.github.io/blog/2014/02/20/analyzing-android-memory-usage/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

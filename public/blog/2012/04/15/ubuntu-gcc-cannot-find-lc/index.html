@@ -1,0 +1,410 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Ubuntu下gcc编译找不到libc.so - 且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="前几天升级了Ubuntu系统，今天编译时出现如下错误： $ gcc buffer.c /usr/bin/ld: cannot find -lc
+collect2: ld returned 1 exit status 明显是ld找不到libc.so，可能时升级系统引起的。
+查看/etc/ld.so. &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/2012/04/15/ubuntu-gcc-cannot-find-lc">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<script src="/javascripts/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  // Revert jQuery's '$' alias, to avoid clashes with ender.js. NOTE: Use
+  // jQuery(...), instead of $(...) from here on.
+  jQuery.noConflict();
+</script>
+<script src="/javascripts/generate-toc.js" type="text/javascript" charset="utf-8"></script>
+
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Ubuntu下gcc编译找不到libc.so</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-15T00:00:00+08:00" pubdate data-updated="true">Apr 15<span>th</span>, 2012</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>前几天升级了Ubuntu系统，今天编译时出现如下错误：</p>
+
+<pre><code>$ gcc buffer.c 
+/usr/bin/ld: cannot find -lc
+collect2: ld returned 1 exit status
+</code></pre>
+
+<p>明显是ld找不到libc.so，可能时升级系统引起的。
+查看/etc/ld.so.conf:</p>
+
+<pre><code>$ cat /etc/ld.so.conf
+include /etc/ld.so.conf.d/*.conf
+$ cat /etc/ld.so.conf.d/*.conf
+/usr/lib/mesa
+# Multiarch support
+/lib/i486-linux-gnu
+/usr/lib/i486-linux-gnu
+# Multiarch support
+/lib/i386-linux-gnu
+/usr/lib/i386-linux-gnu
+/lib/i686-linux-gnu
+/usr/lib/i686-linux-gnu
+/usr/lib/alsa-lib
+# libc default configuration
+/usr/local/lib
+</code></pre>
+
+<p>刷新ld conf cache：</p>
+
+<pre><code>$ sudo ldconfig
+</code></pre>
+
+<p>还是不能解决问题。
+之后</p>
+
+<pre><code>$ locate libc.so
+/lib/i386-linux-gnu/libc.so.6
+/usr/lib/i386-linux-gnu/libc.so
+$ sudo ln -s /usr/lib/i386-linux-gnu/libc.so /usr/lib/libc.so
+</code></pre>
+
+<p>再编译，成功了，ld.so.conf中已经包含了/usr/lib/i386-linux-gnu目录了，按理说应该可以找到libc.so，不知道为何要在/usr/lib下建个软链接才行。不解，留待日后再研究。</p>
+
+<hr />
+
+<h3>Update</h3>
+
+<h4>编译期链接</h4>
+
+<p>当编译完成生成目标文件（.o）后，ld程序会对目标文件进行链接。(GCC没有调用ld进行链接，它调用一个名为collect2的程序，然后由collect2调用ld来进行链接)<br/>
+默认情况下，GCC在编译阶段搜索头文件的路径为：</p>
+
+<pre><code>1. /usr/local/include/
+2. /usr/include/
+</code></pre>
+
+<p>在链接搜索库文件的路径为：</p>
+
+<pre><code>1. /usr/local/lib/
+2. /usr/lib/
+</code></pre>
+
+<p>通过gcc选项指定搜索路径</p>
+
+<ul>
+<li>头文件的搜索路径可以通过gcc -I选项指定。</li>
+<li>库文件的搜索路径可以通过gcc -L选项指定。</li>
+</ul>
+
+
+<p>通过环境变量指定搜索路径</p>
+
+<ul>
+<li>环境变量C_INCLUDE_PATH(for c)和CPLUS_INCLUDE_PATH(for c++)可以指定头文件搜索路径</li>
+<li>环境变量LIBRARY_PATH可以指定库文件搜索路径</li>
+</ul>
+
+
+<p>搜索顺序为：</p>
+
+<ol>
+<li>-I或者-L指定的路径</li>
+<li>通过环境变量指定的路径</li>
+<li>默认路径</li>
+</ol>
+
+
+<p>参考<a href="http://www.network-theory.co.uk/docs/gccintro/gccintro_21.html">here</a></p>
+
+<h4>运行时进行动态链接</h4>
+
+<p>运行一个程序时，ld.so/ld-linux.so会对程序依赖的共享库进行搜索，然后装载进内存，进行重定位，最后控制权移交给程序开始运行。ld.so搜索依赖的共享库的路径顺序为：</p>
+
+<ol>
+<li>查找环境变量LD_LIBRARY_PATH指定的路径。然而如果这个程序的setuid/setgid为被设置，这个步骤被忽略</li>
+<li>查找/etc/ld.so.cache中的共享库列表</li>
+<li>查找/lib</li>
+<li>查找/usr/lib</li>
+</ol>
+
+
+<p>另外，程序本身也可以通过hard-code的方式在执行文件中通过rpath这个字段指定依赖的啥share library的路径：</p>
+
+<pre><code>readelf -d &lt;binary_file&gt; | grep RPATH
+</code></pre>
+
+<p><strong>/etc/ld.so.conf以及LD_LIBRARY_PATH配置的路径是为runtime-linker（ld.so）用的，不是compile-time(ld)!</strong><br/>
+上述问题是一个编译期问题，所以修改更新/etc/ld.so.conf对解决问题没有帮助，而在/usr/lib下创建一个到libc.so的链接则可以让gcc找到从而正确链接。</p>
+
+<p>参考 man ldd, man ld, man 8 ld.so, man dlopen, man ldconfig</p>
+
+<p>Reference:</p>
+
+<ul>
+<li><a href="http://www.threeway.cc/sitecn/informationInfo.aspx?tid=1382&amp;pid=2445">http://www.threeway.cc/sitecn/informationInfo.aspx?tid=1382&amp;pid=2445</a></li>
+<li><a href="http://askubuntu.com/questions/40416/why-is-lib-libc-so-6-missing">http://askubuntu.com/questions/40416/why-is-lib-libc-so-6-missing</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Calvin Lee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-15T00:00:00+08:00" pubdate data-updated="true">Apr 15<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/linux/'>Linux</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/04/14/format-heredoc-in-vim/" title="Previous Post: VIM heredoc格式化问题">&laquo; VIM heredoc格式化问题</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/04/20/diff-files-over-ssh/" title="Next Post: Diff files over SSH">Diff files over SSH &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

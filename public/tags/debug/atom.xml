@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tag: debug | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/tags/debug/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2014-02-21T21:53:33+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Eclipse 调试中的五种断点]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/01/28/eclipse-debug-break-points/"/>
+    <updated>2013-01-28T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/01/28/eclipse-debug-break-points</id>
+    <content type="html"><![CDATA[<p>Eclipse调试支持五种不同的断点，这些断点都可以通过Run主菜单下的选项来添加或者删除。</p>
+
+<h3>Line breakpoints</h3>
+
+<p>Line breakpoints就是我们平时使用最多的一种断点类型，它以代码行为单位，代码执行到这一行时就会被suspend。有两个比较有用的属性：</p>
+
+<ul>
+<li>Condition breakpoint
+为该断点添加一个条件，只有当这个条件成立时才会suspend</li>
+<li>Hit count
+指定一个整数值N，只有当这个断点被执行过的次数达到N次时才会suspend。</li>
+</ul>
+
+
+<h3>Watchpoint</h3>
+
+<p>Watchpoint针对的是变量。如果我们对程序运行的过程不关心，而对某个关键变量的值的变化比较关心，那么我们可以对这个变量设置一个Watchpoint, 同时指定它的Access和Modification属性用来执行这个变量被访问时suspend还是被修改时suspend。</p>
+
+<p>注意：<br/>
+Android的Dalvik虚拟机目前还不支持这种breakpoint。</p>
+
+<h3>Method breakpoints</h3>
+
+<p>Method breakpoints用来指定针对一个方法的断点。他有两个属性：</p>
+
+<ul>
+<li>Entry：当进入该方法时suspend</li>
+<li>Exit：当执行玩该方法时suspend</li>
+</ul>
+
+
+<h3>Exception breakpoints</h3>
+
+<p>指定当某个exception发生时suspend当前线程。</p>
+
+<h3>Class Load breakpoints</h3>
+
+<p>指定当某个类被虚拟机加载时suspend当前线程。</p>
+
+<p>以上五种断点都可以在Breakpoints 视图中查看，可以通过右上角的菜单，Group by，选择Breakpoint types，这样可以按照这五种类型来对当前所有的Breakpoint进行分类查看，比较方便。</p>
+
+<p><a href="/images/eclipse-debug.png"><img src="/images/eclipse-debug.png" alt="/images/eclipse-debug.png" /></a></p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://www.vogella.com/articles/EclipseDebugging/article.htm">http://www.vogella.com/articles/EclipseDebugging/article.htm</a></li>
+<li><a href="http://developer.51cto.com/art/201111/302928.htm">http://developer.51cto.com/art/201111/302928.htm</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: 读书笔记 | 且听风吟]]></title>
+  <link href="http://calvinlee.github.io/blog/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/atom.xml" rel="self"/>
+  <link href="http://calvinlee.github.io/"/>
+  <updated>2014-02-21T21:53:33+08:00</updated>
+  <id>http://calvinlee.github.io/</id>
+  <author>
+    <name><![CDATA[Calvin Lee]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[CSAPP读书笔记-信息的表示和处理]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/04/13/csapp-representing-and-manipulating-information/"/>
+    <updated>2012-04-13T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/04/13/csapp-representing-and-manipulating-information</id>
+    <content type="html"><![CDATA[<h3>寻址和字节顺序</h3>
+
+<ul>
+<li><p>字长决定整数和指针的大小，因为虚拟地址是以这样的一个字来编码的，所以字长决定的最重要的系统参数就是虚拟地址的空间的最大大小。</p></li>
+<li><p>在存储器中存储数据的顺序分为小端存储和大端存储：<br/>
+  <strong>小端存储</strong>：低字节存储在低地址，高字节存储在高地址。Intel兼容机大多采用这种规则。<br/>
+  <strong>大端存储</strong>：高字节存储在低地址，高字节存储在低地址。IBM和Sun的大型机多采用这种规则。<br/>
+  大多数时候，字节顺序对程序员是透明的。但是字节存储顺序在以下场合会产生问题：<br/>
+  在不同类型的机器间通过网络传送二进制数据，发送方应该把数据转换成网络标准再发送，接收方应该先把数据从网络标准格式转化成内部格式。<br/>
+  阅读表示整数数据的字节序列时</p></li>
+</ul>
+
+
+<h3>表示字符串</h3>
+
+<ul>
+<li><p>使用ASCII码作为字符码在任何系统上的表示方法都相同，与字节顺序和字大小规则无关，因此文本数据比二进制数据有更强的平台独立性。由于不同的机器使用不同且不兼容的指令和编码方式，因此编译后的二进制代码在不同的机器上时不兼容的，如果要在不同的机器上运行程序，必须重新编译生成新的二进制码才能运行。</p></li>
+<li><p>char类型是有符号的还是无符号的？</p></li>
+</ul>
+
+
+<h3>C语言的位运算</h3>
+
+<ul>
+<li><p>表达式~0生成一个全1的掩码，不管机器的字大小是多少，这是一个可移植的写法。</p></li>
+<li><p>C语言中的右移位运算包括逻辑右移和算术右移。逻辑右移在左端补0，算术右移在左端补最高有效位的值。C语言标准并没有规定应该使用哪种类型的右移方式。实际上，对于无符号数据，右移必须是逻辑的。而对于有符号数据，几乎所有的机器都使用算术右移。在Java中对右移有明确定义：运算符<code>&gt;&gt;</code>表示算术右移，运算符<code>&gt;&gt;&gt;</code>表示逻辑右移。</p></li>
+<li><p>一种交换指针所指向的存储位置的方法：</p>
+
+<pre><code>void swap(int *x, int *y) {
+    *y = *x ^ *y;
+    *x = *x ^ *y;
+    *y = *x ^ *y;
+}
+</code></pre></li>
+</ul>
+
+
+<h3>数据类型及转换</h3>
+
+<ul>
+<li><p>整数数据类型的取值范围</p></li>
+<li><p>确定大小的整数类型</p>
+
+<p>由于每种数据类型在不同的机器上可能有不同的取值范围，而c语言标准只是规定了每种数据类型的最小范围，而不是确定的范围，ISO C99在stdint.h中定义了形如intN_t和uintN_t，指定了N位有符号和无符号整数。N一般取值8，16，32，64，如int32_t，可以在所有机器上无歧义的定义一个32位的整型变量。
+Java中没有long long数据类型，单字节数据类型位byte，而不是char。</p></li>
+<li><p>类型转换以及有符号数和无符号数之间的转换</p>
+
+<p>当执行一个运算时，如果一个运算数是有符号的而另一个是无符号的，那么C语言会隐式的将有符号的运算数强制转换为无符号数，并假设这两个数都是非负的。<br/>
+比如在一个32位机器上计算<code>-1&lt;0U</code>，-1的二进制位模式表示为FFFFFFFF，那么有符号数-1会被隐式转换为无符号数——以无符号数来解释位模式FFFFFFFF，那么就变成了计算<code>4294967295U &lt; 0U</code>，而得出来的答案显然是错的。<br/>
+无符号数和有符号数之间的这种隐式转换很容易导致隐藏的bug，使用无符号数一定要谨慎。</p>
+
+<p>类型转换的时机：</p>
+
+<ol>
+<li> 显示的强制转换</li>
+<li> 当一种类型的表达式被赋值给另外一种类型的变量时，发生隐式转换。</li>
+</ol>
+
+
+<p>C语言允许不同数据类型之间的强制转换。这种转换的一般规则是：<strong>转换的数底层的存储位模式不会改变，只是改变了解释这些位的方式。</strong><br/>
+当转换既涉及到大小变化（如int&mdash;>short）又涉及到符号改变时，会先进行大小的转换，再以有符号或者无符号的方式去解释转换后的位模式。如：</p>
+
+<pre><code>  short  sx = 0xcfc7;
+  unsigned uy = sx;
+  printf("uy = %u\n", uy);
+</code></pre>
+
+<p>输出：uy = 4294954951</p>
+
+<p>转换的过程是：<br/>
+先转换大小：short&mdash;>int，进行位扩展，0xcfc7&mdash;>0xffffcfc7<br/>
+再完成有符号到无符号的转换：以无符号的方式解释0xffffcfc7，得到4294954951。</p></li>
+</ul>
+
+
+<h3>Reference</h3>
+
+<p><a href="http://www.ruanyifeng.com/blog/2009/08/twos_complement.html">关于补码</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[C程序设计语言读书笔记]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/03/24/notes-on-the-c-programming-language/"/>
+    <updated>2012-03-24T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/03/24/notes-on-the-c-programming-language</id>
+    <content type="html"><![CDATA[<h3>函数与程序结构</h3>
+
+<p>为什么要使用函数?</p>
+
+<ul>
+<li>隐藏实现细节</li>
+<li>对同一段逻辑，尽可能实现代码复用</li>
+</ul>
+
+
+<p>函数之间的通信可以通过传递参数，函数返回值和外部变量进行。<br/>
+关于函数返回值：<br/>
+默认函数返回值为int类型
+如果返回值为一个表达式，那么表达式的值在返回之前将被转换为函数的类型，这个操作可能会丢失信息，所以某些编译器会给出警告信息。</p>
+
+<p>函数声明<br/>
+如果函数声明中不包含参数，如</p>
+
+<pre><code>double atof();
+</code></pre>
+
+<p>那么编译器为了兼容老版本的C语言策划你工序，将不会对atof的参数做任何假设，并且会关闭所有的参数检查。所以，如果函数带有参数，则要声明它们；如果没有参数，则使用<strong>void</strong>进行声明。</p>
+
+<p>变量类型</p>
+
+<ul>
+<li><p>外部变量</p>
+
+<p>  C语言可以看成是一系列的外部对象构成，这些外部对象包括函数和变量。外部变量可以在全局范围内访问，与内部变量相比，它有更大的作用域和生命周期。任何函数都可以访问一个外部变量，但前提是，<strong>这个变量需要通过某种方式声明</strong>。</p></li>
+<li><p>自动变量</p>
+
+<p>  在函数内部声明的变量，包括函数参数称为自动变量，它们在函数每次调用时初始化，函数调用完成后自动销毁。</p></li>
+<li><p>静态变量</p>
+
+<p> 用static声明外部变量和函数，可以将其声明的对象的作用域限定为被编译原文件的剩余部分，通过static声明外部对象，可以达到隐藏外部对象的目的。被static声明的函数的函数名除了对该函数声明的所在的文件可见外，其他文件无法访问。</p>
+
+<p> static也可用于声明内部变量，它同自动变量一样是局部变量，与自动变量不同的是，不管其所在的函数是否被调用，它一直存在，一直占据存储空间。</p></li>
+<li><p>寄存器变量
+  register声明告诉编译器，它所声明的变量在程序中使用的频率较高，暗示将这个变量放在寄存器中，从而执行速度更快，但是，编译器可以选择忽略这个声明。</p>
+
+<p>  register声明只适用于自动变量以及函数的形式参数。</p></li>
+</ul>
+
+
+<p>作用域<br/>
+外部变量和函数的作用域从声明它的地方开始，到其所在的文件末尾结束。</p>
+
+<p>变量的声明与定义<br/>
+&mdash;> 变量的声明只是说明变量的属性和性质，并不分配存储单元;<br/>
+&mdash;> 变量的定义表示要分配存储单元。<br/>
+变量的声明有两种：</p>
+
+<ol>
+<li><p>定义声明（defining declaration）</p>
+
+<p> 在声明一个变量的时候就为这个变量分配存储空间，这构成了对这个变量的定义。</p></li>
+<li><p>引用声明（referencing declaration)</p>
+
+<p> 不会分配存储空间，只是告诉编译器要使用这个变量。<br/>
+ 变量只能定义一次，但是可以被声明多次。举例如下：</p>
+
+<pre><code> int tern = 1; // 定义声明，声明tern的同时定义tern，导致内存空间的分配
+ main() {
+  extern int tern; // 引用声明，不会分配内存空间
+  int tern = 2; // 错误，重复定义
+
+  extern int var;
+ }
+
+ int var = 5;
+</code></pre>
+
+<p> 关键字extern表明这是一个引用声明，只做引用，不做定义。extern主要用在：</p>
+
+<ol>
+<li>每个需要访问外部变量的函数中，都必须用extern关键字声明相应的外部变量（如上例的tern）;</li>
+<li>要在外部变量的定义之前使用该变量(如上例的var变量);</li>
+<li>外部变量的定义在一个文件中，而在其他文件中需要通过extern声明来访问它。</li>
+</ol>
+</li>
+</ol>
+
+
+<p>函数的声明与定义<br/>
+函数的声明（函数原型）与定义是分开的。函数在使用前必须要先声明，如果没有函数原型，那么在函数第一次使用的时候会被隐式声明：该函数的返回值被假定为int型，而对函数参数不做任何假设。</p>
+
+<p>初始化<br/>
+外部变量和静态变量默认初始化为0，自动变量和寄存器变量的初值没有定义。<br/>
+外部变量和静态变量的初始化表达式必须是常量表达式，且只初始化一次。自动变量和寄存器变量的初始化表达式可以不是常量表达式，且在每次进入函数或者程序块时都要被初始化一次。</p>
+
+<p>Reference：</p>
+
+<ul>
+<li><a href="http://www.cppblog.com/mymsdn/archive/2008/08/19/59377.aspx">http://www.cppblog.com/mymsdn/archive/2008/08/19/59377.aspx</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

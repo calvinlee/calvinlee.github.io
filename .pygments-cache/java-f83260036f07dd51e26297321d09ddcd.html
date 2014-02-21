@@ -1,0 +1,41 @@
+<div class="highlight"><pre><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+
+<span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="cm">/**</span>
+<span class="cm"> * Initialize the current thread as a looper, marking it as an</span>
+<span class="cm"> * application&#39;s main looper. The main looper for your application</span>
+<span class="cm"> * is created by the Android environment, so you should never need</span>
+<span class="cm"> * to call this function yourself.  See also: {@link #prepare()}</span>
+<span class="cm"> */</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">prepareMainLooper</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">prepare</span><span class="o">();</span>
+    <span class="n">setMainLooper</span><span class="o">(</span><span class="n">myLooper</span><span class="o">());</span>
+    <span class="c1">// main looper是不允许退出的，否则应用程序就没得玩了</span>
+    <span class="n">myLooper</span><span class="o">().</span><span class="na">mQueue</span><span class="o">.</span><span class="na">mQuitAllowed</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+<span class="o">}</span>
+
+ <span class="cm">/** Initialize the current thread as a looper.</span>
+<span class="cm">  * This gives you a chance to create handlers that then reference</span>
+<span class="cm">  * this looper, before actually starting the loop. Be sure to call</span>
+<span class="cm">  * {@link #loop()} after calling this method, and end it by calling</span>
+<span class="cm">  * {@link #quit()}.</span>
+<span class="cm">  * </span>
+<span class="cm">  * prepare方法将实例化一个Looper对象，并保存到一个ThreadLocal变量里, 这个</span>
+<span class="cm">  * looper稍后可以通过myLooper()方法取出</span>
+<span class="cm">  */</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">prepare</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">sThreadLocal</span><span class="o">.</span><span class="na">get</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">&quot;Only one Looper may be created per thread&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="n">sThreadLocal</span><span class="o">.</span><span class="na">set</span><span class="o">(</span><span class="k">new</span> <span class="n">Looper</span><span class="o">());</span>
+<span class="o">}</span>
+
+<span class="kd">private</span> <span class="nf">Looper</span><span class="o">()</span> <span class="o">{</span>
+    <span class="c1">// 初始化一个消息队列，其实现稍后解释</span>
+    <span class="n">mQueue</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MessageQueue</span><span class="o">();</span>
+    <span class="n">mRun</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+    <span class="n">mThread</span> <span class="o">=</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">();</span>
+<span class="o">}</span>
+<span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+
+<span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span>
+</pre></div>

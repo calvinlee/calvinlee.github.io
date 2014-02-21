@@ -1,0 +1,375 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>APN切换后数据连接过程 - 且听风吟</title>
+  <meta name="author" content="Calvin Lee">
+
+  
+  <meta name="description" content="注册观察者回调 GsmDataConnectionTracker在实例化时，会注册一个观察者，监视apn数据库的变化。 p.getContext().getContentResolver().registerContentObserver( Telephony.Carriers. &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://calvinlee.github.io/blog/2010/10/23/data-connection-during-apn-switches">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="且听风吟" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<script src="/javascripts/jquery-1.10.2.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/javascripts/jquery.tableofcontents.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+  // Revert jQuery's '$' alias, to avoid clashes with ender.js. NOTE: Use
+  // jQuery(...), instead of $(...) from here on.
+  jQuery.noConflict();
+</script>
+<script src="/javascripts/generate-toc.js" type="text/javascript" charset="utf-8"></script>
+
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">且听风吟</a></h1>
+  
+    <h2>Don't panic! I'm a programmer.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:calvinlee.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/links.html">Links</a></li>
+  <li><a href="/music.html">Music</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">APN切换后数据连接过程</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-23T00:00:00+08:00" pubdate data-updated="true">Oct 23<span>rd</span>, 2010</time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h3>注册观察者回调</h3>
+
+<p>GsmDataConnectionTracker在实例化时，会注册一个观察者，监视apn数据库的变化。</p>
+
+<pre><code>p.getContext().getContentResolver().registerContentObserver(
+            Telephony.Carriers.CONTENT_URI, true, apnObserver);
+</code></pre>
+
+<p>当用户通过UI改变apn并保存后，Settings app将更新后的数据写入apn数据库。</p>
+
+<h3>GsmDataConnectionTracker切换APN</h3>
+
+<p>Settings app更新apn数据库后，GsmDataConnectionTracker注册的ApnChangeObserver的onChange被调用，发送<code>EVENT_APN_CHANGED</code>消息：</p>
+
+<pre><code>sendMessage(obtainMessage(EVENT_APN_CHANGED));
+</code></pre>
+
+<p>接着onApnChanged()@GsmDataConnectionTracker.java被调用</p>
+
+<pre><code>  -trySetupData(Phone.REASON_APN_CHANGED)@GsmDataConnectionTracker.java
+    --setupData(String reason)@GsmDataConnectionTracker.java
+
+    private boolean setupData(String reason) {
+    ApnSetting apn;
+    GsmDataConnection pdp;
+
+    apn = getNextApn();
+    if (apn == null) return false;
+
+    //获取一个状态为inactive的pdp连接对象
+    pdp = findFreePdp();
+    if (pdp == null) {
+        if (DBG) log("setupData: No free GsmDataConnection found!");
+        return false;
+    }
+    mActiveApn = apn;
+    mActivePdp = pdp;
+
+    Message msg = obtainMessage();
+    msg.what = EVENT_DATA_SETUP_COMPLETE;
+    msg.obj = reason;
+
+    //开始激活这个pdp
+    //在android2.0.1版本时，有一个PdpConnection.java来进行连接，2.2时这个类被删掉了，connect的功能合并到GsmDataConnection里面
+    pdp.connect(msg, apn);
+
+    //设置这个pdp连接状态为INITING
+    setState(State.INITING);
+    if (DBG) log("setupData for reason: "+reason);
+
+    //通知上层应用数据连接状态改变
+    phone.notifyDataConnection(reason);
+    return true;
+}
+</code></pre>
+
+<p>其中，在这一层，数据连接共七个状态：</p>
+
+<pre><code>    IDLE,
+    INITING,
+    CONNECTING,
+    SCANNING,
+    CONNECTED,
+    DISCONNECTING,
+    FAILED
+</code></pre>
+
+<p>对上层应用来说，这七个状态划分为四种状态（getDataConnectionState()@GSMPhone.java）：</p>
+
+<pre><code>CONNECTED, CONNECTING, DISCONNECTED, SUSPENDED;
+</code></pre>
+
+<p>分别对应TelephonyManager的四种连接状态。</p>
+
+<h3>激活PDP连接</h3>
+
+<p>开始激活PDP连接时，设置状态为State.INITING，调用phone.notifyDataConnection(reason)发出通知，后续调用过程为：</p>
+
+<pre><code>    notifyDataConnection(String reason)@PhoneBase.java
+      --notifyDataConnection(Phone sender, String reason)@DefaultPhoneNotifier.java
+        .
+        .   这里需要经过IPC调用
+        .
+        notifyDataConnection()@TelephonyRegistry.java
+          --onDataConnectionStateChanged()
+</code></pre>
+
+<p>当连接成功后，onDataSetupComplete（）@GsmDataConnectionTracker.java被调用
+通过phone.notifyDataConnection(reason);回调应用层的onDataConnectionStateChanged()方法。</p>
+
+<p>ps:可以通过adb logcat -b radio查看激活数据连接时，radio层的log输出。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Calvin Lee</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2010-10-23T00:00:00+08:00" pubdate data-updated="true">Oct 23<span>rd</span>, 2010</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2010/10/02/code-snippets-for-global-actions-dialog/" title="Previous Post: Android关机界面代码">&laquo; Android关机界面代码</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2010/10/25/debugging-android-source-from-eclipse/" title="Next Post: 在eclipse中调试Android源代码">在eclipse中调试Android源代码 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/07/awesome-bind-mount/">Bind Mount的使用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
+      </li>
+    
+  </ul>
+</section>
+<section>
+  <h1>Categories</h1>
+  <ul id="categories">
+    <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
+<li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
+<li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
+<li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
+<li class='category'><a href='/blog/categories/http/'>Http (1)</a></li>
+<li class='category'><a href='/blog/categories/java/'>Java (5)</a></li>
+<li class='category'><a href='/blog/categories/kindle/'>Kindle (1)</a></li>
+<li class='category'><a href='/blog/categories/linux/'>Linux (11)</a></li>
+<li class='category'><a href='/blog/categories/shell/'>Shell (1)</a></li>
+<li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
+<li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
+<li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
+
+  </ul>
+</section>
+
+<section>
+  <h1>Tags</h1>
+  <ul class="tag-cloud">
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
+<a style="font-size: 210%" href="/tags/android/">android</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/awk/">awk</a>
+<a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/debug/">debug</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 90%" href="/tags/gcc/">gcc</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
+<a style="font-size: 90%" href="/tags/github/">github</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
+<a style="font-size: 90%" href="/tags/kernel/">kernel</a>
+<a style="font-size: 90%" href="/tags/kindle/">kindle</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
+<a style="font-size: 90%" href="/tags/permission/">permission</a>
+<a style="font-size: 90%" href="/tags/php/">php</a>
+<a style="font-size: 90%" href="/tags/proxy/">proxy</a>
+<a style="font-size: 90%" href="/tags/shell/">shell</a>
+<a style="font-size: 90%" href="/tags/socket/">socket</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
+<a style="font-size: 90%" href="/tags/window/">window</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
+
+  </ul>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Calvin Lee -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'calvin';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
