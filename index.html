@@ -9,7 +9,7 @@
   <meta name="author" content="Calvin Lee">
 
   
-  <meta name="description" content="pmap用来打印进程地址空间占用。通常也可以通过如下命令来查看： cat /proc/self/maps 但用pmap包含更多的信息，显示结果也更直观: 1
+  <meta name="description" content="使用dumpsys 1
 2
 3
 4
@@ -35,7 +35,13 @@
 24
 25
 26
-27 &hellip;">
+27
+28
+29
+30
+31
+32
+shell@android:/ # dumpsys meminfo com.android. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -103,6 +109,190 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-20T22:41:00+08:00" pubdate data-updated="true">Feb 20<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/02/20/analyzing-android-memory-usage/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2014/02/20/analyzing-android-memory-usage/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>使用dumpsys</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>shell@android:/ <span class="c"># dumpsys meminfo com.android.systemui</span>
+</span><span class='line'>Applications Memory Usage <span class="o">(</span>kB<span class="o">)</span>:
+</span><span class='line'>Uptime: 296724 Realtime: 296723
+</span><span class='line'>** MEMINFO in pid 2786 <span class="o">[</span>com.android.systemui<span class="o">]</span> **
+</span><span class='line'>                         Shared  Private     Heap     Heap     Heap
+</span><span class='line'>                   Pss    Dirty    Dirty     Size    Alloc     Free
+</span><span class='line'>                ------   ------   ------   ------   ------   ------
+</span><span class='line'>       Native        0        0        0    12540    12384       83
+</span><span class='line'>       Dalvik     8256     5128     8088    13192     8327     4865
+</span><span class='line'>       Cursor        0        0        0
+</span><span class='line'>       Ashmem        0        0        0
+</span><span class='line'>    Other dev        4       24        0
+</span><span class='line'>     .so mmap     1704     1996     1256
+</span><span class='line'>    .jar mmap        0        0        0
+</span><span class='line'>    .apk mmap      750        0        0
+</span><span class='line'>    .ttf mmap        4        0        0
+</span><span class='line'>    .dex mmap     1284        0        0
+</span><span class='line'>   Other mmap       83       20       32
+</span><span class='line'>      Unknown     5692      652     5676
+</span><span class='line'>        TOTAL    17777     7820    15052    25732    20711     4948
+</span><span class='line'>
+</span><span class='line'> Objects
+</span><span class='line'>               Views:      155         ViewRootImpl:        7
+</span><span class='line'>         AppContexts:       12           Activities:        0
+</span><span class='line'>              Assets:        3        AssetManagers:        3
+</span><span class='line'>       Local Binders:       38        Proxy Binders:       38
+</span><span class='line'>    Death Recipients:        3
+</span><span class='line'>     OpenSSL Sockets:        0
+</span><span class='line'>
+</span><span class='line'> SQL
+</span><span class='line'>         MEMORY_USED:        0
+</span><span class='line'>  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有价值的两个值：</p>
+
+<ul>
+<li>PSS（Proportional Set Size ）<br/>
+应用本身所占的物理内存 + 和其他应用share的内存。这个值会被系统作为这个应用的phisical memory footprint</li>
+<li>Private Dirty<br/>
+应用本身所占的物理内存，如果把该应用杀掉，那么就会释放这些内存
+通过AppContexts和Activities可以判断应用是否有activity内存泄漏（如果这个值一直在增长）。</li>
+</ul>
+
+
+<h2>Tips for memory usage</h2>
+
+<blockquote><p><a href="http://developer.android.com/training/articles/memory.html">http://developer.android.com/training/articles/memory.html</a></p></blockquote>
+
+<ol>
+<li>Service会阻止进程被系统杀掉，不要让service一直运行，最好使用IntentService，运行完一个job就退出。</li>
+<li>在onTrimMemory回调中释放UI资源（注意：这里不同于onStop）</li>
+<li>使用getMemoryClass()获得应用的heap大小。app也可以使用android:largeHeap选项请求大的heap（慎用！）。</li>
+<li>使用优化过的数据结构： SparseArray, SparseBooleanArray, and LongSparseArray.</li>
+<li>除非有必要，否则不要抽象代码</li>
+<li>使用nano protocol buffer来取代xml序列化数据</li>
+<li>谨慎使用第三方库，因为这些库并不适合移动设备的运行环境。也不要为了使用so库中一两个功能，而引入整个库。</li>
+<li>使用ProGuard来压缩代码：去除无用的代码，同时混淆代码</li>
+<li>涉及到UI资源的进程很占内存。所以如果需要后台运行的service，如音乐播放，可以将这个service配置到另外的进程里，这样系统可以不用为了保持这个service服务的运行，而必须保留占内存的UI进程。</li>
+</ol>
+
+
+<h2>其他工具</h2>
+
+<p>adb shell procrank<br/>
+adb shell cat /proc/meminfo</p>
+
+<h2>Reference</h2>
+
+<p><a href="http://developer.android.com/tools/debugging/debugging-memory.html">http://developer.android.com/tools/debugging/debugging-memory.html</a>
+<a href="http://elinux.org/Android_Memory_Usage">http://elinux.org/Android_Memory_Usage</a>
+<a href="http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/">http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-20T22:37:00+08:00" pubdate data-updated="true">Feb 20<span>th</span>, 2014</time>
+        
+           | <a href="/blog/2014/02/20/managing-bitmap-memory/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2014/02/20/managing-bitmap-memory/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -778,45 +968,6 @@ Window &ndash;> Preference &ndash;> Keys &ndash;> Word Completion &ndash;> Unbin
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2013/01/21/android-MMS-cache-implementation/">Android Mms 缓存机制分析</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-21T00:00:00+08:00" pubdate data-updated="true">Jan 21<span>st</span>, 2013</time>
-        
-           | <a href="/blog/2013/01/21/android-MMS-cache-implementation/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2013/01/21/android-MMS-cache-implementation/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
       <h1 class="entry-title"><a href="/blog/2013/01/20/android-handler-looper-message/">Android消息处理机制理解</a></h1>
     
     
@@ -1222,46 +1373,6 @@ looper.cpp:</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2013/01/18/update-grub-from-livecd/">通过LiveCD更新grub</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-01-18T00:00:00+08:00" pubdate data-updated="true">Jan 18<span>th</span>, 2013</time>
-        
-           | <a href="/blog/2013/01/18/update-grub-from-livecd/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2013/01/18/update-grub-from-livecd/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd">http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd</a>
-<a href="http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd">http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1277,6 +1388,14 @@ looper.cpp:</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
       </li>
     
@@ -1288,22 +1407,13 @@ looper.cpp:</p>
         <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/09/26/Chrominum-base-code-introduction/">Chromium Base库介绍</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
     <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
-<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
-<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
 <li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
 <li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
 <li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
@@ -1315,7 +1425,7 @@ looper.cpp:</p>
 <li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
 <li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
 <li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
-<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
 
   </ul>
 </section>
@@ -1323,36 +1433,34 @@ looper.cpp:</p>
 <section>
   <h1>Tags</h1>
   <ul class="tag-cloud">
-    <a style="font-size: 90%" href="/tags/c-plus-plus/">C++</a>
-<a style="font-size: 156%" href="/tags/cyu-yan/">C语言</a>
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
 <a style="font-size: 210%" href="/tags/android/">android</a>
-<a style="font-size: 118%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
 <a style="font-size: 90%" href="/tags/awk/">awk</a>
-<a style="font-size: 90%" href="/tags/c/">c</a>
 <a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
-<a style="font-size: 118%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
 <a style="font-size: 90%" href="/tags/debug/">debug</a>
-<a style="font-size: 118%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
 <a style="font-size: 90%" href="/tags/gcc/">gcc</a>
-<a style="font-size: 135%" href="/tags/git/">git</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
 <a style="font-size: 90%" href="/tags/github/">github</a>
-<a style="font-size: 90%" href="/tags/graphics/">graphics</a>
-<a style="font-size: 118%" href="/tags/http/">http</a>
-<a style="font-size: 156%" href="/tags/java/">java</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
 <a style="font-size: 90%" href="/tags/kernel/">kernel</a>
 <a style="font-size: 90%" href="/tags/kindle/">kindle</a>
-<a style="font-size: 175%" href="/tags/linux/">linux</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
 <a style="font-size: 90%" href="/tags/permission/">permission</a>
 <a style="font-size: 90%" href="/tags/php/">php</a>
 <a style="font-size: 90%" href="/tags/proxy/">proxy</a>
 <a style="font-size: 90%" href="/tags/shell/">shell</a>
 <a style="font-size: 90%" href="/tags/socket/">socket</a>
-<a style="font-size: 163%" href="/tags/todo/">todo</a>
-<a style="font-size: 135%" href="/tags/vim/">vim</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
 <a style="font-size: 90%" href="/tags/window/">window</a>
-<a style="font-size: 175%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
 <a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
-<a style="font-size: 118%" href="/tags/zhuan-zai/">转载</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
 
   </ul>
 </section>
@@ -1366,7 +1474,7 @@ looper.cpp:</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2013 - Calvin Lee -
+  Copyright &copy; 2014 - Calvin Lee -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

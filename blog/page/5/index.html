@@ -9,8 +9,7 @@
   <meta name="author" content="Calvin Lee">
 
   
-  <meta name="description" content="寻址和字节顺序 字长决定整数和指针的大小，因为虚拟地址是以这样的一个字来编码的，所以字长决定的最重要的系统参数就是虚拟地址的空间的最大大小。
-在存储器中存储数据的顺序分为小端存储和大端存储： 小端存储：低字节存储在低地址，高字节存储在高地址。Intel兼容机大多采用这种规则。 大端存储： &hellip;">
+  <meta name="description" content="QEMU Networking Android 模拟器基于QEMU虚拟机构建，虚拟机（guest）与所在的PC主机（host）之间的网络通信有几种方式： NAT方式 Android模拟器的网络连接使用NAT方式。 这种方式通过host机器的网络接口访问网络，优点是方便设置，不用创建额外的网络接口。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,360 +77,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/04/13/csapp-representing-and-manipulating-information/">CSAPP读书笔记-信息的表示和处理</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-04-13T00:00:00+08:00" pubdate data-updated="true">Apr 13<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/04/13/csapp-representing-and-manipulating-information/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/13/csapp-representing-and-manipulating-information/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>寻址和字节顺序</h3>
-
-<ul>
-<li><p>字长决定整数和指针的大小，因为虚拟地址是以这样的一个字来编码的，所以字长决定的最重要的系统参数就是虚拟地址的空间的最大大小。</p></li>
-<li><p>在存储器中存储数据的顺序分为小端存储和大端存储：<br/>
-  <strong>小端存储</strong>：低字节存储在低地址，高字节存储在高地址。Intel兼容机大多采用这种规则。<br/>
-  <strong>大端存储</strong>：高字节存储在低地址，高字节存储在低地址。IBM和Sun的大型机多采用这种规则。<br/>
-  大多数时候，字节顺序对程序员是透明的。但是字节存储顺序在以下场合会产生问题：<br/>
-  在不同类型的机器间通过网络传送二进制数据，发送方应该把数据转换成网络标准再发送，接收方应该先把数据从网络标准格式转化成内部格式。<br/>
-  阅读表示整数数据的字节序列时</p></li>
-</ul>
-
-
-<h3>表示字符串</h3>
-
-<ul>
-<li><p>使用ASCII码作为字符码在任何系统上的表示方法都相同，与字节顺序和字大小规则无关，因此文本数据比二进制数据有更强的平台独立性。由于不同的机器使用不同且不兼容的指令和编码方式，因此编译后的二进制代码在不同的机器上时不兼容的，如果要在不同的机器上运行程序，必须重新编译生成新的二进制码才能运行。</p></li>
-<li><p>char类型是有符号的还是无符号的？</p></li>
-</ul>
-
-
-<h3>C语言的位运算</h3>
-
-<ul>
-<li><p>表达式~0生成一个全1的掩码，不管机器的字大小是多少，这是一个可移植的写法。</p></li>
-<li><p>C语言中的右移位运算包括逻辑右移和算术右移。逻辑右移在左端补0，算术右移在左端补最高有效位的值。C语言标准并没有规定应该使用哪种类型的右移方式。实际上，对于无符号数据，右移必须是逻辑的。而对于有符号数据，几乎所有的机器都使用算术右移。在Java中对右移有明确定义：运算符<code>&gt;&gt;</code>表示算术右移，运算符<code>&gt;&gt;&gt;</code>表示逻辑右移。</p></li>
-<li><p>一种交换指针所指向的存储位置的方法：</p>
-
-<pre><code>void swap(int *x, int *y) {
-    *y = *x ^ *y;
-    *x = *x ^ *y;
-    *y = *x ^ *y;
-}
-</code></pre></li>
-</ul>
-
-
-<h3>数据类型及转换</h3>
-
-<ul>
-<li><p>整数数据类型的取值范围</p></li>
-<li><p>确定大小的整数类型</p>
-
-<p>由于每种数据类型在不同的机器上可能有不同的取值范围，而c语言标准只是规定了每种数据类型的最小范围，而不是确定的范围，ISO C99在stdint.h中定义了形如intN_t和uintN_t，指定了N位有符号和无符号整数。N一般取值8，16，32，64，如int32_t，可以在所有机器上无歧义的定义一个32位的整型变量。
-Java中没有long long数据类型，单字节数据类型位byte，而不是char。</p></li>
-<li><p>类型转换以及有符号数和无符号数之间的转换</p>
-
-<p>当执行一个运算时，如果一个运算数是有符号的而另一个是无符号的，那么C语言会隐式的将有符号的运算数强制转换为无符号数，并假设这两个数都是非负的。<br/>
-比如在一个32位机器上计算<code>-1&lt;0U</code>，-1的二进制位模式表示为FFFFFFFF，那么有符号数-1会被隐式转换为无符号数——以无符号数来解释位模式FFFFFFFF，那么就变成了计算<code>4294967295U &lt; 0U</code>，而得出来的答案显然是错的。<br/>
-无符号数和有符号数之间的这种隐式转换很容易导致隐藏的bug，使用无符号数一定要谨慎。</p>
-
-<p>类型转换的时机：</p>
-
-<ol>
-<li> 显示的强制转换</li>
-<li> 当一种类型的表达式被赋值给另外一种类型的变量时，发生隐式转换。</li>
-</ol>
-
-
-<p>C语言允许不同数据类型之间的强制转换。这种转换的一般规则是：<strong>转换的数底层的存储位模式不会改变，只是改变了解释这些位的方式。</strong><br/>
-当转换既涉及到大小变化（如int&mdash;>short）又涉及到符号改变时，会先进行大小的转换，再以有符号或者无符号的方式去解释转换后的位模式。如：</p>
-
-<pre><code>  short  sx = 0xcfc7;
-  unsigned uy = sx;
-  printf("uy = %u\n", uy);
-</code></pre>
-
-<p>输出：uy = 4294954951</p>
-
-<p>转换的过程是：<br/>
-先转换大小：short&mdash;>int，进行位扩展，0xcfc7&mdash;>0xffffcfc7<br/>
-再完成有符号到无符号的转换：以无符号的方式解释0xffffcfc7，得到4294954951。</p></li>
-</ul>
-
-
-<h3>Reference</h3>
-
-<p><a href="http://www.ruanyifeng.com/blog/2009/08/twos_complement.html">关于补码</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/04/13/csapp-machine-level-representation-of-c-programs/">CSAPP读书笔记-程序的机器级表示</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-04-13T00:00:00+08:00" pubdate data-updated="true">Apr 13<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/04/13/csapp-machine-level-representation-of-c-programs/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/13/csapp-machine-level-representation-of-c-programs/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/04/10/x86-registers/">X86 平台寄存器概述</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-04-10T00:00:00+08:00" pubdate data-updated="true">Apr 10<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/04/10/x86-registers/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/10/x86-registers/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>32位机器</h3>
-
-<h3>64位机器</h3>
-
-<h3>为什么寄存器的数量不是多多益善？</h3>
-
-<p><a href="http://bbs.pediy.com/archive/index.php?t-78354.html">http://bbs.pediy.com/archive/index.php?t-78354.html</a>
-<a href="http://www.cppblog.com/lingjingqiu/archive/2009/12/10/102874.html">http://www.cppblog.com/lingjingqiu/archive/2009/12/10/102874.html</a>
-<a href="http://www.cs.virginia.edu/~evans/cs216/guides/x86.html">http://www.cs.virginia.edu/~evans/cs216/guides/x86.html</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/04/10/is-char-signed-or-unsigned/">Char类型是有符号的还是无符号的？</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-04-10T00:00:00+08:00" pubdate data-updated="true">Apr 10<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/04/10/is-char-signed-or-unsigned/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/10/is-char-signed-or-unsigned/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://ihacklog.com/programming/c/char-is-signed-or-unsigned-by-default.html">http://ihacklog.com/programming/c/char-is-signed-or-unsigned-by-default.html</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/04/05/interesting-c-code-snippets/">一些有趣的C程序</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-04-05T00:00:00+08:00" pubdate data-updated="true">Apr 5<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/04/05/interesting-c-code-snippets/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/05/interesting-c-code-snippets/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><pre><code>#include &lt;stdio.h&gt;
-
-int n[]={0x48,0x65,0x6C,0x6C, 
-0x6F,0x2C,0x20, 
-0x77,0x6F,0x72, 
-0x6C,0x64,0x21, 
-0x0A,0x00},\*m=n;
-
-main(n){ 
-    if(putchar (\*m)!='\0') main(m++);
-}
-</code></pre>
-
-<p>输出<code>Hello, world!</code></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/04/04/kindle-related-resources/">Kindle Keyboard 资源索引</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-04-04T00:00:00+08:00" pubdate data-updated="true">Apr 4<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/04/04/kindle-related-resources/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/04/04/kindle-related-resources/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="/images/amazon_kindle_wifi_3rd_generation.jpg"><img src="/images/amazon_kindle_wifi_3rd_generation.jpg" alt="/images/amazon_kindle_wifi_3rd_generation.jpg" /></a></p>
-
-<h3>越狱</h3>
-
-<p>下载 <a href="http://www.mobileread.com/forums/showthread.php?t=88004">update-jailbreak-*.zip</a>，并解压出对应你的机器的版本的 update_jailbreak_*_install.bin 文件，放到 Kindle 的根目录中，然后在 Kindle 的 Settings 页面中，按 Menu，选择 Update your Kindle，等待两分钟左右，即可完成越狱，并且由于已经重启了，这时 Kindle 的根目录中应该已经多出了 linkjail 这个目录了。在 Kindle 的内部文件系统中，相应的目录已经被换成了符号链接，目标就是这个 linkjail，我们可以通过修改 linkjail 中的文件来达到修改 Kindle 内部文件系统文件的目的。</p>
-
-<h3>中文字体优化</h3>
-
-<ul>
-<li><a href="http://wzyboy.im/post/736.html">Kindle 中文阅读终极优化指南</a></li>
-<li><a href="http://www.kdolphin.com/1204">Kindle 3的字体、行距、边距</a></li>
-<li><a href="http://irising.me/2011/06/4986/">Kindle 3 安装中文输入法</a></li>
-</ul>
-
-
-<h3>电子书资源</h3>
-
-<ul>
-<li><a href="http://www.douban.com/group/topic/22560203/">http://www.douban.com/group/topic/22560203/</a></li>
-<li><a href="http://book.zi5.me/">子乌书简</a></li>
-<li><a href="http://ikindle.mobi/book/">ikindle万卷书</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -1154,6 +799,664 @@ packages/apps/Email 已经提交了多个commit在branchA上，现在要把这�
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/22/git-change-author-and-email-of-commits/">更改git提交历史信息</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-22T00:00:00+08:00" pubdate data-updated="true">Mar 22<span>nd</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/22/git-change-author-and-email-of-commits/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/22/git-change-author-and-email-of-commits/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>如果你使用git进行版本控制，不知道你有没有遇到这种情况，提交了几个commit后发现你本地git库的author和email信息配置不是你预想的，这时你想要更新已经提交的commit的author和email信息，怎么办？<br/>
+这是stackoverflow上给出的<a href="http://stackoverflow.com/questions/750172/how-do-i-change-the-author-of-a-commit-in-git">做法</a>：</p>
+
+<pre><code>#!/bin/sh
+
+git filter-branch --env-filter '
+
+an="$GIT_AUTHOR_NAME"
+am="$GIT_AUTHOR_EMAIL"
+cn="$GIT_COMMITTER_NAME"
+cm="$GIT_COMMITTER_EMAIL"
+
+if [ "$GIT_COMMITTER_EMAIL" = "your@email.to.match" ]
+then
+    cn="Your New Committer Name"
+    cm="Your New Committer Email"
+fi
+if [ "$GIT_AUTHOR_EMAIL" = "your@email.to.match" ]
+then
+    an="Your New Author Name"
+    am="Your New Author Email"
+fi
+
+export GIT_AUTHOR_NAME="$an"
+export GIT_AUTHOR_EMAIL="$am"
+export GIT_COMMITTER_NAME="$cn"
+export GIT_COMMITTER_EMAIL="$cm"
+'
+</code></pre>
+
+<p>原文在<a href="http://help.github.com/change-author-info/">这里</a>。</p>
+
+<p>但是问题是，更新本地的提交历史信息后，想要把更新push到远程分支上去，出现non-fast-forward错误，意思是要推送的提交并非继远程版本库最新提交之后的提交，推送会造成覆盖远程仓库的提交。</p>
+
+<pre><code>$ git push origin master
+ ! [rejected]        master -&gt; master (non-fast-forward)
+error: failed to push some refs to 'example.git'
+To prevent you from losing history, non-fast-forward updates were rejected
+Merge the remote changes (e.g. 'git pull') before pushing again.  See the
+'Note about fast-forwards' section of 'git push --help' for details.
+</code></pre>
+
+<p>使用&mdash;force选项进行强制push即可： <code>git push --force origin master</code>，但是这样会覆盖远程分支上的commit:</p>
+
+<pre><code>-f, --force
+    Usually, the command refuses to update a remote ref that is not an ancestor of the local ref used to overwrite it. This flag disables the
+    check. This can cause the remote repository to lose commits; use it with care.
+</code></pre>
+
+<h3>另一种方法</h3>
+
+<p>使用<code>git rebase -i</code> 到你想更改的commit的前一个commit，选择reword选项，然后依次重新提交，这时提交的author和email将会是你本地配置的author和email，rebase完成后commit的author和email信息就更新了。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/17/insight-into-android-permission/">Android 权限机制</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/17/insight-into-android-permission/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/17/insight-into-android-permission/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>概要</h3>
+
+<p>Android基于Linux，Android的权限管理基于Linux的权限框架。此外，Android在此基础上为应用程序提供了permission机制，使得应用程序通过“申请-授予”的机制得以访问系统的敏感资源。权限的授予在应用程序安装过程中就已经确定了，在安装过程中，应用程序的gid，uid，pid已经gids都会被分配。Android不支持在运行时动态进行权限授予。<a href="http://developer.android.com/guide/topics/security/security.html#arch">Why?</a></p>
+
+<h3>References</h3>
+
+<p><a href="http://en.wikipedia.org/wiki/Group_identifier#Primary_vs._supplementary">http://en.wikipedia.org/wiki/Group_identifier#Primary_vs._supplementary</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/17/handy-toolbox/">Handy Toolbox</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/17/handy-toolbox/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/17/handy-toolbox/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>这里记录一些我常用的一些方便高效的工具。</p>
+
+<h3>Firefox</h3>
+
+<ul>
+<li><a href="http://vimperator.org/vimperator">Vimperator</a></li>
+<li><a href="http://sessionmanager.mozdev.org/">Session Manager</a></li>
+<li><a href="https://addons.mozilla.org/en-US/firefox/addon/evernote-web-clipper/">Evernote web clipper</a></li>
+<li><a href="http://www.teesoft.info/content/view/118/1/lang,en/">Autopager</a></li>
+</ul>
+
+
+<h3>Thunderbird</h3>
+
+<ul>
+<li><a href="https://addons.mozilla.org/en-US/thunderbird/addon/lightning/?src=search">Lightning</a></li>
+<li><a href="https://skydrive.live.com/redir.aspx?cid=71573c6596efd6ee&amp;resid=71573C6596EFD6EE!155&amp;parid=71573C6596EFD6EE!154">Firetray</a></li>
+</ul>
+
+
+<h3>画图</h3>
+
+<ul>
+<li><a href="https://skydrive.live.com/redir.aspx?cid=71573c6596efd6ee&amp;resid=71573C6596EFD6EE!146&amp;parid=71573C6596EFD6EE!145">JUDE</a> -UML工具</li>
+<li><a href="https://skydrive.live.com/redir.aspx?cid=71573c6596efd6ee&amp;resid=71573C6596EFD6EE!196&amp;parid=71573C6596EFD6EE!145">Edraw</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/17/different-reference-types-in-java/">Java的四种引用类型</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-17T00:00:00+08:00" pubdate data-updated="true">Mar 17<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/17/different-reference-types-in-java/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/17/different-reference-types-in-java/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Java中有四种引用类型，按其引用强度由强到弱依次为：</p>
+
+<pre><code>Strong reference &gt; Soft reference &gt; Weak reference &gt; Phantom reference
+</code></pre>
+
+<h3>Strong reference</h3>
+
+<p>最常用的为strong reference，就是说只要某个对象还被一个强引用引用着，那么GC就不会回收它。使用强引用的一个弊端就是有可能引起内存泄漏。比如有一个hashmap集合，用来存储对象引用，如果你忘了在某个时机把这些元素remove掉，那么这些对象就会在这个hashmap的生命周期内被一直引用而不能被GC回收，更糟糕的是，如果这个对象体积很大，而又如果这个hashmap被声明为static的，那么随着程序的运行，内存总有被撑爆的那一刻。</p>
+
+<h3>Soft reference</h3>
+
+<p>而soft reference 就不同了，在内存资源极度紧张的情况下，GC会将被Soft reference 引用的对象回收以释放内存空间。这个特性非常适合用来做cache：在内存资源充裕的情况下，它和强引用一样，GC不会回收它，而在内存紧张的情况下，GC实在找不到更多可用的空间的情况下，Soft reference的对象会被回收掉。<br/>
+以下代码展示了基于Soft reference的缓存类的使用：</p>
+
+<pre><code>/*
+ * Copyright (C) 2009 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
+package com.android.providers.contacts;
+
+import com.android.providers.contacts.ContactsDatabaseHelper.NicknameLookupColumns;
+import com.android.providers.contacts.ContactsDatabaseHelper.Tables;
+import com.google.android.collect.Maps;
+
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+import java.lang.ref.SoftReference;
+import java.util.BitSet;
+import java.util.HashMap;
+
+
+/**
+ * Cache for common nicknames.
+ */
+public class CommonNicknameCache  {
+
+    // We will use this much memory (in bits) to optimize the nickname cluster lookup
+    private static final int NICKNAME_BLOOM_FILTER_SIZE = 0x1FFF;   // =long[128]
+    private BitSet mNicknameBloomFilter;
+
+    private HashMap&lt;String, SoftReference&lt;String[]&gt;&gt; mNicknameClusterCache = Maps.newHashMap();
+
+    private final SQLiteDatabase mDb;
+
+    public CommonNicknameCache(SQLiteDatabase db) {
+        mDb = db;
+    }
+
+    private final static class NicknameLookupPreloadQuery {
+        public final static String TABLE = Tables.NICKNAME_LOOKUP;
+
+        public final static String[] COLUMNS = new String[] {
+            NicknameLookupColumns.NAME
+        };
+
+        public final static int NAME = 0;
+    }
+
+    /**
+     * Read all known common nicknames from the database and populate a Bloom
+     * filter using the corresponding hash codes. The idea is to eliminate most
+     * of unnecessary database lookups for nicknames. Given a name, we will take
+     * its hash code and see if it is set in the Bloom filter. If not, we will know
+     * that the name is not in the database. If it is, we still need to run a
+     * query.
+     * &lt;p&gt;
+     * Given the size of the filter and the expected size of the nickname table,
+     * we should expect the combination of the Bloom filter and cache will
+     * prevent around 98-99% of unnecessary queries from running.
+     */
+    private void preloadNicknameBloomFilter() {
+        // 这个filter被设计成一个简化的hash表（没有处理hash冲突的情况，实际上也没有必要）
+        mNicknameBloomFilter = new BitSet(NICKNAME_BLOOM_FILTER_SIZE + 1);
+        Cursor cursor = mDb.query(NicknameLookupPreloadQuery.TABLE,
+                NicknameLookupPreloadQuery.COLUMNS,
+                null, null, null, null, null);
+        try {
+            int count = cursor.getCount();
+            for (int i = 0; i &lt; count; i++) {
+                cursor.moveToNext();
+                String normalizedName = cursor.getString(NicknameLookupPreloadQuery.NAME);
+                int hashCode = normalizedName.hashCode();
+                // 将元素put进hash表（有可能冲突），参见HashMap的put实现
+                // 和hashcode做与运算的这个值必须是“hash表长度-1”
+                mNicknameBloomFilter.set(hashCode &amp; NICKNAME_BLOOM_FILTER_SIZE);
+            }
+        } finally {
+            cursor.close();
+        }
+    }
+
+    /**
+     * Returns nickname cluster IDs or null. Maintains cache.
+     */
+    protected String[] getCommonNicknameClusters(String normalizedName) {
+        if (mNicknameBloomFilter == null) {
+            preloadNicknameBloomFilter();
+        }
+
+        int hashCode = normalizedName.hashCode();
+
+        // 如果没有找到，说明cache中**一定**不存在这个key所对应的值;
+        // 如果找到了，说明cache中**可能**存在这个key对应的值，需要进一步到cache中查找
+        if (!mNicknameBloomFilter.get(hashCode &amp; NICKNAME_BLOOM_FILTER_SIZE)) {
+            return null;
+        }
+
+        SoftReference&lt;String[]&gt; ref;
+        String[] clusters = null;
+
+        // 注意：这里需要同步对cache的访问
+        synchronized (mNicknameClusterCache) {
+            if (mNicknameClusterCache.containsKey(normalizedName)) {
+                ref = mNicknameClusterCache.get(normalizedName);
+                if (ref == null) {
+                    return null;
+                }
+                clusters = ref.get();
+            }
+        }
+
+        // 没有命中，这时才需要到DB中加载，并加入cache
+        if (clusters == null) {
+            clusters = loadNicknameClusters(normalizedName);
+            ref = clusters == null ? null : new SoftReference&lt;String[]&gt;(clusters);
+            synchronized (mNicknameClusterCache) {
+                mNicknameClusterCache.put(normalizedName, ref);
+            }
+        }
+        return clusters;
+    }
+
+    private interface NicknameLookupQuery {
+        String TABLE = Tables.NICKNAME_LOOKUP;
+
+        String[] COLUMNS = new String[] {
+            NicknameLookupColumns.CLUSTER
+        };
+
+        int CLUSTER = 0;
+    }
+
+    protected String[] loadNicknameClusters(String normalizedName) {
+        String[] clusters = null;
+        Cursor cursor = mDb.query(NicknameLookupQuery.TABLE, NicknameLookupQuery.COLUMNS,
+                NicknameLookupColumns.NAME + "=?", new String[] { normalizedName },
+                null, null, null);
+        try {
+            int count = cursor.getCount();
+            if (count &gt; 0) {
+                clusters = new String[count];
+                for (int i = 0; i &lt; count; i++) {
+                    cursor.moveToNext();
+                    clusters[i] = cursor.getString(NicknameLookupQuery.CLUSTER);
+                }
+            }
+        } finally {
+            cursor.close();
+        }
+        return clusters;
+    }
+}
+</code></pre>
+
+<p>这个缓存类实现的实际上是一个二级缓存：</p>
+
+<ol>
+<li>第一级是一个BitSet，实现为一个hash表，它充当了一个过滤器的作用。第一次加载时会从db中查找所有的数据，并通过hash算法插入到表中的适当位置，这个过程和HashMap的实现是一样的，只不过没有处理hash冲突的情况，当出现hash冲突时，会覆盖表中原有的值。</li>
+<li>第二级是一个HashMap，是真正的cache。其中的元素通过SoftReference引用。</li>
+</ol>
+
+
+<h3>Weak reference</h3>
+
+<p>Weak reference和Soft reference类似，区别在于一旦GC启动，被Weak reference引用的对象就会被回收，而不管当前内存资源是否充裕，因此，被Weak reference引用的对象具有更短的生命周期。但是，由于gc是一个优先级比较低的进程，Weak reference的对象不会像你想象中那么快就被回收了。</p>
+
+<h3>Phantom reference</h3>
+
+<p>Phantom reference 和以上几种引用都不同。它的<code>get()</code>方法永远都会返回null。那么它究竟有什么作用呢？<br/>
+TODO&hellip;</p>
+
+<h3>References</h3>
+
+<ul>
+<li><a href="http://weblogs.java.net/blog/enicholas/archive/2006/05/understanding_w.html">http://weblogs.java.net/blog/enicholas/archive/2006/05/understanding_w.html</a></li>
+<li><a href="http://improving.iteye.com/blog/436311">http://improving.iteye.com/blog/436311</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/">NoClassDefFoundError 和 ClassNotFoundException 的区别</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-12T00:00:00+08:00" pubdate data-updated="true">Mar 12<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/12/differences-bt-noclassdeffounderror-and-classnotfoundexception/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>先看API解释：<br/>
+For ClassNotFoundException:</p>
+
+<pre><code>Thrown when an application tries to load in a class through its string name using:
+
+    * The forName method in class Class.
+    * The findSystemClass method in class ClassLoader.
+    * The loadClass method in class ClassLoader.
+
+but no definition for the class with the specified name could be found.
+</code></pre>
+
+<p>For NoClassDefFoundError:</p>
+
+<pre><code>Thrown if the Java Virtual Machine or a ClassLoader instance tries to load in the definition of a class (as part of a normal method call or as part of creating a new instance using the new expression) and no definition of the class could be found.
+
+The searched-for class definition existed when the currently executing class was compiled, but the definition can no longer be found.
+</code></pre>
+
+<p>简单的说，就是如果使用new SomeClass()的方式创建对象的，而这时ClassLoader装载SomeClass失败（可能因为权限不够，JNI错误,etc），就会抛出NoClassDefFoundError。<br/>
+而如果使用反射来装载一个对象，但是SomeClass不在CLASSPATH中，这时就会抛出ClassNotFoundException。</p>
+
+<p>Reference:<br/>
+<a href="http://stackoverflow.com/questions/1457863/what-is-the-difference-between-noclassdeffounderror-and-classnotfoundexception">http://stackoverflow.com/questions/1457863/what-is-the-difference-between-noclassdeffounderror-and-classnotfoundexception</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/02/my-first-post-on-git-pages/">使用Github Pages创建个人博客</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-02T00:00:00+08:00" pubdate data-updated="true">Mar 2<span>nd</span>, 2012</time>
+        
+           | <a href="/blog/2012/03/02/my-first-post-on-git-pages/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/03/02/my-first-post-on-git-pages/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Github pages 是什么？</h2>
+
+<p>Github pages借助 git 工具和Jekyll（一个静态网站生成器），使得你可以将内容push到github，然后通过Jekyll发布成个人blog站点。通过github pages创建个人博客，至少有几个好处：</p>
+
+<ul>
+<li>文章内容使用markdown标记语言书写，你可以使用任何你喜欢的文本编辑器编辑文章。</li>
+<li>由于git的存在，你可以轻松的对你的文章进行版本控制。</li>
+<li>尤其重要的一点，在天朝，你无需担心哪天你的站点被无端屏蔽，还得爬墙过去抢救数据&mdash;因为你本地就有一套完整的站点，而且都是文本格式，非常易于备份。</li>
+</ul>
+
+
+<h2>搭建步骤</h2>
+
+<h3>创建github帐号</h3>
+
+<p>首先，你需要一个github帐号。
+登录github后，创建一个USERNAME.github.com的repository，根据向导生成pages。</p>
+
+<h3>安装本地环境</h3>
+
+<p>你需要在本地搭建运行环境，这样在编写文章的时候你可以在本地进行充分的调整，满意后再push到github。
+以下基于Ubuntu 10.04LTS系统安装，需要安装的包包括Ruby，RubyGems，jekyll和rake。</p>
+
+<pre><code>$ sudo apt-get install ruby1.9.1-full rubygems1.9.1
+</code></pre>
+
+<p>然后通过gem命令安装jekyll</p>
+
+<pre><code>$ sudo gem install jekyll
+WARNING:  You don't have /home/calvin/.gem/ruby/1.9.1/bin in your PATH,
+      gem executables will not run.
+ERROR:  Error installing jekyll:
+    liquid requires RubyGems version &gt;= 1.3.7
+</code></pre>
+
+<p>安装会出错，提示RubyGems版本过低。这时候需要到<a href="http://packages.ubuntu.com/maverick/all/rubygems1.8/download">http://packages.ubuntu.com/maverick/all/rubygems1.8/download</a> 下载离线安装包安装：</p>
+
+<pre><code>$ sudo dpkg -i Downloads/rubygems1.8_1.3.7-2_all.deb
+</code></pre>
+
+<p>安装完成后查看gem版本：</p>
+
+<pre><code>$ which gem
+/usr/bin/gem
+$ gem -v
+1.3.7
+</code></pre>
+
+<p>这时候可以继续安装jekyll了：</p>
+
+<pre><code>$ sudo gem install jekyll
+</code></pre>
+
+<p>安装jekyll后还需要安装rake工具，通过rake工具可以用来创建新的文章和页面，安装主题等等，十分方便。</p>
+
+<pre><code>$ sudo apt-get install rake
+</code></pre>
+
+<p>通过rake -T命令可以查看所有可用命令：</p>
+
+<pre><code>$ rake -T
+(in /home/calvin/development/github/calvinlee.github.com)
+rake page           # Create a new page.
+rake post           # Begin a new post in ./_posts
+rake preview        # Launch preview environment
+rake theme:install  # Install theme
+rake theme:package  # Package theme
+rake theme:switch   # Switch between Jekyll-bootstrap themes.
+</code></pre>
+
+<h3>安装Jekyll Bootstrap</h3>
+
+<p>由于jekyll仅仅是一个静态html的生成器，它不包含任何页面的templates，所以如果从头开始构建你的博客站点的话，还将要有很多工作要做。幸好，<a href="http://jekyllbootstrap.com/">Jekyll Bootstrap</a>已经提供了一套基本的构架，我们只需要在它的基础上定制，使之符合你口味即可。</p>
+
+<pre><code>$ git clone https://github.com/plusjade/jekyll-bootstrap.git USERNAME.github.com
+$ cd USERNAME.github.com
+$ git remote set-url origin git@github.com:USERNAME/USERNAME.github.com.git
+$ git push origin master
+</code></pre>
+
+<h3>开始个性博客之旅</h3>
+
+<p>首先在本地启动jekyll：</p>
+
+<pre><code>$ /var/lib/gems/1.8/gems/jekyll-0.11.2/bin/jekyll --server
+</code></pre>
+
+<p>然后你可以访问<a href="http://localhost:4000%E6%9F%A5%E7%9C%8BJekyll">http://localhost:4000%E6%9F%A5%E7%9C%8BJekyll</a> Bootstrap给你提供了什么，之后你就可以开始写你的文章了。</p>
+
+<pre><code>$ rake post title="my-first-post-on-git-pages" date="2012-03-02"
+</code></pre>
+
+<p>rake工具会为你生成posts/2012-03-02-my-first-post-on-git-pages.md
+你可以开始使用markdown标记语言编辑文章了！</p>
+
+<h3>发布</h3>
+
+<p>发布很简单，直接将文章内容推送到github即可，如果你修改了页面主题或者布局，也一并推送：</p>
+
+<pre><code>$ git add .
+$ git commit -m "Add new post"
+$ git push origin master
+</code></pre>
+
+<p>现在你就可以通过<a href="http://USERNAME.github.com%E8%AE%BF%E9%97%AE%E4%BD%A0%E7%9A%84%E9%A1%B5%E9%9D%A2%E4%BA%86%E3%80%82">http://USERNAME.github.com%E8%AE%BF%E9%97%AE%E4%BD%A0%E7%9A%84%E9%A1%B5%E9%9D%A2%E4%BA%86%E3%80%82</a></p>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://daringfireball.net/projects/markdown/syntax">详尽的Markdown语法</a></li>
+<li><a href="http://www.pushiming.com/blog/2010/11/tips-on-markdown/">另外一篇Markdown简介</a></li>
+<li><a href="https://github.com/mojombo/jekyll/wiki/">Jekyll wiki</a></li>
+<li><a href="https://github.com/mojombo/jekyll/wiki/Sites">这里</a>是一些站点，有些是开放源代码的，你可以参照学习</li>
+<li><a href="https://github.com/mojombo/jekyll/wiki/Pagination">怎样对文章进行分页？</a></li>
+<li><a href="http://www.pizn.net/24-09-2011/use-github-pages-to-build-a-blog/">http://www.pizn.net/24-09-2011/use-github-pages-to-build-a-blog/</a></li>
+<li><a href="http://www.yangzhiping.com/tech/writing-space.html">http://www.yangzhiping.com/tech/writing-space.html</a></li>
+<li><a href="http://fastr.github.com/articles/Documenting-with-Jekyll.html">http://fastr.github.com/articles/Documenting-with-Jekyll.html</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/6/">&larr; Older</a>
@@ -1171,6 +1474,14 @@ packages/apps/Email 已经提交了多个commit在branchA上，现在要把这�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
       </li>
     
@@ -1182,22 +1493,13 @@ packages/apps/Email 已经提交了多个commit在branchA上，现在要把这�
         <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/09/26/Chrominum-base-code-introduction/">Chromium Base库介绍</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
     <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
-<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
-<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
 <li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
 <li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
 <li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
@@ -1209,7 +1511,7 @@ packages/apps/Email 已经提交了多个commit在branchA上，现在要把这�
 <li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
 <li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
 <li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
-<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
 
   </ul>
 </section>
@@ -1217,36 +1519,34 @@ packages/apps/Email 已经提交了多个commit在branchA上，现在要把这�
 <section>
   <h1>Tags</h1>
   <ul class="tag-cloud">
-    <a style="font-size: 90%" href="/tags/c-plus-plus/">C++</a>
-<a style="font-size: 156%" href="/tags/cyu-yan/">C语言</a>
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
 <a style="font-size: 210%" href="/tags/android/">android</a>
-<a style="font-size: 118%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
 <a style="font-size: 90%" href="/tags/awk/">awk</a>
-<a style="font-size: 90%" href="/tags/c/">c</a>
 <a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
-<a style="font-size: 118%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
 <a style="font-size: 90%" href="/tags/debug/">debug</a>
-<a style="font-size: 118%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
 <a style="font-size: 90%" href="/tags/gcc/">gcc</a>
-<a style="font-size: 135%" href="/tags/git/">git</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
 <a style="font-size: 90%" href="/tags/github/">github</a>
-<a style="font-size: 90%" href="/tags/graphics/">graphics</a>
-<a style="font-size: 118%" href="/tags/http/">http</a>
-<a style="font-size: 156%" href="/tags/java/">java</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
 <a style="font-size: 90%" href="/tags/kernel/">kernel</a>
 <a style="font-size: 90%" href="/tags/kindle/">kindle</a>
-<a style="font-size: 175%" href="/tags/linux/">linux</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
 <a style="font-size: 90%" href="/tags/permission/">permission</a>
 <a style="font-size: 90%" href="/tags/php/">php</a>
 <a style="font-size: 90%" href="/tags/proxy/">proxy</a>
 <a style="font-size: 90%" href="/tags/shell/">shell</a>
 <a style="font-size: 90%" href="/tags/socket/">socket</a>
-<a style="font-size: 163%" href="/tags/todo/">todo</a>
-<a style="font-size: 135%" href="/tags/vim/">vim</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
 <a style="font-size: 90%" href="/tags/window/">window</a>
-<a style="font-size: 175%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
 <a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
-<a style="font-size: 118%" href="/tags/zhuan-zai/">转载</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
 
   </ul>
 </section>
@@ -1260,7 +1560,7 @@ packages/apps/Email 已经提交了多个commit在branchA上，现在要把这�
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2013 - Calvin Lee -
+  Copyright &copy; 2014 - Calvin Lee -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Android | 且听风吟]]></title>
   <link href="http://calvinlee.github.io/blog/categories/android/atom.xml" rel="self"/>
   <link href="http://calvinlee.github.io/"/>
-  <updated>2013-11-14T10:14:43+08:00</updated>
+  <updated>2014-02-21T23:27:37+08:00</updated>
   <id>http://calvinlee.github.io/</id>
   <author>
     <name><![CDATA[Calvin Lee]]></name>
@@ -14,10 +14,103 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Android Mms 缓存机制分析]]></title>
-    <link href="http://calvinlee.github.io/blog/2013/01/21/android-MMS-cache-implementation/"/>
-    <updated>2013-01-21T00:00:00+08:00</updated>
-    <id>http://calvinlee.github.io/blog/2013/01/21/android-MMS-cache-implementation</id>
+    <title type="html"><![CDATA[分析Android App内存占用]]></title>
+    <link href="http://calvinlee.github.io/blog/2014/02/20/analyzing-android-memory-usage/"/>
+    <updated>2014-02-20T22:41:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2014/02/20/analyzing-android-memory-usage</id>
+    <content type="html"><![CDATA[<h2>使用dumpsys</h2>
+
+<p>``` bash
+shell@android:/ # dumpsys meminfo com.android.systemui
+Applications Memory Usage (kB):
+Uptime: 296724 Realtime: 296723
+<strong> MEMINFO in pid 2786 [com.android.systemui] </strong></p>
+
+<pre><code>                     Shared  Private     Heap     Heap     Heap
+               Pss    Dirty    Dirty     Size    Alloc     Free
+            ------   ------   ------   ------   ------   ------
+   Native        0        0        0    12540    12384       83
+   Dalvik     8256     5128     8088    13192     8327     4865
+   Cursor        0        0        0                           
+   Ashmem        0        0        0                           
+Other dev        4       24        0                           
+ .so mmap     1704     1996     1256                           
+.jar mmap        0        0        0                           
+.apk mmap      750        0        0                           
+.ttf mmap        4        0        0                           
+.dex mmap     1284        0        0                           
+</code></pre>
+
+<p>   Other mmap       83       20       32</p>
+
+<pre><code>  Unknown     5692      652     5676                           
+    TOTAL    17777     7820    15052    25732    20711     4948
+</code></pre>
+
+<p> Objects</p>
+
+<pre><code>           Views:      155         ViewRootImpl:        7
+     AppContexts:       12           Activities:        0
+          Assets:        3        AssetManagers:        3
+   Local Binders:       38        Proxy Binders:       38
+Death Recipients:        3
+ OpenSSL Sockets:        0
+</code></pre>
+
+<p> SQL</p>
+
+<pre><code>     MEMORY_USED:        0
+</code></pre>
+
+<p>  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0
+```</p>
+
+<p>有价值的两个值：</p>
+
+<ul>
+<li>PSS（Proportional Set Size ）<br/>
+应用本身所占的物理内存 + 和其他应用share的内存。这个值会被系统作为这个应用的phisical memory footprint</li>
+<li>Private Dirty<br/>
+应用本身所占的物理内存，如果把该应用杀掉，那么就会释放这些内存
+通过AppContexts和Activities可以判断应用是否有activity内存泄漏（如果这个值一直在增长）。</li>
+</ul>
+
+
+<h2>Tips for memory usage</h2>
+
+<blockquote><p><a href="http://developer.android.com/training/articles/memory.html">http://developer.android.com/training/articles/memory.html</a></p></blockquote>
+
+<ol>
+<li>Service会阻止进程被系统杀掉，不要让service一直运行，最好使用IntentService，运行完一个job就退出。</li>
+<li>在onTrimMemory回调中释放UI资源（注意：这里不同于onStop）</li>
+<li>使用getMemoryClass()获得应用的heap大小。app也可以使用android:largeHeap选项请求大的heap（慎用！）。</li>
+<li>使用优化过的数据结构： SparseArray, SparseBooleanArray, and LongSparseArray.</li>
+<li>除非有必要，否则不要抽象代码</li>
+<li>使用nano protocol buffer来取代xml序列化数据</li>
+<li>谨慎使用第三方库，因为这些库并不适合移动设备的运行环境。也不要为了使用so库中一两个功能，而引入整个库。</li>
+<li>使用ProGuard来压缩代码：去除无用的代码，同时混淆代码</li>
+<li>涉及到UI资源的进程很占内存。所以如果需要后台运行的service，如音乐播放，可以将这个service配置到另外的进程里，这样系统可以不用为了保持这个service服务的运行，而必须保留占内存的UI进程。</li>
+</ol>
+
+
+<h2>其他工具</h2>
+
+<p>adb shell procrank<br/>
+adb shell cat /proc/meminfo</p>
+
+<h2>Reference</h2>
+
+<p><a href="http://developer.android.com/tools/debugging/debugging-memory.html">http://developer.android.com/tools/debugging/debugging-memory.html</a>
+<a href="http://elinux.org/Android_Memory_Usage">http://elinux.org/Android_Memory_Usage</a>
+<a href="http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/">http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[bitmap内存管理]]></title>
+    <link href="http://calvinlee.github.io/blog/2014/02/20/managing-bitmap-memory/"/>
+    <updated>2014-02-20T22:37:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2014/02/20/managing-bitmap-memory</id>
     <content type="html"><![CDATA[
 ]]></content>
   </entry>
@@ -539,149 +632,6 @@ export PATH=/sbin:/system/sbin:/system/bin:/system/xbin
 <li><a href="http://forum.xda-developers.com/showthread.php?t=815557">http://forum.xda-developers.com/showthread.php?t=815557</a></li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[android get control socket]]></title>
-    <link href="http://calvinlee.github.io/blog/2012/04/26/android-init-socket/"/>
-    <updated>2012-04-26T00:00:00+08:00</updated>
-    <id>http://calvinlee.github.io/blog/2012/04/26/android-init-socket</id>
-    <content type="html"><![CDATA[<p>/hardware/ril/libril/ril.cpp下有如下代码：</p>
-
-<pre><code>s_fdListen = android_get_control_socket(SOCKET_NAME_RIL);
-if (s_fdListen &lt; 0) {
-    LOGE("Failed to get socket '" SOCKET_NAME_RIL "'");
-    exit(-1);
-}
-
-if (listen(s_fdListen, 4)) {
-    exit(1);
-}
-s_fdCommand = accept(s_fdListen, (sockaddr *) &amp;peeraddr, &amp;socklen);
-</code></pre>
-
-<p>这个android_get_control_socket函数有什么作用呢？
-android_get_control_socket函数定义在/system/core/include/cutils/sockets.h:</p>
-
-<pre><code>#define ANDROID_SOCKET_ENV_PREFIX   "ANDROID_SOCKET_"
-#define ANDROID_SOCKET_DIR      "/dev/socket"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/*
- * android_get_control_socket - simple helper function to get the file
- * descriptor of our init-managed Unix domain socket. `name' is the name of the
- * socket, as given in init.rc. Returns -1 on error.
- *
- * This is inline and not in libcutils proper because we want to use this in
- * third-party daemons with minimal modification.
- */
-static inline int android_get_control_socket(const char *name)
-{
-    char key[64] = ANDROID_SOCKET_ENV_PREFIX;
-    const char *val;
-    int fd;
-
-    /* build our environment variable, counting cycles like a wolf ... */
-#if HAVE_STRLCPY
-    strlcpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
-        name,
-        sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
-#else   /* for the host, which may lack the almightly strncpy ... */
-    strncpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
-        name,
-        sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
-    key[sizeof(key)-1] = '\0';
-#endif
-
-    val = getenv(key); // socket名字和对应的socket文件的文件描述符以键值对的形式存储在环境变量中， 
-    if (!val)
-        return -1;
-
-    errno = 0;
-    fd = strtol(val, NULL, 10);
-    if (errno)
-        return -1;
-
-    return fd;
-}
-</code></pre>
-
-<p>init.rc
-/system/core/init/readme.txt</p>
-
-<p>/system/core/init/util.c</p>
-
-<pre><code>/*
- * create_socket - creates a Unix domain socket in ANDROID_SOCKET_DIR
- * ("/dev/socket") as dictated in init.rc. This socket is inherited by the
- * daemon. We communicate the file descriptor's value via the environment
- * variable ANDROID_SOCKET_ENV_PREFIX&lt;name&gt; ("ANDROID_SOCKET_foo").
- */
-int create_socket(const char *name, int type, mode_t perm, uid_t uid, gid_t gid)
-{
-    struct sockaddr_un addr;
-    int fd, ret;
-
-    fd = socket(PF_UNIX, type, 0);
-    if (fd &lt; 0) {
-        ERROR("Failed to open socket '%s': %s\n", name, strerror(errno));
-        return -1;
-    }
-
-    memset(&amp;addr, 0 , sizeof(addr));
-    addr.sun_family = AF_UNIX;
-    snprintf(addr.sun_path, sizeof(addr.sun_path), ANDROID_SOCKET_DIR"/%s",
-             name);
-
-    ret = unlink(addr.sun_path);
-    if (ret != 0 &amp;&amp; errno != ENOENT) {
-        ERROR("Failed to unlink old socket '%s': %s\n", name, strerror(errno));
-        goto out_close;
-    }
-
-    ret = bind(fd, (struct sockaddr *) &amp;addr, sizeof (addr));
-    if (ret) {
-        ERROR("Failed to bind socket '%s': %s\n", name, strerror(errno));
-        goto out_unlink;
-    }
-
-    chown(addr.sun_path, uid, gid);
-    chmod(addr.sun_path, perm);
-
-    INFO("Created socket '%s' with mode '%o', user '%d', group '%d'\n",
-         addr.sun_path, perm, uid, gid);
-
-    return fd;
-
-out_unlink:
-    unlink(addr.sun_path);
-out_close:
-    close(fd);
-    return -1;
-}
-</code></pre>
-
-<p>init.c</p>
-
-<pre><code>static void publish_socket(const char *name, int fd)
-{
-    char key[64] = ANDROID_SOCKET_ENV_PREFIX;
-    char val[64];
-
-    strlcpy(key + sizeof(ANDROID_SOCKET_ENV_PREFIX) - 1,
-            name,
-            sizeof(key) - sizeof(ANDROID_SOCKET_ENV_PREFIX));
-    snprintf(val, sizeof(val), "%d", fd);
-    add_environment(key, val); //添加到环境变量中
-
-    /* make sure we don't close-on-exec */
-    fcntl(fd, F_SETFD, 0);
-}
-</code></pre>
 ]]></content>
   </entry>
   

@@ -4,7 +4,7 @@
   <title><![CDATA[且听风吟]]></title>
   <link href="http://calvinlee.github.io/atom.xml" rel="self"/>
   <link href="http://calvinlee.github.io/"/>
-  <updated>2013-11-14T10:14:43+08:00</updated>
+  <updated>2014-02-21T23:27:37+08:00</updated>
   <id>http://calvinlee.github.io/</id>
   <author>
     <name><![CDATA[Calvin Lee]]></name>
@@ -12,6 +12,130 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[分析Android App内存占用]]></title>
+    <link href="http://calvinlee.github.io/blog/2014/02/20/analyzing-android-memory-usage/"/>
+    <updated>2014-02-20T22:41:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2014/02/20/analyzing-android-memory-usage</id>
+    <content type="html"><![CDATA[<h2>使用dumpsys</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>shell@android:/ <span class="c"># dumpsys meminfo com.android.systemui</span>
+</span><span class='line'>Applications Memory Usage <span class="o">(</span>kB<span class="o">)</span>:
+</span><span class='line'>Uptime: 296724 Realtime: 296723
+</span><span class='line'>** MEMINFO in pid 2786 <span class="o">[</span>com.android.systemui<span class="o">]</span> **
+</span><span class='line'>                         Shared  Private     Heap     Heap     Heap
+</span><span class='line'>                   Pss    Dirty    Dirty     Size    Alloc     Free
+</span><span class='line'>                ------   ------   ------   ------   ------   ------
+</span><span class='line'>       Native        0        0        0    12540    12384       83
+</span><span class='line'>       Dalvik     8256     5128     8088    13192     8327     4865
+</span><span class='line'>       Cursor        0        0        0
+</span><span class='line'>       Ashmem        0        0        0
+</span><span class='line'>    Other dev        4       24        0
+</span><span class='line'>     .so mmap     1704     1996     1256
+</span><span class='line'>    .jar mmap        0        0        0
+</span><span class='line'>    .apk mmap      750        0        0
+</span><span class='line'>    .ttf mmap        4        0        0
+</span><span class='line'>    .dex mmap     1284        0        0
+</span><span class='line'>   Other mmap       83       20       32
+</span><span class='line'>      Unknown     5692      652     5676
+</span><span class='line'>        TOTAL    17777     7820    15052    25732    20711     4948
+</span><span class='line'>
+</span><span class='line'> Objects
+</span><span class='line'>               Views:      155         ViewRootImpl:        7
+</span><span class='line'>         AppContexts:       12           Activities:        0
+</span><span class='line'>              Assets:        3        AssetManagers:        3
+</span><span class='line'>       Local Binders:       38        Proxy Binders:       38
+</span><span class='line'>    Death Recipients:        3
+</span><span class='line'>     OpenSSL Sockets:        0
+</span><span class='line'>
+</span><span class='line'> SQL
+</span><span class='line'>         MEMORY_USED:        0
+</span><span class='line'>  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有价值的两个值：</p>
+
+<ul>
+<li>PSS（Proportional Set Size ）<br/>
+应用本身所占的物理内存 + 和其他应用share的内存。这个值会被系统作为这个应用的phisical memory footprint</li>
+<li>Private Dirty<br/>
+应用本身所占的物理内存，如果把该应用杀掉，那么就会释放这些内存
+通过AppContexts和Activities可以判断应用是否有activity内存泄漏（如果这个值一直在增长）。</li>
+</ul>
+
+
+<h2>Tips for memory usage</h2>
+
+<blockquote><p><a href="http://developer.android.com/training/articles/memory.html">http://developer.android.com/training/articles/memory.html</a></p></blockquote>
+
+<ol>
+<li>Service会阻止进程被系统杀掉，不要让service一直运行，最好使用IntentService，运行完一个job就退出。</li>
+<li>在onTrimMemory回调中释放UI资源（注意：这里不同于onStop）</li>
+<li>使用getMemoryClass()获得应用的heap大小。app也可以使用android:largeHeap选项请求大的heap（慎用！）。</li>
+<li>使用优化过的数据结构： SparseArray, SparseBooleanArray, and LongSparseArray.</li>
+<li>除非有必要，否则不要抽象代码</li>
+<li>使用nano protocol buffer来取代xml序列化数据</li>
+<li>谨慎使用第三方库，因为这些库并不适合移动设备的运行环境。也不要为了使用so库中一两个功能，而引入整个库。</li>
+<li>使用ProGuard来压缩代码：去除无用的代码，同时混淆代码</li>
+<li>涉及到UI资源的进程很占内存。所以如果需要后台运行的service，如音乐播放，可以将这个service配置到另外的进程里，这样系统可以不用为了保持这个service服务的运行，而必须保留占内存的UI进程。</li>
+</ol>
+
+
+<h2>其他工具</h2>
+
+<p>adb shell procrank<br/>
+adb shell cat /proc/meminfo</p>
+
+<h2>Reference</h2>
+
+<p><a href="http://developer.android.com/tools/debugging/debugging-memory.html">http://developer.android.com/tools/debugging/debugging-memory.html</a>
+<a href="http://elinux.org/Android_Memory_Usage">http://elinux.org/Android_Memory_Usage</a>
+<a href="http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/">http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[bitmap内存管理]]></title>
+    <link href="http://calvinlee.github.io/blog/2014/02/20/managing-bitmap-memory/"/>
+    <updated>2014-02-20T22:37:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2014/02/20/managing-bitmap-memory</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[pmap介绍]]></title>
@@ -473,15 +597,6 @@ Window &ndash;> Preference &ndash;> Keys &ndash;> Word Completion &ndash;> Unbin
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Android Mms 缓存机制分析]]></title>
-    <link href="http://calvinlee.github.io/blog/2013/01/21/android-MMS-cache-implementation/"/>
-    <updated>2013-01-21T00:00:00+08:00</updated>
-    <id>http://calvinlee.github.io/blog/2013/01/21/android-MMS-cache-implementation</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
     <title type="html"><![CDATA[Android消息处理机制理解]]></title>
     <link href="http://calvinlee.github.io/blog/2013/01/20/android-handler-looper-message/"/>
     <updated>2013-01-20T00:00:00+08:00</updated>
@@ -858,39 +973,6 @@ looper.cpp:</p>
 <h1>HanderThread</h1>
 
 <p>HandlerThread最重要的特点是它的looper是在一个子线程中loop的，从而不会阻塞UI线程。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[通过LiveCD更新grub]]></title>
-    <link href="http://calvinlee.github.io/blog/2013/01/18/update-grub-from-livecd/"/>
-    <updated>2013-01-18T00:00:00+08:00</updated>
-    <id>http://calvinlee.github.io/blog/2013/01/18/update-grub-from-livecd</id>
-    <content type="html"><![CDATA[<p><a href="http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd">http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd</a>
-<a href="http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd">http://askubuntu.com/questions/145241/how-do-i-run-update-grub-from-a-livecd</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[UpdateMe]]></title>
-    <link href="http://calvinlee.github.io/blog/2012/12/12/twiki-setup-and-configuraion/"/>
-    <updated>2012-12-12T00:00:00+08:00</updated>
-    <id>http://calvinlee.github.io/blog/2012/12/12/twiki-setup-and-configuraion</id>
-    <content type="html"><![CDATA[<p>Ldap configure:
-ObjectClass=*</p>
-
-<p>Create new web</p>
-
-<p><a href="http://www.john-am.com/2011/01/configuring-ldap-with-twiki/">http://www.john-am.com/2011/01/configuring-ldap-with-twiki/</a></p>
-
-<p>Here is my cron.daily script to update the Ldap entries:</p>
-
-<pre><code>#!/bin/sh # # cd /var/www/twiki/bin &amp;&amp; ./view refreshldap=on Main/WebHome &gt;/dev/null chown www-data:www-data /var/www/twiki/working/work_areas/* -R &gt;/dev/null 
-</code></pre>
-
-<p>多语言支持：
-<a href="http://twiki.org/cgi-bin/view/TWiki/InstallationWithI18N">http://twiki.org/cgi-bin/view/TWiki/InstallationWithI18N</a>
-<a href="http://twiki.org/cgi-bin/view/Codev/UnderstandingEncodings">http://twiki.org/cgi-bin/view/Codev/UnderstandingEncodings</a></p>
 ]]></content>
   </entry>
   
@@ -1382,6 +1464,84 @@ Date: Wed, 06 Jun 2012 06:47:49 GMT
 
 <p>%代表当前编辑文件的文件路径，<code>tee %</code>表示把stdin的输入输入到stdout，同时保存到一个文件。<br/>
 <code>w !{cmd}</code>意思是说执行一个外部命令cmd，同时把当前缓冲区的内从通过管道连接到cmd的stdin。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[改善SD卡读取速度]]></title>
+    <link href="http://calvinlee.github.io/blog/2012/05/31/improve-sd-card-read-speed/"/>
+    <updated>2012-05-31T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2012/05/31/improve-sd-card-read-speed</id>
+    <content type="html"><![CDATA[<p>一年前刷了CM的rom，发现sd卡速度下降了很多，今天看见有人发了一个kernel的patch改善这个问题，原理是修改sys文件系统下的一个read_ahead_kb参数值，这个值指定了每次从SD卡上读取数据时预读的大小。</p>
+
+<pre><code>adb shell 'echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb'
+</code></pre>
+
+<p>但这个值也不是越大越好，128是个比较平衡的值，因为在读取小文件的情况下，如果这个值太大，那么预读的数据很大几率是无用的数据，反而降低性能，<a href="http://forum.xda-developers.com/showthread.php?t=1032317">这个</a>帖子有详细的分析。</p>
+
+<p>这个值的定义在/include/linux/mm.h中：</p>
+
+<pre><code>/* readahead.c */
+#define VM_MAX_READAHEAD    128 /* kbytes */
+#define VM_MIN_READAHEAD    16  /* kbytes (includes current page) */
+</code></pre>
+
+<h3>设置开机生效</h3>
+
+<p>注意：重启后这个设置就失效了，为了避免每次开机后都要设置，可以在init.rc脚本中加上：</p>
+
+<pre><code>write /sys/devices/virtual/bdi/179:0/read_ahead_kb 128
+</code></pre>
+
+<p>或者利用init.d脚本的支持，在/system/etc/init.d目录下创建一个文件10sdcard:</p>
+
+<pre><code>#!/system/bin/sh
+echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb
+
+这样每次开机后都会执行这段脚本。
+</code></pre>
+
+<h3>CM支持init.d开机脚本的方法</h3>
+
+<ol>
+<li><p>在init.rc的class_start default上加上</p>
+
+<pre><code># Run sysinit
+exec /system/bin/sysinit
+
+class_start default
+</code></pre></li>
+<li><p>建立文件/system/bin/sysinit</p>
+
+<pre><code>#!/system/bin/sh
+
+export PATH=/sbin:/system/sbin:/system/bin:/system/xbin
+/system/bin/logwrapper /system/xbin/run-parts /system/etc/init.d
+</code></pre></li>
+</ol>
+
+
+<p>然后将启动脚本放在/system/etc/init.d目录下，这些脚本以数字命名，run-parts命令按照顺序排序依次执行这些脚本(cron命令也是利用run-parts命令执行指定目录下的脚本的，参见/etc/crontab)。</p>
+
+<p>其实也可以这样做：<br/>
+在init.rc的class_start default上加入</p>
+
+<pre><code>start sysinit
+</code></pre>
+
+<p>然后在所有service定义的后面加上：</p>
+
+<pre><code>service sysinit /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
+    disabled
+    oneshot
+</code></pre>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://forum.xda-developers.com/showthread.php?t=815557">http://forum.xda-developers.com/showthread.php?t=815557</a></li>
+</ul>
+
 ]]></content>
   </entry>
   

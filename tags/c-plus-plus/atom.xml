@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Tag: C++ | 且听风吟]]></title>
+  <title><![CDATA[Tag: c++ | 且听风吟]]></title>
   <link href="http://calvinlee.github.io/tags/c-plus-plus/atom.xml" rel="self"/>
   <link href="http://calvinlee.github.io/"/>
-  <updated>2013-11-14T10:14:43+08:00</updated>
+  <updated>2014-02-21T23:27:37+08:00</updated>
   <id>http://calvinlee.github.io/</id>
   <author>
     <name><![CDATA[Calvin Lee]]></name>
@@ -14,64 +14,42 @@
 
   
   <entry>
-    <title type="html"><![CDATA[C++ tips]]></title>
-    <link href="http://calvinlee.github.io/blog/2012/05/11/cpp-learning-tips/"/>
-    <updated>2012-05-11T00:00:00+08:00</updated>
-    <id>http://calvinlee.github.io/blog/2012/05/11/cpp-learning-tips</id>
-    <content type="html"><![CDATA[<h3>字符串</h3>
+    <title type="html"><![CDATA[Chromium base库介绍]]></title>
+    <link href="http://calvinlee.github.io/blog/2013/09/26/Chrominum-base-code-introduction/"/>
+    <updated>2013-09-26T00:00:00+08:00</updated>
+    <id>http://calvinlee.github.io/blog/2013/09/26/Chrominum-base-code-introduction</id>
+    <content type="html"><![CDATA[<p>Chromium的base库包含了一些常用的基础代码，包括:</p>
 
-<p>C++中有两种字符串的表示方法：
-1. C风格的字符串</p>
-
-<pre><code>    #include &lt;cstring&gt;
-    const char *st = "The expense of spirit\n";
+<pre><code>* 文件操作
+* json读写
+* 字符串操作
+* 时间操作
+* 智能指针
 </code></pre>
+
+<p>在线代码浏览：
+<a href="https://code.google.com/p/chromium/codesearch#chromium/src/base/">https://code.google.com/p/chromium/codesearch#chromium/src/base/</a></p>
+
+<h3>常用宏</h3>
 
 <ol>
-<li><p>标准C++引入的 string 类类型(建议使用)</p>
-
-<pre><code> #include &lt;string&gt;
- string st( "The expense of spirit\n" );
-</code></pre>
-
-<p>参照：<a href="http://www.cplusplus.com/reference/string/string/">http://www.cplusplus.com/reference/string/string/</a></p></li>
+<li>DISALLOW_COPY/DISALLOW_ASSIGN/DISALLOW_COPY_AND_ASSIGN
+位于base/basictyps.h，它通过将拷贝构造函数和=运算符重载设置为private来禁用类对象的拷贝和赋值操作。
+示例用法：sql/transaction.h</li>
 </ol>
 
 
-<p>互相转换：</p>
+<h3>智能指针</h3>
 
-<pre><code>// C style to C++ stype
-string s1;
-const char *pc = "a character array";
-s1 = pc; 
+<p>scoped_ptr: base/memory/scoped_ptr.h
+经过scoped_ptr封装的指针在出作用域后自动被释放, 该指针的ownership只能传递，不能拷贝。使用方法见头文件的注释。</p>
 
-// c++ stype to c style
-const char *str = s1.c_str();
-</code></pre>
+<h3>文件操作</h3>
 
-<h3>函数</h3>
-
-<h4>内联函数</h4>
-
-<p>内敛函数在其调用点上被展开，这样省去了函数调用的开销。在类定义中被定义的函数被自动视为inline函数，也可以用inline关键字显示声明一个函数为内敛函数。</p>
-
-<h3>对象的创建与销毁</h3>
-
-<h4>创建对象</h4>
-
-<p>圆点成员选择运算符(.)前面加对象名称或者对象的引用，则可以访问对象的成员;箭头成员选择运算符(&ndash;>)前面加对象的指针，则可以访问对象的成员。<br/>
-析构函数不接受任何参数，也不返回任何值，析构函数不可以执行返回类型，甚至void也不行，一个类只能有一个析构函数，而且不能重载析构函数。</p>
-
-<h4>拷贝构造函数</h4>
-
-<p>当一个对象用本类的另外一个对象实例进行初始化时，拷贝构造函数被自动调用：</p>
-
-<pre><code>ClassA a(100);
-ClassA b = a;
-</code></pre>
-
-<p>拷贝构造函数形为：<code>ClassA(const ClassA&amp;)</code>
-浅拷贝与深拷贝</p>
+<p>base/platform_file.h
+base/file_util.h
+base/files/file_path.h
+base/path_service.h</p>
 ]]></content>
   </entry>
   

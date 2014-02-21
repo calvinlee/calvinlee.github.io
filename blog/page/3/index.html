@@ -9,7 +9,10 @@
   <meta name="author" content="Calvin Lee">
 
   
-  <meta name="description" content="一年前刷了CM的rom，发现sd卡速度下降了很多，今天看见有人发了一个kernel的patch改善这个问题，原理是修改sys文件系统下的一个read_ahead_kb参数值，这个值指定了每次从SD卡上读取数据时预读的大小。 adb shell 'echo 128 &gt; /sys/devices &hellip;">
+  <meta name="description" content="文本内容编码转换 文本显示乱码是因为文件本身的编码格式和编辑器打开文本所使用的编码格式不一致，使用iconv命令可以转换文本编码。如： $ iconv -f coding1 -t coding2 file1 -o file2
+-f:指定文件原始编码
+-t:指定转换的目标编码
+file1: &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -77,114 +80,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/05/31/improve-sd-card-read-speed/">改善SD卡读取速度</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-31T00:00:00+08:00" pubdate data-updated="true">May 31<span>st</span>, 2012</time>
-        
-           | <a href="/blog/2012/05/31/improve-sd-card-read-speed/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/31/improve-sd-card-read-speed/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>一年前刷了CM的rom，发现sd卡速度下降了很多，今天看见有人发了一个kernel的patch改善这个问题，原理是修改sys文件系统下的一个read_ahead_kb参数值，这个值指定了每次从SD卡上读取数据时预读的大小。</p>
-
-<pre><code>adb shell 'echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb'
-</code></pre>
-
-<p>但这个值也不是越大越好，128是个比较平衡的值，因为在读取小文件的情况下，如果这个值太大，那么预读的数据很大几率是无用的数据，反而降低性能，<a href="http://forum.xda-developers.com/showthread.php?t=1032317">这个</a>帖子有详细的分析。</p>
-
-<p>这个值的定义在/include/linux/mm.h中：</p>
-
-<pre><code>/* readahead.c */
-#define VM_MAX_READAHEAD    128 /* kbytes */
-#define VM_MIN_READAHEAD    16  /* kbytes (includes current page) */
-</code></pre>
-
-<h3>设置开机生效</h3>
-
-<p>注意：重启后这个设置就失效了，为了避免每次开机后都要设置，可以在init.rc脚本中加上：</p>
-
-<pre><code>write /sys/devices/virtual/bdi/179:0/read_ahead_kb 128
-</code></pre>
-
-<p>或者利用init.d脚本的支持，在/system/etc/init.d目录下创建一个文件10sdcard:</p>
-
-<pre><code>#!/system/bin/sh
-echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb
-
-这样每次开机后都会执行这段脚本。
-</code></pre>
-
-<h3>CM支持init.d开机脚本的方法</h3>
-
-<ol>
-<li><p>在init.rc的class_start default上加上</p>
-
-<pre><code># Run sysinit
-exec /system/bin/sysinit
-
-class_start default
-</code></pre></li>
-<li><p>建立文件/system/bin/sysinit</p>
-
-<pre><code>#!/system/bin/sh
-
-export PATH=/sbin:/system/sbin:/system/bin:/system/xbin
-/system/bin/logwrapper /system/xbin/run-parts /system/etc/init.d
-</code></pre></li>
-</ol>
-
-
-<p>然后将启动脚本放在/system/etc/init.d目录下，这些脚本以数字命名，run-parts命令按照顺序排序依次执行这些脚本(cron命令也是利用run-parts命令执行指定目录下的脚本的，参见/etc/crontab)。</p>
-
-<p>其实也可以这样做：<br/>
-在init.rc的class_start default上加入</p>
-
-<pre><code>start sysinit
-</code></pre>
-
-<p>然后在所有service定义的后面加上：</p>
-
-<pre><code>service sysinit /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
-    disabled
-    oneshot
-</code></pre>
-
-<h3>Reference</h3>
-
-<ul>
-<li><a href="http://forum.xda-developers.com/showthread.php?t=815557">http://forum.xda-developers.com/showthread.php?t=815557</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -1011,98 +906,6 @@ Java提供了动态代理的支持，结构如下：</p>
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2012/05/11/cpp-learning-tips/">C++ Tips</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-05-11T00:00:00+08:00" pubdate data-updated="true">May 11<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/05/11/cpp-learning-tips/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/11/cpp-learning-tips/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>字符串</h3>
-
-<p>C++中有两种字符串的表示方法：
-1. C风格的字符串</p>
-
-<pre><code>    #include &lt;cstring&gt;
-    const char *st = "The expense of spirit\n";
-</code></pre>
-
-<ol>
-<li><p>标准C++引入的 string 类类型(建议使用)</p>
-
-<pre><code> #include &lt;string&gt;
- string st( "The expense of spirit\n" );
-</code></pre>
-
-<p>参照：<a href="http://www.cplusplus.com/reference/string/string/">http://www.cplusplus.com/reference/string/string/</a></p></li>
-</ol>
-
-
-<p>互相转换：</p>
-
-<pre><code>// C style to C++ stype
-string s1;
-const char *pc = "a character array";
-s1 = pc; 
-
-// c++ stype to c style
-const char *str = s1.c_str();
-</code></pre>
-
-<h3>函数</h3>
-
-<h4>内联函数</h4>
-
-<p>内敛函数在其调用点上被展开，这样省去了函数调用的开销。在类定义中被定义的函数被自动视为inline函数，也可以用inline关键字显示声明一个函数为内敛函数。</p>
-
-<h3>对象的创建与销毁</h3>
-
-<h4>创建对象</h4>
-
-<p>圆点成员选择运算符(.)前面加对象名称或者对象的引用，则可以访问对象的成员;箭头成员选择运算符(&ndash;>)前面加对象的指针，则可以访问对象的成员。<br/>
-析构函数不接受任何参数，也不返回任何值，析构函数不可以执行返回类型，甚至void也不行，一个类只能有一个析构函数，而且不能重载析构函数。</p>
-
-<h4>拷贝构造函数</h4>
-
-<p>当一个对象用本类的另外一个对象实例进行初始化时，拷贝构造函数被自动调用：</p>
-
-<pre><code>ClassA a(100);
-ClassA b = a;
-</code></pre>
-
-<p>拷贝构造函数形为：<code>ClassA(const ClassA&amp;)</code>
-浅拷贝与深拷贝</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
       <h1 class="entry-title"><a href="/blog/2012/05/06/initial-boot-up-sequence-of-pc/">Archlinux开机初始化基本步骤</a></h1>
     
     
@@ -1264,6 +1067,223 @@ init程序首先读取/etc/inittab文件,这个过程参照<a href="https://wiki
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/05/04/archlinux-adjustment-tips/">Archlinux调教小记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-04T00:00:00+08:00" pubdate data-updated="true">May 4<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/05/04/archlinux-adjustment-tips/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/04/archlinux-adjustment-tips/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>开机时设置屏幕亮度为最暗</h3>
+
+<pre><code>sudo echo 'echo 0 &gt; /sys/class/backlight/acpi_video0/brightness'&gt;&gt;/etc/rc.local
+</code></pre>
+
+<h3>关机或者重启时最后屏幕变黑，但是机器一直关不掉，只有强行按电源键关闭</h3>
+
+<p>原因在于我试图在开机时关掉Navia显卡<a href="https://wiki.archlinux.org/index.php/Dell_XPS_15#System_Settings">https://wiki.archlinux.org/index.php/Dell_XPS_15#System_Settings</a>：</p>
+
+<pre><code>rc.conf中
+MODULES=(acpi_call)
+rc.local中
+echo '\_SB.PCI0.PEG0.PEGP._OFF' &gt; /proc/acpi/call
+</code></pre>
+
+<p>由此会造成这个问题，去掉开机加载acpi_call模块就行了，为什么会这样呢？不知道&hellip;</p>
+
+<h3>音量设置</h3>
+
+<pre><code>#pacman -S alsa-utils alsa-lib
+#alsactl store
+</code></pre>
+
+<h3>ibus输入中文显示乱码</h3>
+
+<p>使用ibus输入中文，在gedit下没有问题，在terminal中或者gvim中输入显示乱码
+google得知是glibc的问题，在/etc/locale.gen中去掉zh_CN.UTF-8的注释，再运行locale-gen即可</p>
+
+<h3>下载firefox后执行./firefox失败，</h3>
+
+<pre><code>$ /opt/firefox/firefox
+/opt/firefox/firefox: error while loading shared libraries: libstdc++.so.6: cannot open shared object file: No such file or directory
+$ file /opt/firefox/firefox
+/opt/firefox/firefox: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.9, stripped
+$ ldd /opt/firefox/firefox
+    linux-gate.so.1 =&gt;  (0xf7753000)
+    libpthread.so.0 =&gt; /usr/lib32/libpthread.so.0 (0xf771d000)
+    libdl.so.2 =&gt; /usr/lib32/libdl.so.2 (0xf7718000)
+    libstdc++.so.6 =&gt; not found
+    libm.so.6 =&gt; /usr/lib32/libm.so.6 (0xf76ea000)
+    libgcc_s.so.1 =&gt; not found
+    libc.so.6 =&gt; /usr/lib32/libc.so.6 (0xf7546000)
+    /lib/ld-linux.so.2 (0xf7754000)
+</code></pre>
+
+<p>原因是firefox可执行文件是为32位平台编译的，在我的64位机器上的/lib等目录下缺少相应的64位库文件，下载<a href="ftp://ftp.mozilla.org/pub/firefox/">ftp://ftp.mozilla.org/pub/firefox/</a>64位firefox即可。</p>
+
+<h3>Microsoft wireless mobile mouse 3500纵向滚动过快</h3>
+
+<p>每当从windows重启进入arch时会发现微软无线鼠标3500滚轮纵向滚动太快，每次拔下无线接收器问题就能解决，然而有一个更好的办法，见<a href="http://www.jochus.be/site/2010-08-02/linux/microsoft-wireless-laser-mouse-5000-scroll-speed-too-fast-ubuntu-lucid-1004-lts">here</a>,<a href="https://github.com/paulrichards321/resetmsmice">here</a>有一个patch可以解决这个问题。<br/>
+编译安装后在/etc/rc.local中添加<code>resetmsmice</code>即可。</p>
+
+<h3>Disable PC Speaker Beep</h3>
+
+<p><a href="https://wiki.archlinux.org/index.php/Disable_PC_Speaker_Beep">https://wiki.archlinux.org/index.php/Disable_PC_Speaker_Beep</a></p>
+
+<h3>禁用IPv6</h3>
+
+<p>添加ipv6.disable=1你的启动加载器的内核行中。<br/>
+另外可以通过sysctl禁用IPv6，添加下面的内容到 /etc/sysctl.conf:</p>
+
+<pre><code># Disable IPv6
+net.ipv6.conf.all.disable_ipv6 = 1
+</code></pre>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/05/04/Why-prefer-static-inner-class/">为什么要使用static内部类</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-04T00:00:00+08:00" pubdate data-updated="true">May 4<span>th</span>, 2012</time>
+        
+           | <a href="/blog/2012/05/04/Why-prefer-static-inner-class/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/04/Why-prefer-static-inner-class/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>看一个例子：</p>
+
+<pre><code>public class OuterClass {
+    class NonStaticInner {
+    }
+    static class StaticInner {
+    }
+    public void foo() {
+        NonStaticInner nonStaticInner = new NonStaticInner();
+        StaticInner staticInner = new StaticInner();
+    }
+}
+</code></pre>
+
+<p>编译后生成三个class文件：</p>
+
+<pre><code>$ tree
+.
+└── com
+    └── java
+        └── demo
+            ├── OuterClass.class
+            ├── OuterClass$NonStaticInner.class
+            ├── OuterClass$StaticInner.class
+</code></pre>
+
+<p>使用javap反编译class文件：</p>
+
+<pre><code>$ javap -classpath . -private -c com.java.demo.OuterClass\$StaticInner
+Compiled from "OuterClass.java"
+class com.java.demo.OuterClass$StaticInner extends java.lang.Object{
+com.java.demo.OuterClass$StaticInner();
+  Code:
+   0:   aload_0
+   1:   invokespecial   #8; //Method java/lang/Object."&lt;init&gt;":()V
+   4:   return
+}
+
+$ javap -classpath . -private -c com.java.demo.OuterClass\$NonStaticInner
+Compiled from "OuterClass.java"
+class com.java.demo.OuterClass$NonStaticInner extends java.lang.Object{
+final com.java.demo.OuterClass this$0;
+
+com.java.demo.OuterClass$NonStaticInner(com.java.demo.OuterClass);
+  Code:
+   0:   aload_0
+   1:   aload_1
+   2:   putfield    #10; //Field this$0:Lcom/java/demo/OuterClass;
+   5:   aload_0
+   6:   invokespecial   #12; //Method java/lang/Object."&lt;init&gt;":()V
+   9:   return
+}
+</code></pre>
+
+<p>从反编译的结果可以看出static内部类和non-static内部类的区别：<br/>
+<strong>对non-static内部类来说，它会持有一个外部类的引用.</strong>编译器会生成一个构造方法，并传入外部类的引用，像这样：</p>
+
+<pre><code>class NonStaticInner {
+    private final OuterClass this$0;
+
+    OuterClass$NonStaticInner(OuterClass outer) {
+        this$0 = outer;
+    }
+}
+</code></pre>
+
+<p>这样的话，每生成一个内部类，都会增加一个对外部类的引用，从而阻止GC来回收外部类。在Android中，如果这个外部类是一个activity类，从而会间接引用更多的图片等资源，不小心的话可能会造成内存泄漏。<br/>
+而对static的内部类则不会持有所在外部类的引用。<br/>
+所以，从GC的角度考虑，应该尽可能使用static的内部类.</p>
+
+<h3>Reference：</h3>
+
+<ul>
+<li><a href="http://stackoverflow.com/questions/3106912/why-does-android-prefer-static-classes">http://stackoverflow.com/questions/3106912/why-does-android-prefer-static-classes</a></li>
+<li><a href="http://www.techrepublic.com/article/examine-class-files-with-the-javap-command/5815354">http://www.techrepublic.com/article/examine-class-files-with-the-javap-command/5815354</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/4/">&larr; Older</a>
@@ -1281,6 +1301,14 @@ init程序首先读取/etc/inittab文件,这个过程参照<a href="https://wiki
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
       </li>
     
@@ -1292,22 +1320,13 @@ init程序首先读取/etc/inittab文件,这个过程参照<a href="https://wiki
         <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/09/26/Chrominum-base-code-introduction/">Chromium Base库介绍</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
     <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
-<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
-<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
 <li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
 <li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
 <li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
@@ -1319,7 +1338,7 @@ init程序首先读取/etc/inittab文件,这个过程参照<a href="https://wiki
 <li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
 <li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
 <li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
-<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
 
   </ul>
 </section>
@@ -1327,36 +1346,34 @@ init程序首先读取/etc/inittab文件,这个过程参照<a href="https://wiki
 <section>
   <h1>Tags</h1>
   <ul class="tag-cloud">
-    <a style="font-size: 90%" href="/tags/c-plus-plus/">C++</a>
-<a style="font-size: 156%" href="/tags/cyu-yan/">C语言</a>
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
 <a style="font-size: 210%" href="/tags/android/">android</a>
-<a style="font-size: 118%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
 <a style="font-size: 90%" href="/tags/awk/">awk</a>
-<a style="font-size: 90%" href="/tags/c/">c</a>
 <a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
-<a style="font-size: 118%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
 <a style="font-size: 90%" href="/tags/debug/">debug</a>
-<a style="font-size: 118%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
 <a style="font-size: 90%" href="/tags/gcc/">gcc</a>
-<a style="font-size: 135%" href="/tags/git/">git</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
 <a style="font-size: 90%" href="/tags/github/">github</a>
-<a style="font-size: 90%" href="/tags/graphics/">graphics</a>
-<a style="font-size: 118%" href="/tags/http/">http</a>
-<a style="font-size: 156%" href="/tags/java/">java</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
 <a style="font-size: 90%" href="/tags/kernel/">kernel</a>
 <a style="font-size: 90%" href="/tags/kindle/">kindle</a>
-<a style="font-size: 175%" href="/tags/linux/">linux</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
 <a style="font-size: 90%" href="/tags/permission/">permission</a>
 <a style="font-size: 90%" href="/tags/php/">php</a>
 <a style="font-size: 90%" href="/tags/proxy/">proxy</a>
 <a style="font-size: 90%" href="/tags/shell/">shell</a>
 <a style="font-size: 90%" href="/tags/socket/">socket</a>
-<a style="font-size: 163%" href="/tags/todo/">todo</a>
-<a style="font-size: 135%" href="/tags/vim/">vim</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
 <a style="font-size: 90%" href="/tags/window/">window</a>
-<a style="font-size: 175%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
 <a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
-<a style="font-size: 118%" href="/tags/zhuan-zai/">转载</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
 
   </ul>
 </section>
@@ -1370,7 +1387,7 @@ init程序首先读取/etc/inittab文件,这个过程参照<a href="https://wiki
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2013 - Calvin Lee -
+  Copyright &copy; 2014 - Calvin Lee -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

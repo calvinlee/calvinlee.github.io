@@ -9,8 +9,9 @@
   <meta name="author" content="Calvin Lee">
 
   
-  <meta name="description" content="Ldap configure:
-ObjectClass=* Create new web http://www.john-am.com/2011/01/configuring-ldap-with-twiki/ Here is my cron.daily script to update the &hellip;">
+  <meta name="description" content="字符串 &mdash;> Epoch $ date -d "2012/11/29" +%s
+1354118400 Epoch &mdash;> 字符串 $ date -d@1354118400
+Thu Nov 29 00:00:00 CST 2012 或者加上格式控制： $ date -d@ &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -78,59 +79,6 @@ ObjectClass=* Create new web http://www.john-am.com/2011/01/configuring-ldap-wit
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/12/12/twiki-setup-and-configuraion/">UpdateMe</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-12-12T00:00:00+08:00" pubdate data-updated="true">Dec 12<span>th</span>, 2012</time>
-        
-           | <a href="/blog/2012/12/12/twiki-setup-and-configuraion/#disqus_thread"
-             data-disqus-identifier="http://calvinlee.github.io/blog/2012/12/12/twiki-setup-and-configuraion/">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Ldap configure:
-ObjectClass=*</p>
-
-<p>Create new web</p>
-
-<p><a href="http://www.john-am.com/2011/01/configuring-ldap-with-twiki/">http://www.john-am.com/2011/01/configuring-ldap-with-twiki/</a></p>
-
-<p>Here is my cron.daily script to update the Ldap entries:</p>
-
-<pre><code>#!/bin/sh # # cd /var/www/twiki/bin &amp;&amp; ./view refreshldap=on Main/WebHome &gt;/dev/null chown www-data:www-data /var/www/twiki/working/work_areas/* -R &gt;/dev/null 
-</code></pre>
-
-<p>多语言支持：
-<a href="http://twiki.org/cgi-bin/view/TWiki/InstallationWithI18N">http://twiki.org/cgi-bin/view/TWiki/InstallationWithI18N</a>
-<a href="http://twiki.org/cgi-bin/view/Codev/UnderstandingEncodings">http://twiki.org/cgi-bin/view/Codev/UnderstandingEncodings</a></p>
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -893,6 +841,114 @@ Date: Wed, 06 Jun 2012 06:47:49 GMT
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/05/31/improve-sd-card-read-speed/">改善SD卡读取速度</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-05-31T00:00:00+08:00" pubdate data-updated="true">May 31<span>st</span>, 2012</time>
+        
+           | <a href="/blog/2012/05/31/improve-sd-card-read-speed/#disqus_thread"
+             data-disqus-identifier="http://calvinlee.github.io/blog/2012/05/31/improve-sd-card-read-speed/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>一年前刷了CM的rom，发现sd卡速度下降了很多，今天看见有人发了一个kernel的patch改善这个问题，原理是修改sys文件系统下的一个read_ahead_kb参数值，这个值指定了每次从SD卡上读取数据时预读的大小。</p>
+
+<pre><code>adb shell 'echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb'
+</code></pre>
+
+<p>但这个值也不是越大越好，128是个比较平衡的值，因为在读取小文件的情况下，如果这个值太大，那么预读的数据很大几率是无用的数据，反而降低性能，<a href="http://forum.xda-developers.com/showthread.php?t=1032317">这个</a>帖子有详细的分析。</p>
+
+<p>这个值的定义在/include/linux/mm.h中：</p>
+
+<pre><code>/* readahead.c */
+#define VM_MAX_READAHEAD    128 /* kbytes */
+#define VM_MIN_READAHEAD    16  /* kbytes (includes current page) */
+</code></pre>
+
+<h3>设置开机生效</h3>
+
+<p>注意：重启后这个设置就失效了，为了避免每次开机后都要设置，可以在init.rc脚本中加上：</p>
+
+<pre><code>write /sys/devices/virtual/bdi/179:0/read_ahead_kb 128
+</code></pre>
+
+<p>或者利用init.d脚本的支持，在/system/etc/init.d目录下创建一个文件10sdcard:</p>
+
+<pre><code>#!/system/bin/sh
+echo 128 &gt; /sys/devices/virtual/bdi/179:0/read_ahead_kb
+
+这样每次开机后都会执行这段脚本。
+</code></pre>
+
+<h3>CM支持init.d开机脚本的方法</h3>
+
+<ol>
+<li><p>在init.rc的class_start default上加上</p>
+
+<pre><code># Run sysinit
+exec /system/bin/sysinit
+
+class_start default
+</code></pre></li>
+<li><p>建立文件/system/bin/sysinit</p>
+
+<pre><code>#!/system/bin/sh
+
+export PATH=/sbin:/system/sbin:/system/bin:/system/xbin
+/system/bin/logwrapper /system/xbin/run-parts /system/etc/init.d
+</code></pre></li>
+</ol>
+
+
+<p>然后将启动脚本放在/system/etc/init.d目录下，这些脚本以数字命名，run-parts命令按照顺序排序依次执行这些脚本(cron命令也是利用run-parts命令执行指定目录下的脚本的，参见/etc/crontab)。</p>
+
+<p>其实也可以这样做：<br/>
+在init.rc的class_start default上加入</p>
+
+<pre><code>start sysinit
+</code></pre>
+
+<p>然后在所有service定义的后面加上：</p>
+
+<pre><code>service sysinit /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
+    disabled
+    oneshot
+</code></pre>
+
+<h3>Reference</h3>
+
+<ul>
+<li><a href="http://forum.xda-developers.com/showthread.php?t=815557">http://forum.xda-developers.com/showthread.php?t=815557</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/3/">&larr; Older</a>
@@ -910,6 +966,14 @@ Date: Wed, 06 Jun 2012 06:47:49 GMT
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/02/20/analyzing-android-memory-usage/">分析Android App内存占用</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/20/managing-bitmap-memory/">Bitmap内存管理</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/11/11/introducing-pmap/">Pmap介绍</a>
       </li>
     
@@ -921,22 +985,13 @@ Date: Wed, 06 Jun 2012 06:47:49 GMT
         <a href="/blog/2013/11/04/disable-kernel-random-address/">禁用内核进程地址随机</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/09/26/Chrominum-base-code-introduction/">Chromium Base库介绍</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/02/25/strcpy-memcpy/">Strcpy和memcpy的区别</a>
-      </li>
-    
   </ul>
 </section>
 <section>
   <h1>Categories</h1>
   <ul id="categories">
     <li class='category'><a href='/blog/categories/android/'>Android (12)</a></li>
-<li class='category'><a href='/blog/categories/c-/'>C++ (1)</a></li>
-<li class='category'><a href='/blog/categories/c语言/'>C语言 (5)</a></li>
+<li class='category'><a href='/blog/categories/c语言/'>C语言 (4)</a></li>
 <li class='category'><a href='/blog/categories/eclipse/'>Eclipse (2)</a></li>
 <li class='category'><a href='/blog/categories/git/'>Git (3)</a></li>
 <li class='category'><a href='/blog/categories/http/'>HTTP (1)</a></li>
@@ -948,7 +1003,7 @@ Date: Wed, 06 Jun 2012 06:47:49 GMT
 <li class='category'><a href='/blog/categories/vim/'>Vim (1)</a></li>
 <li class='category'><a href='/blog/categories/chromium/'>chromium (1)</a></li>
 <li class='category'><a href='/blog/categories/设计模式/'>设计模式 (1)</a></li>
-<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (3)</a></li>
+<li class='category'><a href='/blog/categories/读书笔记/'>读书笔记 (2)</a></li>
 
   </ul>
 </section>
@@ -956,36 +1011,34 @@ Date: Wed, 06 Jun 2012 06:47:49 GMT
 <section>
   <h1>Tags</h1>
   <ul class="tag-cloud">
-    <a style="font-size: 90%" href="/tags/c-plus-plus/">C++</a>
-<a style="font-size: 156%" href="/tags/cyu-yan/">C语言</a>
+    <a style="font-size: 158%" href="/tags/cyu-yan/">C语言</a>
 <a style="font-size: 210%" href="/tags/android/">android</a>
-<a style="font-size: 118%" href="/tags/archlinux/">archlinux</a>
+<a style="font-size: 90%" href="/tags/androidwen-dang-xue-xi/">android文档学习</a>
+<a style="font-size: 119%" href="/tags/archlinux/">archlinux</a>
 <a style="font-size: 90%" href="/tags/awk/">awk</a>
-<a style="font-size: 90%" href="/tags/c/">c</a>
 <a style="font-size: 90%" href="/tags/c-plus-plus/">c++</a>
-<a style="font-size: 118%" href="/tags/csapp/">csapp</a>
+<a style="font-size: 90%" href="/tags/csapp/">csapp</a>
 <a style="font-size: 90%" href="/tags/debug/">debug</a>
-<a style="font-size: 118%" href="/tags/eclipse/">eclipse</a>
+<a style="font-size: 119%" href="/tags/eclipse/">eclipse</a>
 <a style="font-size: 90%" href="/tags/gcc/">gcc</a>
-<a style="font-size: 135%" href="/tags/git/">git</a>
+<a style="font-size: 137%" href="/tags/git/">git</a>
 <a style="font-size: 90%" href="/tags/github/">github</a>
-<a style="font-size: 90%" href="/tags/graphics/">graphics</a>
-<a style="font-size: 118%" href="/tags/http/">http</a>
-<a style="font-size: 156%" href="/tags/java/">java</a>
+<a style="font-size: 119%" href="/tags/http/">http</a>
+<a style="font-size: 158%" href="/tags/java/">java</a>
 <a style="font-size: 90%" href="/tags/kernel/">kernel</a>
 <a style="font-size: 90%" href="/tags/kindle/">kindle</a>
-<a style="font-size: 175%" href="/tags/linux/">linux</a>
+<a style="font-size: 178%" href="/tags/linux/">linux</a>
 <a style="font-size: 90%" href="/tags/permission/">permission</a>
 <a style="font-size: 90%" href="/tags/php/">php</a>
 <a style="font-size: 90%" href="/tags/proxy/">proxy</a>
 <a style="font-size: 90%" href="/tags/shell/">shell</a>
 <a style="font-size: 90%" href="/tags/socket/">socket</a>
-<a style="font-size: 163%" href="/tags/todo/">todo</a>
-<a style="font-size: 135%" href="/tags/vim/">vim</a>
+<a style="font-size: 149%" href="/tags/todo/">todo</a>
+<a style="font-size: 137%" href="/tags/vim/">vim</a>
 <a style="font-size: 90%" href="/tags/window/">window</a>
-<a style="font-size: 175%" href="/tags/ming-ling/">命令</a>
+<a style="font-size: 178%" href="/tags/ming-ling/">命令</a>
 <a style="font-size: 90%" href="/tags/she-ji-mo-shi/">设计模式</a>
-<a style="font-size: 118%" href="/tags/zhuan-zai/">转载</a>
+<a style="font-size: 119%" href="/tags/zhuan-zai/">转载</a>
 
   </ul>
 </section>
@@ -999,7 +1052,7 @@ Date: Wed, 06 Jun 2012 06:47:49 GMT
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2013 - Calvin Lee -
+  Copyright &copy; 2014 - Calvin Lee -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
