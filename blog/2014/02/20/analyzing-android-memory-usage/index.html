@@ -235,6 +235,21 @@ shell@android:/ # dumpsys meminfo com.android. &hellip;">
 </ol>
 
 
+<p>其它影响应用内存占用的因素：</p>
+
+<ol>
+<li>内存泄露。如使用static的Context引用，保存过多大对象，如Bitmap。</li>
+<li><p>线程对象引起的内存泄露。当一个线程作为一个activity的内部类时，它的对象会隐式持有一个外部类，也就是Activity实例的引用，而线程的生命周期不容易控制，很容易引起Activity资源的泄露。解决方案：</p>
+
+<ul>
+<li>使用static的内部类</li>
+<li>使用弱引用保存Context引用</li>
+</ul>
+</li>
+<li>数据库游标泄露。</li>
+</ol>
+
+
 <h2>其他工具</h2>
 
 <p>adb shell procrank<br/>
@@ -242,8 +257,8 @@ adb shell cat /proc/meminfo</p>
 
 <h2>Reference</h2>
 
-<p><a href="http://developer.android.com/tools/debugging/debugging-memory.html">http://developer.android.com/tools/debugging/debugging-memory.html</a>
-<a href="http://elinux.org/Android_Memory_Usage">http://elinux.org/Android_Memory_Usage</a>
+<p><a href="http://developer.android.com/tools/debugging/debugging-memory.html">http://developer.android.com/tools/debugging/debugging-memory.html</a><br/>
+<a href="http://elinux.org/Android_Memory_Usage">http://elinux.org/Android_Memory_Usage</a><br/>
 <a href="http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/">http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/</a></p>
 </div>
 
@@ -288,7 +303,7 @@ adb shell cat /proc/meminfo</p>
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/02/20/managing-bitmap-memory/" title="Previous Post: bitmap内存管理">&laquo; bitmap内存管理</a>
+        <a class="basic-alignment left" href="/blog/2014/02/20/managing-bitmap-memory/" title="Previous Post: Bitmap内存管理">&laquo; Bitmap内存管理</a>
       
       
     </p>

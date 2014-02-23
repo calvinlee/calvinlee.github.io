@@ -4,7 +4,7 @@
   <title><![CDATA[Tag: android文档学习 | 且听风吟]]></title>
   <link href="http://calvinlee.github.io/tags/androidwen-dang-xue-xi/atom.xml" rel="self"/>
   <link href="http://calvinlee.github.io/"/>
-  <updated>2014-02-21T23:27:37+08:00</updated>
+  <updated>2014-02-23T15:23:50+08:00</updated>
   <id>http://calvinlee.github.io/</id>
   <author>
     <name><![CDATA[Calvin Lee]]></name>
@@ -14,11 +14,51 @@
 
   
   <entry>
-    <title type="html"><![CDATA[bitmap内存管理]]></title>
+    <title type="html"><![CDATA[Bitmap内存管理]]></title>
     <link href="http://calvinlee.github.io/blog/2014/02/20/managing-bitmap-memory/"/>
     <updated>2014-02-20T22:37:00+08:00</updated>
     <id>http://calvinlee.github.io/blog/2014/02/20/managing-bitmap-memory</id>
-    <content type="html"><![CDATA[
+    <content type="html"><![CDATA[<p>每个App所分配的最大内存在<a href="http://source.android.com/compatibility/downloads.html">Android Compatibility Definition Document (CDD)</a>中3.7节Virtual Machine Capability中有说明，最小至16MB。对Bitmap的处理不当，将很容易超出这个限制而导致OutOfMemoryException。</p>
+
+<p>以下是官方文档推荐的一些处理Bitmap的优化措施。</p>
+
+<h2>Scale Bitmap before loading into memory</h2>
+
+<p>加载bitmap前的必要工作，使用<a href="http://developer.android.com/reference/android/graphics/BitmapFactory.Options.html">BitmapFactory.Options</a> 的 <em>inJustDecodeBounds</em> 选项加载按比例压缩后的bitmap到内存。</p>
+
+<h2>使用AsyncTask加载bitmap</h2>
+
+<p>这里需要注意在ListView，GridView这种组件中，当用户快速滑动时，处理不当将产生大量AsyncTask，并且AsyncTask由于完成的时机是不确定的，如何将UI上的Bitmap对应到AsyncTask上将是一个问题。</p>
+
+<h2>使用缓存机制</h2>
+
+<h3>Memory cache</h3>
+
+<p><a href="http://developer.android.com/reference/android/util/LruCache.html">LruCache</a>非常适合用来做Bitmap缓存。</p>
+
+<blockquote><p>Android 2.3之后，SoftReference不再适合在缓存中使用，因为2.3之后VM将更加激进的回收SoftReference对象，导致起不到缓存的效果。</p></blockquote>
+
+<h3>Disk cache</h3>
+
+<p>使用磁盘缓存<a href="https://android.googlesource.com/platform/libcore/+/jb-mr2-release/luni/src/main/java/libcore/io/DiskLruCache.java">DiskLruCache</a>来持久化memory cache。</p>
+
+<h2>重用bitmap内存</h2>
+
+<p>Android 3.0之前，bitmap的内存分配在native层，需要依靠app来显示调用recycle来释放它所占用的内存。在3.0之后，bitmap的内存分配在VM的堆上，因此bitmap的内存有GC来管理，一旦侦测到bitmap没有对象引用到它，GC会自动释放bitmap的内存。</p>
+
+<p>随之而来的问题是，bitmap占用的空间比较大，GC在释放bitmap的内存时是一个昂贵的操作，如果你不断的创建新的bitmap对象，GC将不断的被触发起来工作，从而影响程序的性能。</p>
+
+<p>Android3.0之后通过<a href="http://developer.android.com/reference/android/graphics/BitmapFactory.Options.html#inBitmap">BitmapFactory.Options.inBitmap</a>这个选项提供了重用bitmap内存这个功能。如果新的bitmap的大小<strong>小于</strong>一个已经存在的bitmap，那么我们可以重用这个bitmap对象，从而避免创建多个bitmap对象带来的昂贵的GC开销。</p>
+
+<h2>处理系统Configuration changed事件</h2>
+
+<p>系统configuration changed的时候由于Activity将默认被重启，如果加载Bitmap的AsyncTask或者线程没有被正确处理，可能导致产生许多无用的线程。</p>
+
+<h2>Reference</h2>
+
+<p><a href="https://www.youtube.com/watch?v=rsQet4nBVi8">Bitmap Allocation</a><br/>
+<a href="http://developer.android.com/training/displaying-bitmaps/process-bitmap.html#concurrency">ListView加载Bitmap分析</a><br/>
+<a href="http://developer.android.com/shareables/training/BitmapFun.zip">BitmapFun 示例</a></p>
 ]]></content>
   </entry>
   
