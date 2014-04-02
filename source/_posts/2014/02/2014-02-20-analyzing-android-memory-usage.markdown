@@ -72,6 +72,8 @@ adb shell cat /proc/meminfo
 <http://developer.android.com/tools/debugging/debugging-memory.html>
 <http://elinux.org/Android\_Memory\_Usage>
 <http://stackoverflow.com/questions/2298208/how-to-discover-memory-usage-of-my-application-in-android/>
+<http://unix.stackexchange.com/questions/33381/getting-information-about-a-process-memory-usage-from-proc-pid-smaps>
+[Android 4.4 meminfo 实现分析]<http://tech.uc.cn/?p=2714>
 
 
 
